@@ -27,7 +27,7 @@ export default async function LandingPage() {
     { name: 'Tailwind CSS v4', color: 'from-teal-400 to-teal-600 dark:from-teal-300 dark:to-teal-500' },
     { name: 'Prisma ORM', color: 'from-indigo-500 to-indigo-700 dark:from-indigo-300 dark:to-indigo-500' },
     { name: 'Better Auth', color: 'from-emerald-500 to-emerald-700 dark:from-emerald-300 dark:to-emerald-500' },
-    { name: 'PostgreSQL', color: 'from-blue-600 to-blue-800 dark:from-blue-300 dark:to-blue-500' },
+    { name: 'SQLite → Postgres', color: 'from-blue-600 to-blue-800 dark:from-blue-300 dark:to-blue-500' },
     { name: 'shadcn/ui', color: 'from-zinc-600 to-zinc-800 dark:from-zinc-300 dark:to-zinc-500' },
   ]
 
@@ -217,7 +217,7 @@ export default async function LandingPage() {
                   <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
                   <div className="h-3 w-3 rounded-full bg-[#28c840]" />
                   <span className="ml-3 font-mono text-xs text-white/25">
-                    ~/my-next-app
+                    ~/clickstudio-app
                   </span>
                 </div>
 
@@ -226,7 +226,7 @@ export default async function LandingPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-teal-400">{'\u2192'}</span>
                     <span className="text-white/80">
-                      npx create-next-app --use-starter
+                      gh repo create my-app --template clickstudio/clickstudio-starter
                     </span>
                   </div>
                   <div className="mt-5 space-y-2.5 text-white/50">
@@ -417,7 +417,7 @@ export default async function LandingPage() {
                 {/* DB indicator */}
                 <div className="mt-6 flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                  <span className="font-mono text-[11px] text-muted-foreground">PostgreSQL connected</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">SQLite ready · Postgres-ready</span>
                 </div>
               </div>
             </div>

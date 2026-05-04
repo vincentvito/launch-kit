@@ -1,165 +1,89 @@
-# Next.js Starter Template
+# ClickStudio Starter
 
-A production-ready Next.js starter template with authentication, database, and internationalization pre-configured.
+The standard Next.js starter for every ClickStudio project. Auth, i18n, database, and UI components — wired up so a fresh clone runs with **zero external services**.
 
-## Tech Stack
+> **Building with an AI agent?** Read [`AGENTS.md`](./AGENTS.md) first. It's the source of truth for stack, conventions, and what not to do.
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Next.js](https://nextjs.org) | 16.1.6 | React framework with App Router |
-| [React](https://react.dev) | 19.2.3 | UI library |
-| [TypeScript](https://www.typescriptlang.org) | 5.x | Type safety |
-| [Tailwind CSS](https://tailwindcss.com) | 4.x | Styling |
-| [Prisma](https://www.prisma.io) | 7.3.0 | Database ORM |
-| [Better Auth](https://www.better-auth.com) | 1.4.18 | Authentication |
-| [next-intl](https://next-intl.dev) | 4.8.1 | Internationalization |
-| [shadcn/ui](https://ui.shadcn.com) | - | UI components (Radix UI based) |
-| [Lucide React](https://lucide.dev) | 0.563.0 | Icons |
+## Stack
 
-## Features
+| Tech | Version | Purpose |
+|---|---|---|
+| [Next.js](https://nextjs.org) | 16 | App Router, RSC |
+| [React](https://react.dev) | 19 | UI |
+| [TypeScript](https://www.typescriptlang.org) | 5 | Types |
+| [Tailwind CSS](https://tailwindcss.com) | 4 | Styling |
+| [shadcn/ui](https://ui.shadcn.com) | — | Components |
+| [Prisma](https://www.prisma.io) | 7 | ORM (SQLite default, Postgres-ready) |
+| [Better Auth](https://www.better-auth.com) | 1.4 | Auth (email/password + optional Google OAuth) |
+| [next-intl](https://next-intl.dev) | 4 | i18n (EN/ES included) |
+| [Lucide](https://lucide.dev) | — | Icons |
 
-- **Authentication** - Email/password and Google OAuth via Better Auth
-- **Database** - PostgreSQL with Prisma ORM (includes User, Session, Account, Verification models)
-- **Internationalization** - Multi-language support with next-intl (English and Spanish included)
-- **UI Components** - Button and Avatar components from shadcn/ui
-- **Styling** - Tailwind CSS v4 with dark mode support
-- **Type Safety** - Full TypeScript configuration
-
-## Getting Started
-
-### 1. Clone and Install
+## Quick Start
 
 ```bash
-git clone <your-repo-url>
-cd nextjs-starter-template
+gh repo create my-app --template clickstudio/clickstudio-starter --private --clone
+cd my-app
 npm install
-```
-
-### 2. Environment Setup
-
-Copy the example environment file:
-
-```bash
 cp .env.example .env
-```
-
-Configure your environment variables:
-
-```env
-# Auth secret (generate with: openssl rand -base64 32)
-SECRET=your-secret-key
-
-# Google OAuth (optional - get from Google Cloud Console)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# PostgreSQL database URL
-DATABASE_URL=postgresql://user:password@localhost:5432/mydb
-```
-
-### 3. Database Setup
-
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev
-```
-
-### 4. Run Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your app.
+That's it. Open <http://localhost:3000>. SQLite is created automatically on first run; no database server needed.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Run migrations then start Next dev server |
+| `npm run build` | Run migrations then build for production |
+| `npm run start` | Start the production server |
+| `npm run lint` | ESLint |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run db:reset` | Wipe and re-seed the local SQLite DB |
+
+## Environment
+
+See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
+
+- `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Replace with a `postgres://` URL when graduating to Postgres.
+- `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
+
+## Going to Production
+
+SQLite is for local dev only. Before deploying:
+
+1. Switch Prisma to Postgres (see [`AGENTS.md`](./AGENTS.md) → "Switching SQLite → Postgres").
+2. Set all env vars in Vercel (or your platform of choice).
+3. `npm run build && npm run start`.
 
 ## Project Structure
 
 ```
-├── app/
-│   ├── api/auth/[...all]/    # Better Auth API routes
-│   ├── auth/                  # Auth pages (login, etc.)
-│   ├── dashboard/             # Protected dashboard
-│   ├── changelog/             # Changelog page
-│   ├── layout.tsx             # Root layout with next-intl provider
-│   ├── page.tsx               # Landing page
-│   └── globals.css            # Global styles
-├── components/
-│   ├── ui/                    # shadcn/ui components
-│   └── LanguageSwitcher.tsx   # Language toggle component
-├── lib/
-│   ├── auth.ts                # Better Auth configuration
-│   ├── auth-client.ts         # Auth client for frontend
-│   ├── prisma.ts              # Prisma client instance
-│   ├── utils.ts               # Utility functions (cn)
-│   └── generated/prisma/      # Generated Prisma client
-├── i18n/
-│   └── request.ts             # next-intl configuration
-├── messages/
-│   ├── en.json                # English translations
-│   └── es.json                # Spanish translations
-├── prisma/
-│   └── schema.prisma          # Database schema
-└── public/                    # Static assets
+app/                    Next.js App Router pages and API routes
+  api/auth/[...all]/    better-auth handler
+  auth/login/           Login page
+  dashboard/            Protected dashboard
+  changelog/            Changelog
+components/             App components
+  ui/                   shadcn primitives
+i18n/                   next-intl config
+lib/
+  auth.ts               better-auth server config
+  auth-client.ts        better-auth client hooks
+  prisma.ts             Prisma singleton
+messages/               Translation files (en, es)
+prisma/
+  schema.prisma         Database schema
+  migrations/           Tracked migrations
 ```
 
-## Authentication
+## Updating the Starter
 
-This template uses [Better Auth](https://www.better-auth.com) with:
+This repo is a **GitHub Template Repository**. Downstream apps are independent clones — updates here do not flow into them automatically. That's intentional: shipped projects shouldn't churn because the template moved.
 
-- Email/password authentication (enabled)
-- Google OAuth (requires credentials)
-- Session management with database storage
-- PostgreSQL adapter via Prisma
-
-To add more social providers, update `lib/auth.ts`.
-
-## Internationalization
-
-Languages are managed via JSON files in `/messages`. The current locale is stored in a cookie.
-
-To add a new language:
-1. Create `messages/{locale}.json`
-2. Update the language switcher component
-
-## Adding UI Components
-
-This template includes shadcn/ui. Add more components with:
-
-```bash
-npx shadcn@latest add [component-name]
-```
-
-## Scripts
-
-```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
-```
-
-## Customization
-
-1. Update `app/layout.tsx` metadata with your app name
-2. Replace landing page content in `app/page.tsx`
-3. Modify translations in `messages/`
-4. Add your database models to `prisma/schema.prisma`
-5. Configure additional auth providers in `lib/auth.ts`
-
-## Deployment
-
-Deploy on [Vercel](https://vercel.com) or any platform supporting Next.js:
-
-```bash
-npm run build
-npm run start
-```
-
-Remember to set all environment variables in your deployment platform.
+To pull a future improvement into an existing app, cherry-pick the commit by hand.
 
 ## License
 
-MIT
+MIT — see [`LICENSE`](./LICENSE).

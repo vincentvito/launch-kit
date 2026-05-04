@@ -23,15 +23,15 @@
   },
   "Landing": {
     "nav": {
-      "brand": "Starter",
+      "brand": "ClickStudio",
       "features": "Features",
       "stack": "Stack",
       "signIn": "Sign In",
       "getStarted": "Get Started"
     },
     "hero": {
-      "badge": "Open Source Starter Template",
-      "title": "Every Great Product",
+      "badge": "ClickStudio Starter Template",
+      "title": "Every ClickStudio Product",
       "titleHighlight": "Starts Right Here",
       "description": "Auth, i18n, database, and UI components — all production-ready. Stop configuring infrastructure. Start building what matters.",
       "cta": "Start Building",
@@ -39,7 +39,7 @@
       "terminal": {
         "auth": "Authentication configured (Better Auth + Google OAuth)",
         "i18n": "Internationalization ready (EN/ES with next-intl)",
-        "database": "Database connected (PostgreSQL + Prisma ORM)",
+        "database": "Database connected (SQLite by default, Postgres-ready)",
         "ui": "UI components installed (shadcn/ui + Tailwind CSS)",
         "ready": "\u2713 Ready on http://localhost:3000"
       }
@@ -58,7 +58,7 @@
       },
       "database": {
         "title": "Database & ORM",
-        "description": "PostgreSQL with Prisma ORM, pre-configured with auth tables, migrations, and a singleton client pattern. Ready for your data models."
+        "description": "SQLite out of the box with Prisma ORM — zero setup to launch. Switch to Postgres when you're ready; the pg driver is already installed."
       },
       "components": {
         "title": "UI Components",
@@ -76,7 +76,7 @@
       "button": "Start Building Now"
     },
     "footer": {
-      "copyright": "Next.js Starter Template. All rights reserved.",
+      "copyright": "ClickStudio. All rights reserved.",
       "tagline": "Built for builders who ship."
     }
   },

@@ -39,11 +39,11 @@ export default function LoginPage() {
         <div className="text-center">
           <Link href="/" className="mb-6 inline-flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">R</span>
+              <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">reno</span>
-              sync
+              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">click</span>
+              studio
             </span>
           </Link>
           <h1 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">

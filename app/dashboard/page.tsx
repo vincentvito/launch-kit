@@ -56,11 +56,11 @@ export default function DashboardPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">R</span>
+              <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">reno</span>
-              sync
+              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">click</span>
+              studio
             </span>
           </Link>
           <div className="flex items-center gap-4">

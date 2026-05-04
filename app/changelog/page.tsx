@@ -6,21 +6,20 @@ import { ArrowLeft } from 'lucide-react'
 
 const changelog = [
   {
-    version: '2.0.0',
-    date: '2026-01-31',
+    version: '0.1.0',
+    date: '2026-05-04',
     changes: [
       {
         type: 'added' as const,
         items: [
-          'Complete v2 rewrite with modern stack',
-          'Prisma 7 integration with PostgreSQL',
-          'Better Auth with Google OAuth',
-          'Internationalization (English & Spanish)',
-          'New landing page with features section',
-          'Protected dashboard with user sessions',
-          'shadcn/ui component library',
-          'Yellow primary color theme',
-          'Light and dark mode support',
+          'Initial ClickStudio starter template',
+          'Next.js 16 + React 19 + TypeScript + Tailwind v4',
+          'Prisma 7 with SQLite by default (Postgres-ready)',
+          'Better Auth (email/password + optional Google OAuth)',
+          'Internationalization with next-intl (English & Spanish)',
+          'shadcn/ui components and Lucide icons',
+          'Zero-config startup: clone, install, run',
+          'AGENTS.md to keep AI agents on the standard stack',
         ],
       },
     ],
@@ -52,11 +51,11 @@ export default async function ChangelogPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">R</span>
+              <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">reno</span>
-              sync
+              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">click</span>
+              studio
             </span>
           </Link>
           <LanguageSwitcher currentLocale={locale} />
@@ -138,7 +137,7 @@ export default async function ChangelogPage() {
           </p>
           <Button variant="outline" asChild className="mt-4">
             <a
-              href="https://github.com/your-repo/renosyncpro/blob/main/CHANGELOG.md"
+              href="https://github.com/clickstudio/clickstudio-starter/blob/main/CHANGELOG.md"
               target="_blank"
               rel="noopener noreferrer"
             >
