@@ -1,0 +1,97 @@
+{
+  "HomePage": {
+    "title": "Hola mundo!",
+    "description": "Bienvenido a nuestra aplicacion internacionalizada"
+  },
+  "LanguageSwitcher": {
+    "label": "Idioma",
+    "en": "Ingles",
+    "es": "Espanol"
+  },
+  "Auth": {
+    "title": "Inicia sesion en tu cuenta",
+    "subtitle": "Continua con tu cuenta de Google",
+    "googleButton": "Continuar con Google",
+    "loading": "Cargando..."
+  },
+  "Dashboard": {
+    "title": "Panel de control",
+    "welcome": "Bienvenido, {name}!",
+    "description": "Has iniciado sesion en tu panel de control.",
+    "signOut": "Cerrar sesion",
+    "loading": "Cargando..."
+  },
+  "Landing": {
+    "nav": {
+      "brand": "Starter",
+      "features": "Funciones",
+      "stack": "Tecnologias",
+      "signIn": "Iniciar Sesion",
+      "getStarted": "Comenzar"
+    },
+    "hero": {
+      "badge": "Plantilla Starter de Codigo Abierto",
+      "title": "Cada Gran Producto",
+      "titleHighlight": "Empieza Aqui",
+      "description": "Auth, i18n, base de datos y componentes UI — todo listo para produccion. Deja de configurar infraestructura. Empieza a construir lo que importa.",
+      "cta": "Empieza a Construir",
+      "ctaSecondary": "Explorar Funciones",
+      "terminal": {
+        "auth": "Autenticacion configurada (Better Auth + Google OAuth)",
+        "i18n": "Internacionalizacion lista (EN/ES con next-intl)",
+        "database": "Base de datos conectada (PostgreSQL + Prisma ORM)",
+        "ui": "Componentes UI instalados (shadcn/ui + Tailwind CSS)",
+        "ready": "\u2713 Listo en http://localhost:3000"
+      }
+    },
+    "features": {
+      "label": "Funciones Incluidas",
+      "title": "Todo lo que necesitas para enviar mas rapido",
+      "description": "Cada gran producto comienza con una base solida. Este starter te da lo esencial para que puedas enfocarte en lo que hace unica a tu app.",
+      "auth": {
+        "title": "Autenticacion",
+        "description": "Pre-configurado con Better Auth soportando email/password y Google OAuth. Gestion de sesiones, rutas protegidas y perfiles de usuario — listo para usar."
+      },
+      "i18n": {
+        "title": "Internacionalizacion",
+        "description": "Configuracion completa de i18n con next-intl. Ingles y Espanol incluidos como punto de partida. Cambio de idioma basado en cookies con soporte de renderizado del servidor."
+      },
+      "database": {
+        "title": "Base de Datos y ORM",
+        "description": "PostgreSQL con Prisma ORM, pre-configurado con tablas de autenticacion, migraciones y un patron de cliente singleton. Listo para tus modelos de datos."
+      },
+      "components": {
+        "title": "Componentes UI",
+        "description": "Componentes hermosos y accesibles de shadcn/ui con primitivos Radix. Tailwind CSS v4, soporte de modo oscuro y un sistema de diseno consistente integrado."
+      }
+    },
+    "stack": {
+      "title": "Construido sobre bases modernas",
+      "description": "Tecnologias cuidadosamente seleccionadas que funcionan perfectamente juntas. Sin compromisos."
+    },
+    "cta": {
+      "badge": "Tu Viaje Comienza Aqui",
+      "title": "Tu plataforma de lanzamiento esta lista",
+      "description": "Clonalo. Configuralo. Envialo. La base esta construida — ahora ve a crear algo que el mundo necesita.",
+      "button": "Empieza a Construir Ahora"
+    },
+    "footer": {
+      "copyright": "Next.js Starter Template. Todos los derechos reservados.",
+      "tagline": "Construido para creadores que entregan."
+    }
+  },
+  "Changelog": {
+    "title": "Historial de Cambios",
+    "description": "Todos los cambios notables de este proyecto estan documentados aqui.",
+    "backHome": "Volver al inicio",
+    "latest": "Ultimo",
+    "types": {
+      "added": "Agregado",
+      "changed": "Cambiado",
+      "fixed": "Corregido",
+      "removed": "Eliminado"
+    },
+    "moreHistory": "Buscas mas historial?",
+    "viewGithub": "Ver historial completo en GitHub"
+  }
+}

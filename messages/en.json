@@ -1,0 +1,97 @@
+{
+  "HomePage": {
+    "title": "Hello world!",
+    "description": "Welcome to our internationalized app"
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "Auth": {
+    "title": "Sign in to your account",
+    "subtitle": "Continue with your Google account",
+    "googleButton": "Continue with Google",
+    "loading": "Loading..."
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}!",
+    "description": "You are now signed in to your dashboard.",
+    "signOut": "Sign out",
+    "loading": "Loading..."
+  },
+  "Landing": {
+    "nav": {
+      "brand": "Starter",
+      "features": "Features",
+      "stack": "Stack",
+      "signIn": "Sign In",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "badge": "Open Source Starter Template",
+      "title": "Every Great Product",
+      "titleHighlight": "Starts Right Here",
+      "description": "Auth, i18n, database, and UI components — all production-ready. Stop configuring infrastructure. Start building what matters.",
+      "cta": "Start Building",
+      "ctaSecondary": "Explore Features",
+      "terminal": {
+        "auth": "Authentication configured (Better Auth + Google OAuth)",
+        "i18n": "Internationalization ready (EN/ES with next-intl)",
+        "database": "Database connected (PostgreSQL + Prisma ORM)",
+        "ui": "UI components installed (shadcn/ui + Tailwind CSS)",
+        "ready": "\u2713 Ready on http://localhost:3000"
+      }
+    },
+    "features": {
+      "label": "Built-in Features",
+      "title": "Everything you need to ship faster",
+      "description": "Every great product starts with a solid foundation. This starter gives you the essentials so you can focus on what makes your app unique.",
+      "auth": {
+        "title": "Authentication",
+        "description": "Pre-configured with Better Auth supporting email/password and Google OAuth. Session management, protected routes, and user profiles — ready out of the box."
+      },
+      "i18n": {
+        "title": "Internationalization",
+        "description": "Full i18n setup with next-intl. English and Spanish included as a starting point. Cookie-based locale switching with server-side rendering support."
+      },
+      "database": {
+        "title": "Database & ORM",
+        "description": "PostgreSQL with Prisma ORM, pre-configured with auth tables, migrations, and a singleton client pattern. Ready for your data models."
+      },
+      "components": {
+        "title": "UI Components",
+        "description": "Beautiful, accessible components from shadcn/ui with Radix primitives. Tailwind CSS v4, dark mode support, and a consistent design system baked in."
+      }
+    },
+    "stack": {
+      "title": "Built on modern foundations",
+      "description": "Carefully selected technologies that work beautifully together. No compromises."
+    },
+    "cta": {
+      "badge": "Your Journey Starts Here",
+      "title": "Your launchpad is ready",
+      "description": "Clone it. Configure it. Ship it. The foundation is built — now go create something the world needs.",
+      "button": "Start Building Now"
+    },
+    "footer": {
+      "copyright": "Next.js Starter Template. All rights reserved.",
+      "tagline": "Built for builders who ship."
+    }
+  },
+  "Changelog": {
+    "title": "Changelog",
+    "description": "All notable changes to this project are documented here.",
+    "backHome": "Back to home",
+    "latest": "Latest",
+    "types": {
+      "added": "Added",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "removed": "Removed"
+    },
+    "moreHistory": "Looking for more history?",
+    "viewGithub": "View full changelog on GitHub"
+  }
+}
