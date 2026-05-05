@@ -66,9 +66,9 @@ When a project graduates to Postgres:
 1. Edit `prisma/schema.prisma` → `datasource.provider = "postgresql"`.
 2. Edit `prisma/migrations/migration_lock.toml` → `provider = "postgresql"`.
 3. Delete `prisma/migrations/*` and run `npx prisma migrate dev --name init` against the Postgres DB.
-4. Update `lib/prisma.ts` to use `PrismaPg` adapter (the previous version is in git history).
+4. Update `lib/prisma.ts` to use `PrismaPg` from `@prisma/adapter-pg` instead of `PrismaBetterSQLite3`. (Prisma 7 always requires an adapter — only the adapter changes.)
 5. Update `lib/auth.ts` → `prismaAdapter(prisma, { provider: 'postgresql' })`.
-6. Set `DATABASE_URL` to the Postgres connection string.
+6. Set `DATABASE_URL` to the Postgres connection string in `.env`.
 
 The `pg` driver and `@prisma/adapter-pg` package are intentionally kept installed so this is friction-free.
 
