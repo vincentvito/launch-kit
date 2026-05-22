@@ -48,6 +48,8 @@ See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
 - `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Replace with a `postgres://` URL when graduating to Postgres.
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
+- `OPENAI_API_KEY` — optional for Launch Kit AI generation. If omitted, Launch Kit returns template-based fallback content.
+- `OPENAI_MODEL` — optional model override for Launch Kit generation (defaults to `gpt-4.1-mini`).
 
 ## Going to Production
 

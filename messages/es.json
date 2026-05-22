@@ -23,61 +23,103 @@
   },
   "Landing": {
     "nav": {
-      "brand": "ClickStudio",
-      "features": "Funciones",
-      "stack": "Tecnologias",
-      "signIn": "Iniciar Sesion",
-      "getStarted": "Comenzar"
+      "brand": "Launch Kit",
+      "sub": "Motor editorial de lanzamientos para builders",
+      "proof": "Transformacion",
+      "voices": "Voces",
+      "media": "Media Kit",
+      "signIn": "Iniciar sesion",
+      "getStarted": "Dashboard"
     },
     "hero": {
-      "badge": "Plantilla Starter de ClickStudio",
-      "title": "Cada Producto de ClickStudio",
-      "titleHighlight": "Empieza Aqui",
-      "description": "Auth, i18n, base de datos y componentes UI — todo listo para produccion. Deja de configurar infraestructura. Empieza a construir lo que importa.",
-      "cta": "Empieza a Construir",
-      "ctaSecondary": "Explorar Funciones",
-      "terminal": {
-        "auth": "Autenticacion configurada (Better Auth + Google OAuth)",
-        "i18n": "Internacionalizacion lista (EN/ES con next-intl)",
-        "database": "Base de datos conectada (SQLite por defecto, lista para Postgres)",
-        "ui": "Componentes UI instalados (shadcn/ui + Tailwind CSS)",
-        "ready": "\u2713 Listo en http://localhost:3000"
+      "badge": "Mostrar, no contar",
+      "title": "De una URL de producto a",
+      "titleHighlight": "una narrativa completa de lanzamiento",
+      "description": "Launch Kit extrae tu brief y lo reescribe para el contrato social de cada plataforma. Puedes ver la transformacion antes de escribir nada.",
+      "urlPlaceholder": "Pega la URL de tu producto (por ejemplo, https://tuproducto.com)",
+      "ctaPrimary": "Probar con tu URL",
+      "ctaSecondary": "Ver kit de ejemplo completo",
+      "ctaHelper": "Todavia sin URL? Abre el ejemplo curado y revisa cada bloque.",
+      "invalidUrl": "Ingresa una URL valida para continuar."
+    },
+    "proof": {
+      "sourceLabel": "Antes",
+      "sourceTitle": "Snapshot del brief fuente",
+      "outputLabel": "Despues",
+      "outputTitle": "Bloques adaptados por plataforma",
+      "socialContract": "Una voz distinta por plataforma",
+      "swipeHint": "Desliza",
+      "voice": {
+        "hackerNews": "HN: Humilde + tecnico",
+        "reddit": "Reddit: Conversacional + transparente",
+        "linkedin": "LinkedIn: Profesional + humano",
+        "tiktok": "TikTok: Hook inicial + ritmo visual"
+      },
+      "brief": {
+        "productName": "Nombre del Producto",
+        "positioning": "Posicionamiento",
+        "icp": "Perfil de Cliente Ideal",
+        "targetUsers": "Usuarios Objetivo",
+        "painPoints": "Dolores",
+        "valueProps": "Propuestas de Valor",
+        "proofPoints": "Pruebas",
+        "cta": "CTA Principal"
       }
     },
-    "features": {
-      "label": "Funciones Incluidas",
-      "title": "Todo lo que necesitas para enviar mas rapido",
-      "description": "Cada gran producto comienza con una base solida. Este starter te da lo esencial para que puedas enfocarte en lo que hace unica a tu app.",
-      "auth": {
-        "title": "Autenticacion",
-        "description": "Pre-configurado con Better Auth soportando email/password y Google OAuth. Gestion de sesiones, rutas protegidas y perfiles de usuario — listo para usar."
-      },
-      "i18n": {
-        "title": "Internacionalizacion",
-        "description": "Configuracion completa de i18n con next-intl. Ingles y Espanol incluidos como punto de partida. Cambio de idioma basado en cookies con soporte de renderizado del servidor."
-      },
-      "database": {
-        "title": "Base de Datos y ORM",
-        "description": "SQLite listo para usar con Prisma ORM — cero configuracion para arrancar. Cambia a Postgres cuando estes listo; el driver pg ya esta instalado."
-      },
-      "components": {
-        "title": "Componentes UI",
-        "description": "Componentes hermosos y accesibles de shadcn/ui con primitivos Radix. Tailwind CSS v4, soporte de modo oscuro y un sistema de diseno consistente integrado."
+    "socialProof": {
+      "kicker": "Superficies de Distribucion",
+      "title": "Hecho para lanzar donde los founders realmente lanzan",
+      "sideNote": "Optimizado por voz de plataforma",
+      "note": "Un brief. Multiples superficies. Sin desajustes de tono en tu lanzamiento."
+    },
+    "voices": {
+      "label": "Marco de contrato social",
+      "title": "Como un brief se convierte en muchas voces",
+      "description": "El mensaje se mantiene consistente. La entrega se adapta a normas, intencion y senales de confianza de cada canal.",
+      "cards": {
+        "hn": {
+          "title": "Hacker News",
+          "body": "Empieza con contexto de construccion, limites claros y una peticion de feedback tecnico."
+        },
+        "reddit": {
+          "title": "Reddit",
+          "body": "Abre en tono conversacional, da contexto e invita debate honesto en lugar de promo pulida."
+        },
+        "indie": {
+          "title": "Indie Hackers",
+          "body": "Comparte tradeoffs reales, hitos y siguientes experimentos en formato build-in-public."
+        },
+        "linkedin": {
+          "title": "LinkedIn",
+          "body": "Mantente profesional y orientado a resultados, sin perder la voz humana del fundador."
+        }
       }
     },
-    "stack": {
-      "title": "Construido sobre bases modernas",
-      "description": "Tecnologias cuidadosamente seleccionadas que funcionan perfectamente juntas. Sin compromisos."
+    "generated": {
+      "label": "Que se genera",
+      "title": "Todo lo necesario para launch day",
+      "description": "Un solo brief confirmado alimenta todos los canales clave para lanzar una vez y distribuir con confianza.",
+      "items": {
+        "productHunt": "Headline de listing y comentario del maker",
+        "hn": "Borrador Show HN con tono humilde",
+        "reddit": "Texto listo para subreddit y CTA",
+        "indie": "Narrativa de lanzamiento build-in-public",
+        "linkedin": "Post profesional con senales de prueba",
+        "video": "Scripts hook/historia/cierre para video corto",
+        "email": "Borrador de email de anuncio",
+        "press": "Media kit y pagina de press pack imprimible"
+      }
     },
-    "cta": {
-      "badge": "Tu Viaje Comienza Aqui",
-      "title": "Tu plataforma de lanzamiento esta lista",
-      "description": "Clonalo. Configuralo. Envialo. La base esta construida — ahora ve a crear algo que el mundo necesita.",
-      "button": "Empieza a Construir Ahora"
+    "media": {
+      "label": "Media Kit Creator",
+      "title": "Assets de prensa incluidos por defecto",
+      "description": "El mismo brief tambien genera activos utiles para periodistas y una pagina de press pack lista para imprimir.",
+      "pressPackNote": "Exporta Markdown para tus flujos de distribucion y abre el press pack en el navegador para Guardar como PDF.",
+      "cta": "Abrir ruta del press pack de ejemplo"
     },
     "footer": {
-      "copyright": "ClickStudio. Todos los derechos reservados.",
-      "tagline": "Construido para creadores que entregan."
+      "copyright": "Launch Kit. Todos los derechos reservados.",
+      "tagline": "Convierte una URL de producto en un kit de lanzamiento multicanal completo."
     }
   },
   "Changelog": {
@@ -93,5 +135,351 @@
     },
     "moreHistory": "Buscas mas historial?",
     "viewGithub": "Ver historial completo en GitHub"
+  },
+  "LaunchKit": {
+    "tagline": "Una URL, todos tus canales de lanzamiento",
+    "signOut": "Cerrar sesion",
+    "signIn": "Iniciar sesion",
+    "workflowHeader": {
+      "title": "Flujo Guiado de Lanzamiento",
+      "description": "Un paso claro a la vez. Ingiere, refina y publica assets listos por canal."
+    },
+    "stepStatus": {
+      "locked": "Bloqueado",
+      "active": "Activo",
+      "complete": "Completo"
+    },
+    "steps": {
+      "step1Label": "Paso 1",
+      "step1Title": "Ingerir URL",
+      "step1Description": "Pega la URL de tu producto para extraer el brief automaticamente.",
+      "step2Label": "Paso 2",
+      "step2Title": "Confirmar Basicos",
+      "step2Description": "Confirma lo esencial antes de generar contenido de lanzamiento.",
+      "step3Label": "Paso 3",
+      "step3Title": "Contenido + Exportar",
+      "step3Description": "Revisa el contenido generado, regenera pestanas y exporta tu kit.",
+      "step3Summary": "{count} bloques generados",
+      "step4Label": "Paso 4",
+      "step4Title": "Contenido de Lanzamiento + Exportar",
+      "step4Description": "Revisa bloques por plataforma, regenera por canal y exporta tu kit.",
+      "step2Empty": "Primero extrae una URL para confirmar los basicos del lanzamiento.",
+      "step3Empty": "Genera contenido de lanzamiento para ver copy por plataforma y assets de media kit.",
+      "step4Empty": "Genera contenido de lanzamiento para ver copy por plataforma y assets de media kit."
+    },
+    "onboarding": {
+      "progress": "Tarjeta {current} de {total}",
+      "productTitle": "Basicos del Producto",
+      "productDescription": "Confirma el nombre del producto, posicionamiento y CTA principal.",
+      "audienceTitle": "Audiencia",
+      "audienceDescription": "Confirma para quien es este lanzamiento antes de ajustar cada voz.",
+      "messageTitle": "Mensaje y Prueba",
+      "messageDescription": "Confirma la friccion, beneficios y pruebas que el copy debe respetar.",
+      "back": "Atras",
+      "next": "Siguiente"
+    },
+    "actions": {
+      "extracting": "Extrayendo...",
+      "extractBrief": "Extraer Brief",
+      "generating": "Generando...",
+      "generateAll": "Generar Contenido de Lanzamiento",
+      "generateLaunchContent": "Generar Contenido de Lanzamiento",
+      "reviewSeoAnalysis": "Revisar Analisis SEO",
+      "openBrandGuidelines": "Abrir Brand Guidelines",
+      "saveProject": "Guardar Proyecto",
+      "saving": "Guardando...",
+      "exportMarkdown": "Exportar Markdown",
+      "openPressPack": "Abrir Press Pack",
+      "copyBlock": "Copiar",
+      "regenerateBlock": "Regenerar"
+    },
+    "extractionFeedback": {
+      "readingSite": "Leyendo la estructura del sitio",
+      "extractingConcept": "Extrayendo el concepto del producto",
+      "mappingAudience": "Investigando la audiencia objetivo",
+      "findingFriction": "Encontrando dolores y fricciones",
+      "capturingVoice": "Capturando tono de voz",
+      "collectingProof": "Recopilando claims y pruebas",
+      "buildingBrief": "Construyendo el brief editable"
+    },
+    "generationFeedback": {
+      "title": "Construyendo tu launch kit",
+      "subtitle": "Estamos traduciendo un brief en assets especificos por canal. Estos checkpoints se actualizan mientras trabaja el modelo.",
+      "preparing": "Preparando el asset seleccionado",
+      "reasoningBrief": "Razonando sobre el brief confirmado",
+      "productHunt": "Escribiendo copy para Product Hunt",
+      "hackerNews": "Escribiendo Show HN para Hacker News",
+      "reddit": "Redactando posts nativos para Reddit",
+      "indieHackers": "Redactando historia para Indie Hackers",
+      "linkedin": "Escribiendo anuncio para LinkedIn",
+      "tiktok": "Escribiendo script de TikTok",
+      "youtube": "Escribiendo script de YouTube Shorts",
+      "email": "Escribiendo anuncio por email",
+      "linkedinOutreach": "Redactando outreach para LinkedIn",
+      "xOutreach": "Redactando outreach para X",
+      "coldEmail": "Escribiendo pack de cold email",
+      "seoPosts": "Expandiendo borradores SEO",
+      "mediaKit": "Armando media kit",
+      "finalizing": "Finalizando pestanas y exportaciones",
+      "regeneratingBlock": "Regenerando {block}"
+    },
+    "fields": {
+      "urlPlaceholder": "https://tu-producto.com",
+      "projectName": "Nombre del Proyecto",
+      "productName": "Nombre del Producto",
+      "positioning": "Posicionamiento",
+      "icp": "Perfil de Cliente Ideal",
+      "targetUsers": "Usuarios Objetivo (uno por linea)",
+      "painPoints": "Dolores (uno por linea)",
+      "valueProps": "Propuestas de Valor (una por linea)",
+      "keyClaims": "Mensajes Clave (uno por linea)",
+      "proofPoints": "Pruebas (una por linea)",
+      "cta": "CTA Principal",
+      "language": "Idioma de Salida",
+      "untitledProject": "Proyecto Sin Titulo"
+    },
+    "output": {
+      "titleLabel": "Titulo",
+      "bodyLabel": "Cuerpo",
+      "ctaLabel": "CTA",
+      "notesLabel": "Notas",
+      "subjectLabel": "Asunto",
+      "outlineLabel": "Esquema",
+      "clusterLabel": "Cluster",
+      "metaLabel": "Meta",
+      "copyCtaPrefix": "CTA",
+      "copyNotesPrefix": "Notas",
+      "tabsAriaLabel": "Pestanas de salidas generadas"
+    },
+    "platformLabels": {
+      "product_hunt": "Product Hunt",
+      "hacker_news": "Hacker News (Show HN)",
+      "reddit": "Reddit",
+      "indie_hackers": "Indie Hackers",
+      "linkedin": "LinkedIn",
+      "tiktok": "Script de TikTok",
+      "youtube_shorts": "Script de YouTube Shorts",
+      "email_announcement": "Anuncio por Email"
+    },
+    "briefSection": {
+      "title": "Campos del Brief",
+      "description": "Edita la narrativa principal del producto para todas las salidas."
+    },
+    "utility": {
+      "title": "Utilidades",
+      "openButton": "Abrir Utilidades",
+      "closeButton": "Cerrar Utilidades",
+      "closeDrawerAria": "Cerrar cajon de utilidades",
+      "brandGuidelinesTitle": "Brand Guidelines",
+      "brandGuidelinesDescription": "Edita el brief extraido completo y la investigacion SEO usada por la generacion.",
+      "brandGuidelinesEmpty": "Primero extrae una URL para crear brand guidelines.",
+      "seoAnalysisTitle": "Analisis SEO"
+    },
+    "mediaKit": {
+      "title": "Creador de Media Kit",
+      "description": "Generado desde evidencia extraida del sitio, sin campos manuales de contacto.",
+      "generatedTitle": "Media Kit Generado",
+      "showGenerated": "Mostrar campos del press kit generado",
+      "hideGenerated": "Ocultar campos del press kit generado",
+      "fields": {
+        "bio": "Bio de Fundador / Empresa",
+        "oneLiner": "One-liner del Producto",
+        "boilerplate": "Boilerplate",
+        "pressRelease": "Comunicado de Prensa",
+        "checklist": "Checklist de Visuales / Assets",
+        "screenshots": "Capturas y Logos",
+        "contact": "Datos de Contacto del Sitio"
+      }
+    },
+    "savedProjects": {
+      "title": "Proyectos Guardados",
+      "descriptionSignedIn": "Carga proyectos en la nube o guardados localmente.",
+      "descriptionGuest": "Los proyectos guest se guardan solo en este navegador.",
+      "empty": "No hay proyectos guardados.",
+      "cloudLabel": "Nube",
+      "localLabel": "Local"
+    },
+    "workflow": {
+      "title": "Flujo Principal",
+      "item1": "Pega URL de producto y extrae paginas fuente.",
+      "item2": "Revisa el brief extraido y ajusta el posicionamiento.",
+      "item3": "Genera contenido de lanzamiento para cada plataforma con un clic.",
+      "item4": "Regenera canales individuales cuando lo necesites.",
+      "item5": "Guarda el proyecto y exporta Markdown o press pack.",
+      "guestNotice": "Estas en modo guest. Los guardados locales quedan en este navegador hasta iniciar sesion."
+    },
+    "growth": {
+      "keywordResearch": {
+        "title": "Investigacion de Keywords",
+        "description": "Clusters tematicos derivados de tus paginas fuente y senales del brief.",
+        "notes": "Notas de Investigacion",
+        "addCluster": "Agregar Cluster",
+        "removeCluster": "Eliminar",
+        "clusterLabel": "Cluster de Keywords",
+        "topic": "Tema del Cluster",
+        "intent": "Intencion",
+        "priority": "Prioridad",
+        "keywords": "Keywords (una por linea)",
+        "contentAngles": "Angulos de Contenido (uno por linea)",
+        "empty": "Aun no hay clusters. Agrega uno o regenera desde la extraccion.",
+        "intents": {
+          "informational": "Informacional",
+          "commercial": "Comercial",
+          "transactional": "Transaccional",
+          "navigational": "Navegacional"
+        },
+        "priorities": {
+          "high": "Alta",
+          "medium": "Media",
+          "low": "Baja"
+        }
+      },
+      "outputs": {
+        "title": "Salidas de Growth",
+        "subtitle": "Assets de plataforma y outreach con regeneracion por pestana.",
+        "emptyOutreach": "Todavia no hay variantes de outreach.",
+        "emptySeo": "Todavia no hay packs SEO."
+      },
+      "outputLabels": {
+        "linkedin_outreach": "Outreach en LinkedIn",
+        "x_outreach": "Outreach en X",
+        "cold_email_outreach": "Email de Outreach en Frio",
+        "seo_posts": "Packs de Posts SEO"
+      },
+      "advanced": {
+        "title": "Growth Avanzado",
+        "description": "SEO, prospecting, aprobaciones y controles de ejecucion de outreach."
+      },
+      "seo": {
+        "title": "SEO Growth",
+        "description": "Los clusters de keywords y packs SEO generados viven aqui, fuera de las pestanas principales de lanzamiento.",
+        "keywordTitle": "Clusters de keywords",
+        "keywordEmpty": "Todavia no hay clusters. Abre Brand Guidelines para agregarlos o editarlos."
+      },
+      "actionBar": {
+        "title": "Barra de Acciones (con Aprobacion)",
+        "description": "Revisa cada accion, apruebala y luego ejecutala.",
+        "leadsCount": "{count} leads en el estado actual del proyecto"
+      },
+      "actions": {
+        "prospect": {
+          "title": "Scrapear Clientes Potenciales",
+          "description": "Ejecuta discovery por queries para empresas y contactos afines al ICP."
+        },
+        "build_email_list": {
+          "title": "Construir Lista de Emails",
+          "description": "Infiere emails de contacto, deduplica y agrega registros con confianza."
+        },
+        "score_segment": {
+          "title": "Scoring y Segmentacion",
+          "description": "Clasifica leads en hot, warm y cold."
+        },
+        "personalize_outreach": {
+          "title": "Generar Outreach Personalizado",
+          "description": "Rellena borradores de LinkedIn, X y email con contexto del lead."
+        },
+        "followup_sequences": {
+          "title": "Crear Secuencias de Follow-up",
+          "description": "Borradores de seguimiento para Dia 0, Dia 3 y Dia 7."
+        },
+        "send_outreach_email": {
+          "title": "Enviar Email Outreach (Stub)",
+          "description": "Encola y completa un envio simulado (sin entrega real en v1)."
+        },
+        "export_leads": {
+          "title": "Exportar Leads CSV",
+          "description": "Descarga la tabla actual de leads en CSV."
+        }
+      },
+      "approvals": {
+        "title": "Aprobacion Requerida",
+        "confirmation": "Aprueba esta accion para ejecutarla sobre tu snapshot actual.",
+        "cancel": "Cancelar",
+        "approveRun": "Aprobar y Ejecutar",
+        "running": "Ejecutando..."
+      },
+      "prospecting": {
+        "title": "Estado de Prospecting",
+        "selectedLeads": "{count} leads seleccionados",
+        "noEmail": "Sin email aun",
+        "empty": "Todavia no hay leads. Empieza con Scrapear Clientes Potenciales.",
+        "personalizedTitle": "Preview de Outreach Personalizado",
+        "personalizedEmpty": "Todavia no hay borradores personalizados.",
+        "actionLogTitle": "Log Reciente de Acciones",
+        "actionLogEmpty": "Aun no se han ejecutado acciones.",
+        "headers": {
+          "select": "Seleccionar",
+          "contact": "Contacto",
+          "company": "Empresa",
+          "email": "Email",
+          "score": "Score",
+          "reason": "Motivo"
+        }
+      },
+      "actionStatus": {
+        "pending_approval": "Pendiente de Aprobacion",
+        "approved": "Aprobado",
+        "running": "Ejecutando",
+        "completed": "Completado",
+        "failed": "Fallo"
+      }
+    },
+    "export": {
+      "markdown": {
+        "launchKitPrefix": "Launch Kit",
+        "sourceUrl": "URL Fuente",
+        "language": "Idioma",
+        "brief": "Brief",
+        "product": "Producto",
+        "positioning": "Posicionamiento",
+        "icp": "ICP",
+        "targetUsers": "Usuarios Objetivo",
+        "painPoints": "Dolores",
+        "valueProps": "Propuestas de Valor",
+        "proofPoints": "Pruebas",
+        "primaryCta": "CTA Principal",
+        "keywordResearch": "Investigacion de Keywords",
+        "intent": "Intencion",
+        "priority": "Prioridad",
+        "keywords": "Keywords",
+        "contentAngles": "Angulos de Contenido",
+        "platformBlocks": "Bloques de Plataforma",
+        "mediaKit": "Media Kit",
+        "growthAssets": "Assets de Growth",
+        "noSubject": "Sin asunto",
+        "prospecting": "Prospecting",
+        "leads": "Leads",
+        "personalizedOutreach": "Outreach Personalizado",
+        "emailJobsStub": "Trabajos de Email (stub)"
+      },
+      "pressPack": {
+        "titleSuffix": "Press Pack",
+        "sourceLabel": "Fuente"
+      }
+    },
+    "errors": {
+      "urlRequired": "Primero ingresa una URL de producto.",
+      "ingestFailed": "La extraccion de URL fallo. Prueba otra pagina o ajusta la URL.",
+      "generateFailed": "La generacion fallo. Revisa el brief y la configuracion del API.",
+      "saveFailed": "No se pudo guardar el proyecto ahora.",
+      "saveRequiresKit": "Genera un launch kit antes de guardar.",
+      "projectLoadFailed": "No se pudo cargar este proyecto.",
+      "actionFailed": "La accion fallo. Revisa los datos del proyecto e intenta de nuevo."
+    },
+    "messages": {
+      "briefReady": "Brief extraido. Revisa campos antes de generar.",
+      "kitGenerated": "Launch kit generado correctamente.",
+      "blockRegenerated": "Bloque regenerado correctamente.",
+      "growthBlockRegenerated": "Bloque de growth regenerado correctamente.",
+      "savedCloud": "Proyecto guardado en tu cuenta.",
+      "savedLocal": "Proyecto guardado localmente en este navegador.",
+      "loadedCloud": "Proyecto cargado desde la nube.",
+      "loadedLocal": "Proyecto cargado desde almacenamiento local.",
+      "blockCopied": "Bloque de {platform} copiado al portapapeles.",
+      "urlPrefilled": "URL precargada desde la landing. Extrae cuando quieras.",
+      "demoLoaded": "Kit de ejemplo cargado. Puedes editar o regenerar cualquier bloque.",
+      "leadsExported": "CSV de leads exportado.",
+      "actionCompleted": "Accion completada."
+    }
   }
 }

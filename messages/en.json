@@ -23,61 +23,103 @@
   },
   "Landing": {
     "nav": {
-      "brand": "ClickStudio",
-      "features": "Features",
-      "stack": "Stack",
-      "signIn": "Sign In",
-      "getStarted": "Get Started"
+      "brand": "Launch Kit",
+      "sub": "Editorial launch engine for builders",
+      "proof": "Transformation",
+      "voices": "Voices",
+      "media": "Media Kit",
+      "signIn": "Sign in",
+      "getStarted": "Dashboard"
     },
     "hero": {
-      "badge": "ClickStudio Starter Template",
-      "title": "Every ClickStudio Product",
-      "titleHighlight": "Starts Right Here",
-      "description": "Auth, i18n, database, and UI components — all production-ready. Stop configuring infrastructure. Start building what matters.",
-      "cta": "Start Building",
-      "ctaSecondary": "Explore Features",
-      "terminal": {
-        "auth": "Authentication configured (Better Auth + Google OAuth)",
-        "i18n": "Internationalization ready (EN/ES with next-intl)",
-        "database": "Database connected (SQLite by default, Postgres-ready)",
-        "ui": "UI components installed (shadcn/ui + Tailwind CSS)",
-        "ready": "\u2713 Ready on http://localhost:3000"
+      "badge": "Show, do not tell",
+      "title": "From one product URL to",
+      "titleHighlight": "a complete launch narrative",
+      "description": "Launch Kit extracts your brief and rewrites it for each platform social contract. You can see the transformation before you type anything.",
+      "urlPlaceholder": "Paste your product URL (for example, https://yourproduct.com)",
+      "ctaPrimary": "Try with your URL",
+      "ctaSecondary": "View full sample kit",
+      "ctaHelper": "No URL yet? Open the curated sample and inspect every block.",
+      "invalidUrl": "Enter a valid URL to continue."
+    },
+    "proof": {
+      "sourceLabel": "Before",
+      "sourceTitle": "Source brief snapshot",
+      "outputLabel": "After",
+      "outputTitle": "Platform-tailored output cards",
+      "socialContract": "Different voice per platform",
+      "swipeHint": "Swipe",
+      "voice": {
+        "hackerNews": "HN: Humble + technical",
+        "reddit": "Reddit: Conversational + transparent",
+        "linkedin": "LinkedIn: Professional + human",
+        "tiktok": "TikTok: Hook-led + visual beats"
+      },
+      "brief": {
+        "productName": "Product Name",
+        "positioning": "Positioning",
+        "icp": "Ideal Customer Profile",
+        "targetUsers": "Target Users",
+        "painPoints": "Pain Points",
+        "valueProps": "Value Props",
+        "proofPoints": "Proof Points",
+        "cta": "Primary CTA"
       }
     },
-    "features": {
-      "label": "Built-in Features",
-      "title": "Everything you need to ship faster",
-      "description": "Every great product starts with a solid foundation. This starter gives you the essentials so you can focus on what makes your app unique.",
-      "auth": {
-        "title": "Authentication",
-        "description": "Pre-configured with Better Auth supporting email/password and Google OAuth. Session management, protected routes, and user profiles — ready out of the box."
-      },
-      "i18n": {
-        "title": "Internationalization",
-        "description": "Full i18n setup with next-intl. English and Spanish included as a starting point. Cookie-based locale switching with server-side rendering support."
-      },
-      "database": {
-        "title": "Database & ORM",
-        "description": "SQLite out of the box with Prisma ORM — zero setup to launch. Switch to Postgres when you're ready; the pg driver is already installed."
-      },
-      "components": {
-        "title": "UI Components",
-        "description": "Beautiful, accessible components from shadcn/ui with Radix primitives. Tailwind CSS v4, dark mode support, and a consistent design system baked in."
+    "socialProof": {
+      "kicker": "Distribution Surfaces",
+      "title": "Built to launch where founders actually launch",
+      "sideNote": "Optimized for each platform voice",
+      "note": "One brief. Multiple surfaces. No tone mismatch across your launch stack."
+    },
+    "voices": {
+      "label": "Social contract framing",
+      "title": "How one brief becomes many voices",
+      "description": "The message stays consistent. Delivery adapts to community norms, intent, and trust signals on each channel.",
+      "cards": {
+        "hn": {
+          "title": "Hacker News",
+          "body": "Lead with build context, constraints, and a clear request for technical feedback."
+        },
+        "reddit": {
+          "title": "Reddit",
+          "body": "Open conversationally, provide context, and invite honest discussion instead of polished promo."
+        },
+        "indie": {
+          "title": "Indie Hackers",
+          "body": "Share real tradeoffs, milestones, and next experiments in a build-in-public format."
+        },
+        "linkedin": {
+          "title": "LinkedIn",
+          "body": "Stay professional and outcome-oriented while keeping the founder voice clear and human."
+        }
       }
     },
-    "stack": {
-      "title": "Built on modern foundations",
-      "description": "Carefully selected technologies that work beautifully together. No compromises."
+    "generated": {
+      "label": "What gets generated",
+      "title": "Everything needed for launch day",
+      "description": "One confirmed brief powers every major launch surface so you can ship once and distribute confidently.",
+      "items": {
+        "productHunt": "Listing headline and maker comment",
+        "hn": "Show HN draft with humble framing",
+        "reddit": "Subreddit-ready body and CTA",
+        "indie": "Build-in-public launch narrative",
+        "linkedin": "Professional post with proof cues",
+        "video": "Hook/story/close scripts for short video",
+        "email": "Launch announcement email draft",
+        "press": "Media kit plus printable press-pack page"
+      }
     },
-    "cta": {
-      "badge": "Your Journey Starts Here",
-      "title": "Your launchpad is ready",
-      "description": "Clone it. Configure it. Ship it. The foundation is built — now go create something the world needs.",
-      "button": "Start Building Now"
+    "media": {
+      "label": "Media Kit Creator",
+      "title": "Press assets included by default",
+      "description": "The same brief also produces journalist-friendly assets and a print-ready press pack page.",
+      "pressPackNote": "Export markdown for distribution workflows and open the press pack in-browser for Save as PDF.",
+      "cta": "Open sample press pack path"
     },
     "footer": {
-      "copyright": "ClickStudio. All rights reserved.",
-      "tagline": "Built for builders who ship."
+      "copyright": "Launch Kit. All rights reserved.",
+      "tagline": "Turn one product URL into a complete multi-channel launch kit."
     }
   },
   "Changelog": {
@@ -93,5 +135,351 @@
     },
     "moreHistory": "Looking for more history?",
     "viewGithub": "View full changelog on GitHub"
+  },
+  "LaunchKit": {
+    "tagline": "One URL, every launch channel",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "workflowHeader": {
+      "title": "Guided Launch Workflow",
+      "description": "One clear step at a time. Ingest, refine, then publish channel-ready launch assets."
+    },
+    "stepStatus": {
+      "locked": "Locked",
+      "active": "Active",
+      "complete": "Complete"
+    },
+    "steps": {
+      "step1Label": "Step 1",
+      "step1Title": "Ingest URL",
+      "step1Description": "Paste your product URL to auto-extract a launch brief.",
+      "step2Label": "Step 2",
+      "step2Title": "Confirm Basics",
+      "step2Description": "Confirm the essentials before generating launch content.",
+      "step3Label": "Step 3",
+      "step3Title": "Launch Content + Export",
+      "step3Description": "Review generated content, regenerate tabs, and export your kit.",
+      "step3Summary": "{count} generated blocks",
+      "step4Label": "Step 4",
+      "step4Title": "Launch Content + Export",
+      "step4Description": "Review platform blocks, regenerate per channel, and export your kit.",
+      "step2Empty": "Extract a URL first to confirm the launch basics.",
+      "step3Empty": "Generate launch content to see platform-ready copy and media assets.",
+      "step4Empty": "Generate launch content to see platform-ready copy and media assets."
+    },
+    "onboarding": {
+      "progress": "Card {current} of {total}",
+      "productTitle": "Product Basics",
+      "productDescription": "Confirm the product name, positioning, and primary call to action.",
+      "audienceTitle": "Audience",
+      "audienceDescription": "Confirm who this launch is for before we tune every platform voice.",
+      "messageTitle": "Message Proof",
+      "messageDescription": "Confirm the friction, benefits, and proof points the launch copy should respect.",
+      "back": "Back",
+      "next": "Next"
+    },
+    "actions": {
+      "extracting": "Extracting...",
+      "extractBrief": "Extract Brief",
+      "generating": "Generating...",
+      "generateAll": "Generate Launch Content",
+      "generateLaunchContent": "Generate Launch Content",
+      "reviewSeoAnalysis": "Review SEO Analysis",
+      "openBrandGuidelines": "Open Brand Guidelines",
+      "saveProject": "Save Project",
+      "saving": "Saving...",
+      "exportMarkdown": "Export Markdown",
+      "openPressPack": "Open Press Pack",
+      "copyBlock": "Copy",
+      "regenerateBlock": "Regenerate"
+    },
+    "extractionFeedback": {
+      "readingSite": "Reading the website structure",
+      "extractingConcept": "Extracting the product concept",
+      "mappingAudience": "Researching the target audience",
+      "findingFriction": "Finding pain points and friction",
+      "capturingVoice": "Capturing tone of voice",
+      "collectingProof": "Collecting claims and proof points",
+      "buildingBrief": "Building the editable launch brief"
+    },
+    "generationFeedback": {
+      "title": "Building your launch kit",
+      "subtitle": "We are translating one brief into channel-specific assets. These checkpoints update while the model works.",
+      "preparing": "Preparing the selected asset",
+      "reasoningBrief": "Reasoning through the confirmed brief",
+      "productHunt": "Writing Product Hunt launch copy",
+      "hackerNews": "Writing Hacker News Show HN",
+      "reddit": "Drafting Reddit-native posts",
+      "indieHackers": "Drafting Indie Hackers story",
+      "linkedin": "Writing LinkedIn announcement",
+      "tiktok": "Writing TikTok script",
+      "youtube": "Writing YouTube Shorts script",
+      "email": "Writing announcement email",
+      "linkedinOutreach": "Drafting LinkedIn outreach",
+      "xOutreach": "Drafting X outreach",
+      "coldEmail": "Writing cold email pack",
+      "seoPosts": "Expanding SEO post drafts",
+      "mediaKit": "Assembling media kit",
+      "finalizing": "Finalizing tabs and exports",
+      "regeneratingBlock": "Regenerating {block}"
+    },
+    "fields": {
+      "urlPlaceholder": "https://your-product.com",
+      "projectName": "Project Name",
+      "productName": "Product Name",
+      "positioning": "Positioning",
+      "icp": "Ideal Customer Profile",
+      "targetUsers": "Target Users (one per line)",
+      "painPoints": "Pain Points (one per line)",
+      "valueProps": "Value Props (one per line)",
+      "keyClaims": "Key Claims (one per line)",
+      "proofPoints": "Proof Points (one per line)",
+      "cta": "Primary CTA",
+      "language": "Output Language",
+      "untitledProject": "Untitled Project"
+    },
+    "output": {
+      "titleLabel": "Title",
+      "bodyLabel": "Body",
+      "ctaLabel": "CTA",
+      "notesLabel": "Notes",
+      "subjectLabel": "Subject",
+      "outlineLabel": "Outline",
+      "clusterLabel": "Cluster",
+      "metaLabel": "Meta",
+      "copyCtaPrefix": "CTA",
+      "copyNotesPrefix": "Notes",
+      "tabsAriaLabel": "Generated output tabs"
+    },
+    "platformLabels": {
+      "product_hunt": "Product Hunt",
+      "hacker_news": "Hacker News (Show HN)",
+      "reddit": "Reddit",
+      "indie_hackers": "Indie Hackers",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok Script",
+      "youtube_shorts": "YouTube Shorts Script",
+      "email_announcement": "Email Announcement"
+    },
+    "briefSection": {
+      "title": "Brief Fields",
+      "description": "Edit the core product narrative used across all outputs."
+    },
+    "utility": {
+      "title": "Utilities",
+      "openButton": "Open Utilities",
+      "closeButton": "Close Utilities",
+      "closeDrawerAria": "Close utilities drawer",
+      "brandGuidelinesTitle": "Brand Guidelines",
+      "brandGuidelinesDescription": "Edit the complete extracted brief and SEO research used by generation.",
+      "brandGuidelinesEmpty": "Extract a URL first to create brand guidelines.",
+      "seoAnalysisTitle": "SEO Analysis"
+    },
+    "mediaKit": {
+      "title": "Media Kit Creator",
+      "description": "Generated from website-derived brief evidence, without manual contact fields.",
+      "generatedTitle": "Generated Media Kit",
+      "showGenerated": "Show generated press kit fields",
+      "hideGenerated": "Hide generated press kit fields",
+      "fields": {
+        "bio": "Founder / Company Bio",
+        "oneLiner": "Product One-liner",
+        "boilerplate": "Boilerplate",
+        "pressRelease": "Press Release",
+        "checklist": "Key Visuals / Assets Checklist",
+        "screenshots": "Screenshots & Logos",
+        "contact": "Website Contact Details"
+      }
+    },
+    "savedProjects": {
+      "title": "Saved Projects",
+      "descriptionSignedIn": "Load any cloud project or local guest project.",
+      "descriptionGuest": "Guest projects are stored in this browser only.",
+      "empty": "No saved projects yet.",
+      "cloudLabel": "Cloud",
+      "localLabel": "Local"
+    },
+    "workflow": {
+      "title": "Core Workflow",
+      "item1": "Paste product URL and ingest source pages.",
+      "item2": "Review extracted brief and adjust positioning.",
+      "item3": "Generate launch content for every platform with one click.",
+      "item4": "Regenerate individual channels as needed.",
+      "item5": "Save project and export Markdown or press pack.",
+      "guestNotice": "You are in guest mode. Local saves stay on this browser until you sign in."
+    },
+    "growth": {
+      "keywordResearch": {
+        "title": "Keyword Research",
+        "description": "Topic clusters derived from your source pages and brief signals.",
+        "notes": "Research Notes",
+        "addCluster": "Add Cluster",
+        "removeCluster": "Remove",
+        "clusterLabel": "Keyword Cluster",
+        "topic": "Cluster Topic",
+        "intent": "Intent",
+        "priority": "Priority",
+        "keywords": "Keywords (one per line)",
+        "contentAngles": "Content Angles (one per line)",
+        "empty": "No keyword clusters yet. Add one or regenerate from ingest.",
+        "intents": {
+          "informational": "Informational",
+          "commercial": "Commercial",
+          "transactional": "Transactional",
+          "navigational": "Navigational"
+        },
+        "priorities": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        }
+      },
+      "outputs": {
+        "title": "Growth Outputs",
+        "subtitle": "Platform and outreach assets with per-tab regeneration.",
+        "emptyOutreach": "No outreach variants generated yet.",
+        "emptySeo": "No SEO packs generated yet."
+      },
+      "outputLabels": {
+        "linkedin_outreach": "LinkedIn Cold Outreach",
+        "x_outreach": "X Cold Outreach",
+        "cold_email_outreach": "Cold Outreach Email",
+        "seo_posts": "SEO Blog Post Packs"
+      },
+      "advanced": {
+        "title": "Advanced Growth",
+        "description": "SEO, prospecting, approvals, and outreach execution controls."
+      },
+      "seo": {
+        "title": "SEO Growth",
+        "description": "Keyword clusters and generated SEO blog packs live here, away from the core launch tabs.",
+        "keywordTitle": "Keyword clusters",
+        "keywordEmpty": "No keyword clusters yet. Open Brand Guidelines to add or edit them."
+      },
+      "actionBar": {
+        "title": "Action Bar (Approvals Required)",
+        "description": "Review each action, approve it, then run.",
+        "leadsCount": "{count} leads in current project state"
+      },
+      "actions": {
+        "prospect": {
+          "title": "Scrape Potential Customers",
+          "description": "Run query-based discovery for ICP-fit companies and contacts."
+        },
+        "build_email_list": {
+          "title": "Build Lead Email List",
+          "description": "Infer contact emails, dedupe, and add confidence-weighted records."
+        },
+        "score_segment": {
+          "title": "Score and Segment Leads",
+          "description": "Classify leads into hot, warm, and cold tiers."
+        },
+        "personalize_outreach": {
+          "title": "Generate Personalized Outreach",
+          "description": "Fill LinkedIn, X, and email drafts using selected lead context."
+        },
+        "followup_sequences": {
+          "title": "Create Follow-up Sequence Drafts",
+          "description": "Draft Day 0, Day 3, and Day 7 follow-up messages."
+        },
+        "send_outreach_email": {
+          "title": "Send Outreach Email (Stub)",
+          "description": "Queue and complete a simulated send run (no real delivery in v1)."
+        },
+        "export_leads": {
+          "title": "Export Lead List CSV",
+          "description": "Download the current lead table as CSV."
+        }
+      },
+      "approvals": {
+        "title": "Approval Required",
+        "confirmation": "Approve this action to run it against your current project snapshot.",
+        "cancel": "Cancel",
+        "approveRun": "Approve and Run",
+        "running": "Running..."
+      },
+      "prospecting": {
+        "title": "Prospecting State",
+        "selectedLeads": "{count} leads selected",
+        "noEmail": "No email yet",
+        "empty": "No leads yet. Start with Scrape Potential Customers.",
+        "personalizedTitle": "Personalized Outreach Preview",
+        "personalizedEmpty": "No personalized drafts yet.",
+        "actionLogTitle": "Recent Action Log",
+        "actionLogEmpty": "No actions have run yet.",
+        "headers": {
+          "select": "Select",
+          "contact": "Contact",
+          "company": "Company",
+          "email": "Email",
+          "score": "Score",
+          "reason": "Reason"
+        }
+      },
+      "actionStatus": {
+        "pending_approval": "Pending Approval",
+        "approved": "Approved",
+        "running": "Running",
+        "completed": "Completed",
+        "failed": "Failed"
+      }
+    },
+    "export": {
+      "markdown": {
+        "launchKitPrefix": "Launch Kit",
+        "sourceUrl": "Source URL",
+        "language": "Language",
+        "brief": "Brief",
+        "product": "Product",
+        "positioning": "Positioning",
+        "icp": "ICP",
+        "targetUsers": "Target Users",
+        "painPoints": "Pain Points",
+        "valueProps": "Value Props",
+        "proofPoints": "Proof Points",
+        "primaryCta": "Primary CTA",
+        "keywordResearch": "Keyword Research",
+        "intent": "Intent",
+        "priority": "Priority",
+        "keywords": "Keywords",
+        "contentAngles": "Content Angles",
+        "platformBlocks": "Platform Blocks",
+        "mediaKit": "Media Kit",
+        "growthAssets": "Growth Assets",
+        "noSubject": "No subject",
+        "prospecting": "Prospecting",
+        "leads": "Leads",
+        "personalizedOutreach": "Personalized Outreach",
+        "emailJobsStub": "Email Jobs (stub)"
+      },
+      "pressPack": {
+        "titleSuffix": "Press Pack",
+        "sourceLabel": "Source"
+      }
+    },
+    "errors": {
+      "urlRequired": "Please enter a product URL first.",
+      "ingestFailed": "URL extraction failed. Try another page or refine the URL.",
+      "generateFailed": "Generation failed. Check your brief and API settings.",
+      "saveFailed": "Could not save project right now.",
+      "saveRequiresKit": "Generate a launch kit before saving.",
+      "projectLoadFailed": "Could not load this project.",
+      "actionFailed": "Action failed. Review your project data and try again."
+    },
+    "messages": {
+      "briefReady": "Brief extracted. Review fields before generation.",
+      "kitGenerated": "Launch kit generated successfully.",
+      "blockRegenerated": "Block regenerated successfully.",
+      "growthBlockRegenerated": "Growth block regenerated successfully.",
+      "savedCloud": "Project saved to your account.",
+      "savedLocal": "Project saved locally on this browser.",
+      "loadedCloud": "Project loaded from cloud.",
+      "loadedLocal": "Project loaded from local storage.",
+      "blockCopied": "{platform} block copied to clipboard.",
+      "urlPrefilled": "URL prefilled from landing. Extract when ready.",
+      "demoLoaded": "Sample launch kit loaded. You can edit or regenerate any block.",
+      "leadsExported": "Lead CSV exported.",
+      "actionCompleted": "Action completed."
+    }
   }
 }

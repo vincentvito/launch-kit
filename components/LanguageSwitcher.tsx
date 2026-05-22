@@ -1,12 +1,10 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 
 export default function LanguageSwitcher({ currentLocale }: { currentLocale: string }) {
-  const t = useTranslations('LanguageSwitcher')
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 

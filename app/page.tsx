@@ -1,577 +1,444 @@
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
+import Image from 'next/image'
+import { Playfair_Display, Space_Grotesk } from 'next/font/google'
 import {
-  Shield,
-  Globe,
-  Database,
-  Layers,
-  ArrowRight,
-  Sparkles,
   Check,
-  Zap,
-  Rocket,
-  Terminal,
-  Code2,
+  Newspaper,
+  Sparkles,
+  Wand2,
 } from 'lucide-react'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { Button } from '@/components/ui/button'
+import LaunchUrlHandoff from '@/components/landing/launch-url-handoff'
+import {
+  DEMO_BRIEF,
+  DEMO_KIT,
+  getDemoPreviewBlocks,
+} from '@/lib/launch-kit/demo'
+
+const editorialSerif = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['500', '700', '800'],
+})
+
+const interfaceSans = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
+
+const toneByPlatform: Record<string, string> = {
+  hacker_news: 'from-violet-500/15 to-violet-100/40',
+  reddit: 'from-fuchsia-500/12 to-fuchsia-100/35',
+  linkedin: 'from-indigo-500/12 to-indigo-100/35',
+  tiktok: 'from-purple-500/15 to-pink-100/35',
+}
+
+const panelSlots = [
+  'top-0 left-3 -rotate-2',
+  'top-20 right-2 rotate-[1.4deg]',
+  'top-40 left-10 -rotate-[1deg]',
+  'top-60 right-8 rotate-[1.8deg]',
+]
+
+const launchSurfaceLogos = [
+  {
+    name: 'Product Hunt',
+    src: '/brand-logos/producthunt.svg',
+  },
+  {
+    name: 'Hacker News',
+    src: '/brand-logos/hackernews.svg',
+  },
+  {
+    name: 'Reddit',
+    src: '/brand-logos/reddit.svg',
+  },
+  {
+    name: 'Indie Hackers',
+    src: '/brand-logos/indiehackers-type.svg',
+  },
+  {
+    name: 'LinkedIn',
+    src: '/brand-logos/linkedin.svg',
+  },
+  {
+    name: 'TikTok',
+    src: '/brand-logos/tiktok.svg',
+  },
+  {
+    name: 'YouTube',
+    src: '/brand-logos/youtube.svg',
+  },
+] as const
 
 export default async function LandingPage() {
   const t = await getTranslations('Landing')
   const locale = await getLocale()
-
-  const stackItems = [
-    { name: 'Next.js 16', color: 'from-zinc-500 to-zinc-700 dark:from-zinc-300 dark:to-zinc-500' },
-    { name: 'React 19', color: 'from-sky-400 to-sky-600 dark:from-sky-300 dark:to-sky-500' },
-    { name: 'TypeScript', color: 'from-blue-500 to-blue-700 dark:from-blue-300 dark:to-blue-500' },
-    { name: 'Tailwind CSS v4', color: 'from-teal-400 to-teal-600 dark:from-teal-300 dark:to-teal-500' },
-    { name: 'Prisma ORM', color: 'from-indigo-500 to-indigo-700 dark:from-indigo-300 dark:to-indigo-500' },
-    { name: 'Better Auth', color: 'from-emerald-500 to-emerald-700 dark:from-emerald-300 dark:to-emerald-500' },
-    { name: 'SQLite → Postgres', color: 'from-blue-600 to-blue-800 dark:from-blue-300 dark:to-blue-500' },
-    { name: 'shadcn/ui', color: 'from-zinc-600 to-zinc-800 dark:from-zinc-300 dark:to-zinc-500' },
-  ]
+  const previewBlocks = getDemoPreviewBlocks()
+  const voiceByPlatform: Record<string, string> = {
+    hacker_news: t('proof.voice.hackerNews'),
+    reddit: t('proof.voice.reddit'),
+    linkedin: t('proof.voice.linkedin'),
+    tiktok: t('proof.voice.tiktok'),
+  }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
-      {/* ===== SVG Filters ===== */}
-      <svg className="pointer-events-none fixed h-0 w-0" aria-hidden="true">
-        <filter id="grain">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.65"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-      </svg>
-
-      {/* ===== Background Atmosphere ===== */}
-
-      {/* Noise texture */}
-      <div
-        className="pointer-events-none fixed inset-0 z-[1] opacity-[0.025] mix-blend-overlay dark:opacity-[0.06]"
-        style={{ filter: 'url(#grain)' }}
-      />
-
-      {/* Dot grid pattern */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.35] dark:opacity-[0.12]"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at center, oklch(0.55 0.2 178 / 0.15) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-        }}
-      />
-
-      {/* Large floating gradient orbs */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 h-[600px] w-[600px] animate-float-1 rounded-full bg-gradient-to-br from-teal-500/[0.12] to-cyan-400/[0.08] blur-[100px] dark:from-teal-400/[0.2] dark:to-cyan-400/[0.12]" />
-        <div className="absolute -bottom-48 -left-48 h-[500px] w-[500px] animate-float-2 rounded-full bg-gradient-to-tr from-amber-400/[0.08] to-orange-400/[0.06] blur-[100px] dark:from-amber-400/[0.12] dark:to-orange-400/[0.08]" />
-        <div className="absolute top-1/2 left-1/3 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 animate-float-3 rounded-full bg-gradient-to-br from-sky-400/[0.06] to-teal-400/[0.04] blur-[90px] dark:from-sky-400/[0.1] dark:to-teal-400/[0.06]" />
+    <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute -top-28 -right-20 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-300/60 via-fuchsia-200/45 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-24 h-[360px] w-[360px] rounded-full bg-gradient-to-tr from-purple-300/40 via-violet-200/25 to-transparent blur-3xl" />
       </div>
 
-      {/* ===== Navigation ===== */}
-      <nav className="fixed top-0 right-0 left-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-teal-600 shadow-md shadow-primary/20 dark:to-teal-300">
-              <Zap className="h-4 w-4 text-white dark:text-black" />
+      <header className="sticky top-0 z-40 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
-            <span className="text-base font-bold tracking-tight">
-              {t('nav.brand')}
-            </span>
-          </div>
+            <div>
+              <p className={`${editorialSerif.className} text-lg font-semibold tracking-tight`}>
+                {t('nav.brand')}
+              </p>
+              <p className="text-[11px] text-zinc-500">{t('nav.sub')}</p>
+            </div>
+          </Link>
 
-          <div className="hidden items-center gap-8 md:flex">
-            <a
-              href="#features"
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t('nav.features')}
+          <div className="hidden items-center gap-6 md:flex">
+            <a href="#transformation" className="text-sm text-zinc-600 transition hover:text-violet-700">
+              {t('nav.proof')}
             </a>
-            <a
-              href="#stack"
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t('nav.stack')}
+            <a href="#voices" className="text-sm text-zinc-600 transition hover:text-violet-700">
+              {t('nav.voices')}
+            </a>
+            <a href="#media" className="text-sm text-zinc-600 transition hover:text-violet-700">
+              {t('nav.media')}
             </a>
           </div>
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher currentLocale={locale} />
-            <Link
-              href="/auth/login"
-              className="hidden text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
-            >
+            <Link href="/auth/login" className="hidden text-sm text-zinc-600 transition hover:text-zinc-900 sm:block">
               {t('nav.signIn')}
             </Link>
-            <Button size="sm" asChild className="shadow-md shadow-primary/20">
-              <Link href="/dashboard">
-                {t('nav.getStarted')}
-                <ArrowRight className="ml-1 h-3.5 w-3.5" />
-              </Link>
+            <Button
+              asChild
+              size="sm"
+              className="bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
+            >
+              <Link href="/dashboard">{t('nav.getStarted')}</Link>
             </Button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ===== Hero Section ===== */}
-      <section className="relative overflow-hidden pt-32 pb-16 sm:pt-40 sm:pb-24 lg:pt-44 lg:pb-28">
-        {/* Hero gradient wash */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-500/[0.04] via-transparent to-transparent dark:from-teal-400/[0.06]" />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
-            {/* Left: Text */}
-            <div className="text-center lg:text-left">
-              {/* Badge */}
-              <div className="animate-fade-up relative mb-8 inline-flex items-center gap-2 overflow-hidden rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 shadow-sm">
-                <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
-                <Sparkles className="relative h-3.5 w-3.5 text-primary" />
-                <span className="relative text-xs font-semibold tracking-wide text-primary">
-                  {t('hero.badge')}
-                </span>
-              </div>
-
-              {/* Headline */}
-              <h1
-                className="animate-fade-up font-extrabold tracking-[-0.04em]"
-                style={{
-                  fontSize: 'clamp(2.75rem, 5vw + 1rem, 5.25rem)',
-                  lineHeight: 1.05,
-                  textWrap: 'balance',
-                  animationDelay: '100ms',
-                }}
-              >
-                {t('hero.title')}{' '}
-                <span
-                  className="animate-text-shimmer bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(90deg, oklch(0.6 0.22 170), oklch(0.65 0.2 190), oklch(0.75 0.18 80), oklch(0.65 0.2 170), oklch(0.6 0.22 170))',
-                    WebkitBackgroundClip: 'text',
-                    backgroundSize: '200% auto',
-                  }}
-                >
-                  {t('hero.titleHighlight')}
-                </span>
-              </h1>
-
-              {/* Description */}
-              <p
-                className="animate-fade-up mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mx-0"
-                style={{ animationDelay: '200ms' }}
-              >
-                {t('hero.description')}
-              </p>
-
-              {/* CTA */}
-              <div
-                className="animate-fade-up mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start"
-                style={{ animationDelay: '300ms' }}
-              >
-                <Button
-                  size="lg"
-                  asChild
-                  className="w-full shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 sm:w-auto"
-                >
-                  <Link href="/dashboard">
-                    <Rocket className="mr-2 h-4 w-4" />
-                    {t('hero.cta')}
-                  </Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="w-full border-border/60 sm:w-auto"
-                >
-                  <Link href="#features">
-                    {t('hero.ctaSecondary')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+      <main className="relative z-10">
+        <section id="transformation" className="mx-auto max-w-7xl px-4 pb-20 pt-14 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pt-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+              <Newspaper className="h-3.5 w-3.5" />
+              {t('hero.badge')}
             </div>
 
-            {/* Right: Terminal */}
-            <div
-              className="animate-fade-up relative"
-              style={{ animationDelay: '400ms' }}
+            <h1
+              className={`${editorialSerif.className} mt-5 text-4xl leading-[1.02] tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl`}
             >
-              {/* Glow behind terminal */}
-              <div className="animate-pulse-glow absolute -inset-8 rounded-3xl bg-gradient-to-br from-teal-500/25 via-cyan-500/15 to-amber-500/10 blur-3xl" />
+              {t('hero.title')}
+              <span className="mt-2 block bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-500 bg-clip-text text-transparent">
+                {t('hero.titleHighlight')}
+              </span>
+            </h1>
 
-              {/* Terminal with 3D tilt */}
-              <div
-                className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0c0c] shadow-2xl shadow-black/30"
-                style={{
-                  transform:
-                    'perspective(1200px) rotateX(3deg) rotateY(-3deg)',
-                }}
-              >
-                {/* Header */}
-                <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-3.5">
-                  <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-                  <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
-                  <div className="h-3 w-3 rounded-full bg-[#28c840]" />
-                  <span className="ml-3 font-mono text-xs text-white/25">
-                    ~/clickstudio-app
-                  </span>
-                </div>
-
-                {/* Body */}
-                <div className="px-5 py-6 font-mono text-sm leading-relaxed">
-                  <div className="flex items-center gap-2">
-                    <span className="text-teal-400">{'\u2192'}</span>
-                    <span className="text-white/80">
-                      gh repo create my-app --template clickstudio/clickstudio-starter
-                    </span>
-                  </div>
-                  <div className="mt-5 space-y-2.5 text-white/50">
-                    <div className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-400" />
-                      <span>{t('hero.terminal.auth')}</span>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-400" />
-                      <span>{t('hero.terminal.i18n')}</span>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-400" />
-                      <span>{t('hero.terminal.database')}</span>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-400" />
-                      <span>{t('hero.terminal.ui')}</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 border-t border-white/[0.04] pt-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-teal-400">{'\u2192'}</span>
-                      <span className="text-white/80">npm run dev</span>
-                    </div>
-                    <div className="mt-2 text-emerald-400 font-medium">
-                      {t('hero.terminal.ready')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== Gradient Divider ===== */}
-      <div className="relative mx-auto max-w-5xl px-5 sm:px-8">
-        <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-      </div>
-
-      {/* ===== Features: Bento Grid ===== */}
-      <section id="features" className="scroll-reveal relative py-24 sm:py-32">
-        {/* Hexagonal / honeycomb SVG pattern */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
-            <defs>
-              <pattern
-                id="hex-pattern"
-                width="56"
-                height="100"
-                patternUnits="userSpaceOnUse"
-                patternTransform="scale(1.2)"
-              >
-                <path
-                  d="M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="0.5"
-                />
-                <path
-                  d="M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="0.5"
-                />
-              </pattern>
-            </defs>
-            <rect
-              width="100%"
-              height="100%"
-              fill="url(#hex-pattern)"
-              className="text-primary/[0.025] dark:text-primary/[0.04]"
-            />
-          </svg>
-          {/* Radial fade so pattern is strongest in center */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse 70% 60% at 50% 50%, transparent 0%, var(--background) 100%)',
-            }}
-          />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          {/* Section header */}
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.05] px-3.5 py-1 text-sm font-medium text-primary">
-              <Code2 className="h-3.5 w-3.5" />
-              {t('features.label')}
-            </div>
-            <h2
-              className="text-3xl font-bold tracking-tight sm:text-5xl"
-              style={{ textWrap: 'balance' }}
-            >
-              {t('features.title')}
-            </h2>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
-              {t('features.description')}
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
+              {t('hero.description')}
             </p>
           </div>
 
-          {/* Bento grid */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-6">
-            {/* Auth — spans 4 cols */}
-            <div
-              className="bento-card group p-8 md:col-span-4"
-              style={{ '--card-accent': 'oklch(0.55 0.2 178 / 0.5)' } as React.CSSProperties}
-            >
-              <div className="relative">
-                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/15 to-teal-500/5 text-teal-600 ring-1 ring-teal-500/10 dark:text-teal-400">
-                  <Shield className="h-5 w-5" />
-                </div>
-                <h3 className="mb-2.5 text-xl font-bold">
-                  {t('features.auth.title')}
-                </h3>
-                <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
-                  {t('features.auth.description')}
-                </p>
+          <div className="mx-auto mt-8 max-w-4xl rounded-[1.75rem] border border-violet-100 bg-white p-4 shadow-[0_30px_70px_-50px_rgba(100,40,180,0.5)] sm:p-5">
+            <LaunchUrlHandoff
+              placeholder={t('hero.urlPlaceholder')}
+              primaryLabel={t('hero.ctaPrimary')}
+              secondaryLabel={t('hero.ctaSecondary')}
+              helper={t('hero.ctaHelper')}
+              invalidUrl={t('hero.invalidUrl')}
+            />
+          </div>
 
-                {/* Code preview */}
-                <div className="mt-6 overflow-hidden rounded-lg border border-white/[0.06] bg-[#0c0c0c]">
-                  <div className="flex items-center gap-1.5 border-b border-white/[0.04] px-3 py-2">
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
-                    <span className="ml-2 font-mono text-[10px] text-white/20">auth-client.ts</span>
-                  </div>
-                  <div className="px-4 py-3 font-mono text-[11px] leading-relaxed">
-                    <div>
-                      <span className="text-teal-400">import</span>
-                      <span className="text-white/60">{' { useSession } '}</span>
-                      <span className="text-teal-400">from</span>
-                      <span className="text-amber-400">{" '@/lib/auth-client'"}</span>
-                    </div>
-                    <div className="mt-1">
-                      <span className="text-teal-400">const</span>
-                      <span className="text-white/60">{' { data: session } = useSession()'}</span>
-                    </div>
-                    <div className="mt-2 text-white/20">{'// \u2713 Ready to use'}</div>
-                  </div>
-                </div>
-              </div>
+          <div className="relative mt-6 overflow-hidden py-2">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white via-white/80 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white via-white/80 to-transparent" />
+
+            <div
+              className="flex w-max whitespace-nowrap [animation:marquee_36s_linear_infinite] motion-reduce:[animation:none] hover:[animation-play-state:paused]"
+            >
+              {[...launchSurfaceLogos, ...launchSurfaceLogos].map((surface, index) => (
+                <BrandLogoMarqueeItem
+                  key={`full-logo-${surface.name}-${index}`}
+                  src={surface.src}
+                  label={surface.name}
+                />
+              ))}
             </div>
+          </div>
 
-            {/* i18n — spans 2 cols */}
-            <div
-              className="bento-card group p-8 md:col-span-2"
-              style={{ '--card-accent': 'oklch(0.6 0.18 220 / 0.5)' } as React.CSSProperties}
+          <div className="mt-10 grid gap-6 lg:grid-cols-[0.94fr_1.06fr]">
+            <article
+              className="animate-fade-up motion-reduce:animate-none rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-sm"
+              style={{ animationDelay: '120ms' }}
             >
-              <div className="relative">
-                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/15 to-sky-500/5 text-sky-600 ring-1 ring-sky-500/10 dark:text-sky-400">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <h3 className="mb-2.5 text-lg font-bold">
-                  {t('features.i18n.title')}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {t('features.i18n.description')}
-                </p>
-
-                {/* Language pills */}
-                <div className="mt-6 flex gap-2">
-                  <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-600 ring-1 ring-sky-500/15 dark:text-sky-400">EN</span>
-                  <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-600 ring-1 ring-sky-500/15 dark:text-sky-400">ES</span>
-                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">+</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Database — spans 2 cols */}
-            <div
-              className="bento-card group p-8 md:col-span-2"
-              style={{ '--card-accent': 'oklch(0.7 0.16 80 / 0.5)' } as React.CSSProperties}
-            >
-              <div className="relative">
-                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-500/5 text-amber-600 ring-1 ring-amber-500/10 dark:text-amber-400">
-                  <Database className="h-5 w-5" />
-                </div>
-                <h3 className="mb-2.5 text-lg font-bold">
-                  {t('features.database.title')}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {t('features.database.description')}
-                </p>
-
-                {/* DB indicator */}
-                <div className="mt-6 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                  <span className="font-mono text-[11px] text-muted-foreground">SQLite ready · Postgres-ready</span>
-                </div>
-              </div>
-            </div>
-
-            {/* UI Components — spans 4 cols */}
-            <div
-              className="bento-card group p-8 md:col-span-4"
-              style={{ '--card-accent': 'oklch(0.6 0.18 160 / 0.5)' } as React.CSSProperties}
-            >
-              <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start">
-                <div className="shrink-0">
-                  <div className="mb-0 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 text-emerald-600 ring-1 ring-emerald-500/10 dark:text-emerald-400">
-                    <Layers className="h-5 w-5" />
-                  </div>
-                </div>
+              <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h3 className="mb-2.5 text-lg font-bold">
-                    {t('features.components.title')}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {t('features.components.description')}
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                    {t('proof.sourceLabel')}
                   </p>
+                  <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                    {t('proof.sourceTitle')}
+                  </h2>
+                </div>
+                <span className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-medium text-violet-700">
+                  {DEMO_BRIEF.sourceUrl}
+                </span>
+              </div>
 
-                  {/* Component preview chips */}
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {['Button', 'Input', 'Dialog', 'Avatar', 'Card', 'Dropdown'].map(
-                      (comp) => (
-                        <span
-                          key={comp}
-                          className="rounded-md bg-muted/80 px-2.5 py-1 font-mono text-[11px] font-medium text-muted-foreground ring-1 ring-border/50"
-                        >
-                          {`<${comp} />`}
-                        </span>
-                      )
-                    )}
+              <div className="space-y-3">
+                <BriefRow label={t('proof.brief.productName')} value={DEMO_BRIEF.productName} />
+                <BriefRow label={t('proof.brief.positioning')} value={DEMO_BRIEF.positioning} />
+                <BriefList label={t('proof.brief.targetUsers')} values={DEMO_BRIEF.targetUsers} />
+                <BriefRow label={t('proof.brief.icp')} value={DEMO_BRIEF.icp} />
+                <BriefList label={t('proof.brief.painPoints')} values={DEMO_BRIEF.painPoints} />
+                <BriefList label={t('proof.brief.valueProps')} values={DEMO_BRIEF.valueProps} />
+                <BriefList label={t('proof.brief.proofPoints')} values={DEMO_BRIEF.proofPoints} />
+                <BriefRow label={t('proof.brief.cta')} value={DEMO_BRIEF.cta} />
+              </div>
+            </article>
+
+            <div>
+              <div
+                className="hidden animate-fade-up motion-reduce:animate-none rounded-[1.5rem] border border-violet-100 bg-white px-5 py-5 shadow-sm lg:block"
+                style={{ animationDelay: '220ms' }}
+              >
+                <div className="mb-4 flex items-end justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                      {t('proof.outputLabel')}
+                    </p>
+                    <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                      {t('proof.outputTitle')}
+                    </h2>
                   </div>
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs text-violet-700">
+                    {t('proof.socialContract')}
+                  </span>
+                </div>
+
+                <div className="relative h-[430px] overflow-hidden rounded-2xl border border-violet-100 bg-[radial-gradient(circle_at_15%_10%,rgba(139,92,246,0.12),transparent_45%),radial-gradient(circle_at_85%_0%,rgba(217,70,239,0.12),transparent_48%)] p-3">
+                  {previewBlocks.map((block, index) => (
+                    <article
+                      key={block.id}
+                      className={`animate-fade-up motion-reduce:animate-none absolute w-[88%] rounded-2xl border border-violet-200 bg-white/95 p-4 shadow-lg shadow-violet-500/10 backdrop-blur ${panelSlots[index]}`}
+                      style={{
+                        animationDelay: `${280 + index * 140}ms`,
+                      }}
+                    >
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <span className="rounded-full border border-violet-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700">
+                          {block.label}
+                        </span>
+                        <span
+                          className={`rounded-full bg-gradient-to-r px-2 py-1 text-[10px] font-medium text-violet-800 ${toneByPlatform[block.id]}`}
+                        >
+                          {voiceByPlatform[block.id]}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed text-zinc-700">{block.body.split('\n\n')[0]}</p>
+                      <div className="mt-3 border-t border-violet-100 pt-3 text-xs text-zinc-500">
+                        <span className="font-semibold text-violet-700">CTA:</span> {block.cta}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              <div className="animate-fade-up motion-reduce:animate-none rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-sm lg:hidden" style={{ animationDelay: '220ms' }}>
+                <div className="mb-3 flex items-end justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                      {t('proof.outputLabel')}
+                    </p>
+                    <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                      {t('proof.outputTitle')}
+                    </h2>
+                  </div>
+                  <span className="text-xs text-zinc-500">{t('proof.swipeHint')}</span>
+                </div>
+
+                <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2">
+                  {previewBlocks.map((block) => (
+                    <article
+                      key={`mobile-${block.id}`}
+                      className="w-[86%] shrink-0 snap-start rounded-2xl border border-violet-200 bg-white p-4"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-violet-700">{block.label}</span>
+                        <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] text-violet-700">
+                          {voiceByPlatform[block.id]}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed text-zinc-700">{block.body.split('\n\n')[0]}</p>
+                      <p className="mt-2 text-xs text-zinc-500">
+                        <span className="font-semibold text-violet-700">CTA:</span> {block.cta}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="mt-2 flex justify-center gap-1.5">
+                  {previewBlocks.map((block) => (
+                    <span key={`dot-${block.id}`} className="h-1.5 w-6 rounded-full bg-violet-200" />
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ===== Gradient Divider ===== */}
-      <div className="relative mx-auto max-w-5xl px-5 sm:px-8">
-        <div className="h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
-      </div>
+        </section>
 
-      {/* ===== Tech Stack ===== */}
-      <section id="stack" className="scroll-reveal relative py-24 sm:py-28">
-        <div className="mx-auto mb-14 max-w-7xl px-5 text-center sm:px-8">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {t('stack.title')}
-          </h2>
-          <p className="mt-4 text-base text-muted-foreground">
-            {t('stack.description')}
-          </p>
-        </div>
-
-        {/* Marquee with styled badges */}
-        <div className="relative overflow-hidden py-4">
-          <div className="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-32 bg-gradient-to-r from-background to-transparent sm:w-48" />
-          <div className="pointer-events-none absolute top-0 right-0 bottom-0 z-10 w-32 bg-gradient-to-l from-background to-transparent sm:w-48" />
-
-          <div className="flex animate-marquee">
-            {[...stackItems, ...stackItems].map((item, i) => (
-              <span
-                key={i}
-                className="inline-flex shrink-0 items-center gap-3 px-4 sm:px-6"
-              >
-                <span className="inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-card px-5 py-2.5 shadow-sm transition-shadow hover:shadow-md">
-                  <span className={`h-2 w-2 rounded-full bg-gradient-to-br ${item.color}`} />
-                  <span className="whitespace-nowrap text-sm font-semibold text-foreground/80">
-                    {item.name}
-                  </span>
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CTA Section — Dark Gradient ===== */}
-      <section className="scroll-reveal relative px-5 py-16 sm:px-8 sm:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0c0c0c] via-[#111] to-[#0c0c0c] shadow-2xl">
-            {/* Decorative gradient orbs inside CTA */}
-            <div className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl" />
-
-            {/* Grid pattern inside */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-[0.06]"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at center, oklch(1 0 0 / 0.3) 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-
-            <div className="relative px-8 py-20 text-center sm:px-16 sm:py-24">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/10 px-4 py-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-teal-400" />
-                <span className="text-xs font-semibold text-teal-400">
-                  {t('cta.badge')}
-                </span>
-              </div>
-
-              <h2
-                className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-5xl"
-                style={{ textWrap: 'balance' }}
-              >
-                {t('cta.title')}
-              </h2>
-
-              <p className="mx-auto mt-5 max-w-lg text-base text-white/50 sm:text-lg">
-                {t('cta.description')}
+        <section id="voices" className="border-y border-violet-100/90 bg-violet-50/30 py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+                {t('voices.label')}
               </p>
+              <h2 className={`${editorialSerif.className} mt-2 text-4xl leading-tight text-zinc-900`}>
+                {t('voices.title')}
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-zinc-600">{t('voices.description')}</p>
+            </div>
 
-              <div className="mt-10">
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-white text-black shadow-lg shadow-white/10 transition-all duration-300 hover:bg-white/90 hover:shadow-xl hover:shadow-white/20"
-                >
-                  <Link href="/dashboard">
-                    <Rocket className="mr-2 h-4 w-4" />
-                    {t('cta.button')}
-                  </Link>
-                </Button>
-              </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <VoiceCard title={t('voices.cards.hn.title')} body={t('voices.cards.hn.body')} />
+              <VoiceCard title={t('voices.cards.reddit.title')} body={t('voices.cards.reddit.body')} />
+              <VoiceCard title={t('voices.cards.indie.title')} body={t('voices.cards.indie.body')} />
+              <VoiceCard title={t('voices.cards.linkedin.title')} body={t('voices.cards.linkedin.body')} />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ===== Footer ===== */}
-      <footer className="border-t border-border/30 py-10">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-teal-600 dark:to-teal-300">
-                <Zap className="h-3 w-3 text-white dark:text-black" />
-              </div>
-              <span className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} {t('footer.copyright')}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground/50">
-              {t('footer.tagline')}
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20 lg:px-8">
+          <article className="rounded-[1.6rem] border border-violet-100 bg-white p-6 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+              {t('generated.label')}
             </p>
-          </div>
+            <h2 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900`}>
+              {t('generated.title')}
+            </h2>
+            <p className="mt-3 text-zinc-600">{t('generated.description')}</p>
+
+            <ul className="mt-6 space-y-2 text-sm text-zinc-700">
+              <GeneratedItem label="Product Hunt" value={t('generated.items.productHunt')} />
+              <GeneratedItem label="Hacker News" value={t('generated.items.hn')} />
+              <GeneratedItem label="Reddit" value={t('generated.items.reddit')} />
+              <GeneratedItem label="Indie Hackers" value={t('generated.items.indie')} />
+              <GeneratedItem label="LinkedIn" value={t('generated.items.linkedin')} />
+              <GeneratedItem label="TikTok / YouTube" value={t('generated.items.video')} />
+              <GeneratedItem label="Email" value={t('generated.items.email')} />
+              <GeneratedItem label="Press Kit" value={t('generated.items.press')} />
+            </ul>
+          </article>
+
+          <article id="media" className="rounded-[1.6rem] border border-violet-100 bg-gradient-to-br from-white to-violet-50/70 p-6 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">{t('media.label')}</p>
+            <h2 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900`}>
+              {t('media.title')}
+            </h2>
+            <p className="mt-3 text-zinc-600">{t('media.description')}</p>
+
+            <ul className="mt-6 space-y-2 text-sm text-zinc-700">
+              {DEMO_KIT.mediaKit.keyVisualsChecklist.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-5 rounded-xl border border-violet-200 bg-white/80 px-3 py-2 text-sm leading-relaxed text-zinc-600">
+              {t('media.pressPackNote')}
+            </p>
+
+            <Button
+              asChild
+              className="mt-5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
+            >
+              <Link href="/dashboard?demo=1&view=results">
+                <Wand2 className="mr-1.5 h-4 w-4" />
+                {t('media.cta')}
+              </Link>
+            </Button>
+          </article>
+        </section>
+      </main>
+
+      <footer className="border-t border-violet-100 py-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <p>&copy; {new Date().getFullYear()} {t('footer.copyright')}</p>
+          <p>{t('footer.tagline')}</p>
         </div>
       </footer>
+    </div>
+  )
+}
+
+function BriefRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-violet-700">{label}</p>
+      <p className="mt-1 text-sm leading-relaxed text-zinc-700">{value}</p>
+    </div>
+  )
+}
+
+function BriefList({ label, values }: { label: string; values: string[] }) {
+  return (
+    <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-violet-700">{label}</p>
+      <ul className="mt-1 space-y-1 text-sm text-zinc-700">
+        {values.map((value) => (
+          <li key={`${label}-${value}`}>- {value}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function VoiceCard({ title, body }: { title: string; body: string }) {
+  return (
+    <article className="rounded-2xl border border-violet-100 bg-white p-4 shadow-sm">
+      <h3 className="text-base font-semibold text-zinc-900">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{body}</p>
+    </article>
+  )
+}
+
+function GeneratedItem({ label, value }: { label: string; value: string }) {
+  return (
+    <li className="flex items-start justify-between gap-3 rounded-xl border border-violet-100 bg-violet-50/35 px-3 py-2">
+      <span className="font-medium text-zinc-900">{label}</span>
+      <span className="text-right text-zinc-600">{value}</span>
+    </li>
+  )
+}
+
+function BrandLogoMarqueeItem({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="mx-10 inline-flex items-center" aria-label={label} title={label}>
+      <Image
+        src={src}
+        alt={label}
+        width={180}
+        height={42}
+        className="h-9 w-auto opacity-90"
+      />
     </div>
   )
 }

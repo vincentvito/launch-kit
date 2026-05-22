@@ -1,0 +1,186 @@
+type JsonRecord = Record<string, unknown>
+
+type ReplicatePrediction = {
+  id: string
+  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled'
+  error?: string | null
+  output?: unknown
+  urls?: {
+    get?: string
+  }
+}
+
+type RunReplicateStructuredInput = {
+  instructions: string
+  prompt: string
+  jsonSchema?: JsonRecord
+  schemaName?: string
+  modelVariant?: string
+  maxOutputTokens?: number
+  pollTimeoutMs?: number
+  reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high'
+  verbosity?: 'low' | 'medium' | 'high'
+}
+
+const DEFAULT_MODEL = 'openai/gpt-5-structured'
+const TERMINAL_STATUSES = new Set(['succeeded', 'failed', 'canceled'])
+const DEBUG = process.env.REPLICATE_DEBUG === '1'
+
+export function hasReplicateToken(): boolean {
+  return Boolean(process.env.REPLICATE_API_TOKEN)
+}
+
+export async function runReplicateStructured<T>(
+  input: RunReplicateStructuredInput,
+): Promise<T | null> {
+  const token = process.env.REPLICATE_API_TOKEN
+  if (!token) {
+    return null
+  }
+
+  const model = process.env.REPLICATE_MODEL || DEFAULT_MODEL
+  const endpoint = `https://api.replicate.com/v1/models/${model}/predictions`
+  const structuredSchema = input.jsonSchema
+    ? {
+        format: {
+          type: 'json_schema',
+          name: input.schemaName || 'structured_output',
+          schema: input.jsonSchema,
+        },
+      }
+    : undefined
+
+  const createResponse = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+      // Ask Replicate to hold the request open while the prediction runs.
+      prefer: 'wait=60',
+    },
+    body: JSON.stringify({
+      input: {
+        instructions: input.instructions,
+        prompt: input.prompt,
+        model: input.modelVariant || process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
+        reasoning_effort: input.reasoningEffort || 'high',
+        verbosity: input.verbosity || 'high',
+        max_output_tokens: input.maxOutputTokens || 3200,
+        ...(structuredSchema ? { json_schema: structuredSchema } : {}),
+      },
+    }),
+    signal: AbortSignal.timeout(120000),
+  })
+
+  if (!createResponse.ok) {
+    if (DEBUG) {
+      console.warn('[replicate] create failed', createResponse.status, await createResponse.text())
+    }
+    return null
+  }
+
+  let prediction = (await createResponse.json()) as ReplicatePrediction
+  if (DEBUG) {
+    console.info('[replicate] initial status', prediction?.status, 'id', prediction?.id)
+  }
+  if (!prediction || !prediction.id) {
+    return null
+  }
+
+  const pollDeadline = Date.now() + (input.pollTimeoutMs || 360000)
+  while (!TERMINAL_STATUSES.has(prediction.status) && Date.now() < pollDeadline) {
+    const getUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
+    const statusResponse = await fetch(getUrl, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(60000),
+    })
+
+    if (!statusResponse.ok) {
+      if (DEBUG) {
+        console.warn('[replicate] poll failed', statusResponse.status, await statusResponse.text())
+      }
+      return null
+    }
+
+    prediction = (await statusResponse.json()) as ReplicatePrediction
+
+    if (!TERMINAL_STATUSES.has(prediction.status)) {
+      await sleep(2000)
+    }
+  }
+
+  if (prediction.status !== 'succeeded') {
+    if (DEBUG) {
+      console.warn('[replicate] terminal non-success', prediction.status, prediction.error)
+    }
+    return null
+  }
+
+  const parsed = parseReplicateOutput<T>(prediction.output)
+  if (DEBUG) {
+    console.info('[replicate] parsed', parsed ? 'ok' : 'null')
+  }
+  return parsed
+}
+
+function parseReplicateOutput<T>(output: unknown): T | null {
+  if (output === null || output === undefined) {
+    return null
+  }
+
+  if (typeof output === 'string') {
+    const direct = safeJsonParse<T>(output)
+    if (direct) {
+      return direct
+    }
+    return null
+  }
+
+  if (Array.isArray(output)) {
+    const text = output.filter((item) => typeof item === 'string').join('')
+    if (!text) {
+      return null
+    }
+    return safeJsonParse<T>(text)
+  }
+
+  if (typeof output === 'object') {
+    const maybeEnvelope = output as {
+      json_output?: unknown
+      text?: unknown
+    }
+
+    if (maybeEnvelope.json_output && typeof maybeEnvelope.json_output === 'object') {
+      return maybeEnvelope.json_output as T
+    }
+
+    if (typeof maybeEnvelope.text === 'string') {
+      const parsedText = safeJsonParse<T>(maybeEnvelope.text)
+      if (parsedText) {
+        return parsedText
+      }
+    }
+
+    if (Object.keys(output as Record<string, unknown>).length === 0) {
+      return null
+    }
+
+    return output as T
+  }
+
+  return null
+}
+
+function safeJsonParse<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return null
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}

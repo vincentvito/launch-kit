@@ -23,6 +23,8 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  launchProjects LaunchProject[]
+  launchProfile UserLaunchProfile?
 
   @@unique([email])
   @@map("user")
@@ -74,4 +76,40 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model LaunchProject {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  sourceUrl String
+  language  String
+  briefJson String
+  kitJson   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("launch_project")
+}
+
+model UserLaunchProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  founderName   String?
+  founderBio    String?
+  companyName   String?
+  companyBio    String?
+  website       String?
+  email         String?
+  contactPhone  String?
+  socialX       String?
+  socialLinkedIn String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("user_launch_profile")
 }
