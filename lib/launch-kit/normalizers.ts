@@ -1,14 +1,24 @@
 import {
+  DEFAULT_LAUNCH_ASSET_TEMPLATES,
   PLATFORM_IDS,
   PLATFORM_LABELS,
+  type AssetLibrary,
   type ExtractedBrief,
+  type GeneratedLaunchAsset,
+  type GeneratedLaunchAssetStatus,
   type GrowthAssets,
   type KeywordResearch,
+  type LaunchAssetFormat,
+  type LaunchAssetKind,
+  type LaunchAssetMediaType,
   type LaunchKit,
   type MediaKit,
   type PlatformBlock,
   type PlatformBlockId,
   type ProspectingState,
+  type RedditRecommendations,
+  type SeoGrowthState,
+  type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 
 export function createEmptyKeywordResearch(): KeywordResearch {
@@ -28,6 +38,13 @@ export function createEmptyMediaKit(): MediaKit {
     keyVisualsChecklist: [],
     screenshotsAndLogos: '',
     contactDetails: '',
+  }
+}
+
+export function createEmptyRedditRecommendations(): RedditRecommendations {
+  return {
+    engagementSubreddits: [],
+    selfPromotionSubreddits: [],
   }
 }
 
@@ -57,6 +74,13 @@ export function createEmptyGrowthAssets(): GrowthAssets {
   }
 }
 
+export function createEmptyAssetLibrary(): AssetLibrary {
+  return {
+    templates: DEFAULT_LAUNCH_ASSET_TEMPLATES,
+    generatedAssets: [],
+  }
+}
+
 export function createEmptyProspectingState(): ProspectingState {
   return {
     queryHints: [],
@@ -66,6 +90,21 @@ export function createEmptyProspectingState(): ProspectingState {
     emailJobs: [],
     lastScrapeAt: '',
     lastEmailBuildAt: '',
+  }
+}
+
+export function createEmptySeoGrowthState(): SeoGrowthState {
+  return {
+    websiteAnalysis: null,
+    blogStrategy: [],
+    freeTools: [],
+    backlinkProspects: [],
+    prospectLists: [],
+    backlinkEmailJobs: [],
+    lastAnalyzedAt: '',
+    lastBlogStrategyAt: '',
+    lastBacklinkScrapeAt: '',
+    lastBacklinkEmailAt: '',
   }
 }
 
@@ -80,6 +119,9 @@ export function createEmptyPlatformBlocks(): Record<PlatformBlockId, PlatformBlo
       body: '',
       cta: '',
       notes: '',
+      ...(platformId === 'reddit'
+        ? { redditRecommendations: createEmptyRedditRecommendations() }
+        : {}),
     }
   }
 
@@ -92,8 +134,10 @@ export function createEmptyKit(language: string): LaunchKit {
     language,
     platformBlocks: createEmptyPlatformBlocks(),
     mediaKit: createEmptyMediaKit(),
+    assetLibrary: createEmptyAssetLibrary(),
     growthAssets: createEmptyGrowthAssets(),
     prospecting: createEmptyProspectingState(),
+    seoGrowth: createEmptySeoGrowthState(),
   }
 }
 
@@ -177,6 +221,9 @@ export function normalizeKit(
       body: block.body || '',
       cta: block.cta || '',
       notes: block.notes || '',
+      ...(blockId === 'reddit'
+        ? { redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations) }
+        : {}),
     }
   }
 
@@ -195,6 +242,7 @@ export function normalizeKit(
       screenshotsAndLogos: kit?.mediaKit?.screenshotsAndLogos || '',
       contactDetails: kit?.mediaKit?.contactDetails || '',
     },
+    assetLibrary: normalizeAssetLibrary(kit?.assetLibrary),
     growthAssets: {
       ...fallback.growthAssets,
       ...(kit?.growthAssets || {}),
@@ -241,5 +289,335 @@ export function normalizeKit(
       lastScrapeAt: kit?.prospecting?.lastScrapeAt || '',
       lastEmailBuildAt: kit?.prospecting?.lastEmailBuildAt || '',
     },
+    seoGrowth: normalizeSeoGrowthState(kit?.seoGrowth),
   }
+}
+
+export function normalizeAssetLibrary(
+  assetLibrary: Partial<AssetLibrary> | null | undefined,
+): AssetLibrary {
+  return {
+    templates: DEFAULT_LAUNCH_ASSET_TEMPLATES,
+    generatedAssets: Array.isArray(assetLibrary?.generatedAssets)
+      ? assetLibrary.generatedAssets
+          .map((asset, index) => normalizeGeneratedAsset(asset, index))
+          .filter(Boolean) as GeneratedLaunchAsset[]
+      : [],
+  }
+}
+
+function normalizeGeneratedAsset(
+  asset: Partial<GeneratedLaunchAsset> | null | undefined,
+  index: number,
+): GeneratedLaunchAsset | null {
+  if (!asset?.templateId) {
+    return null
+  }
+
+  const template = DEFAULT_LAUNCH_ASSET_TEMPLATES.find((item) => item.id === asset.templateId)
+  if (!template) {
+    return null
+  }
+
+  const format = isLaunchAssetFormat(asset.format) && template.formats.includes(asset.format)
+    ? asset.format
+    : template.formats[0]
+
+  return {
+    id: asset.id || `${asset.templateId}-${format}-${index + 1}`,
+    templateId: asset.templateId,
+    kind: isLaunchAssetKind(asset.kind) ? asset.kind : template.kind,
+    mediaType: isLaunchAssetMediaType(asset.mediaType) ? asset.mediaType : template.mediaType,
+    format,
+    status: isGeneratedAssetStatus(asset.status) ? asset.status : 'failed',
+    title: asset.title || template.title,
+    prompt: asset.prompt || '',
+    outputUrl: asset.outputUrl || '',
+    outputText: asset.outputText || '',
+    replicatePredictionId: asset.replicatePredictionId || '',
+    error: asset.error || '',
+    createdAt: asset.createdAt || new Date().toISOString(),
+    updatedAt: asset.updatedAt || asset.createdAt || new Date().toISOString(),
+  }
+}
+
+export function normalizeSeoGrowthState(
+  seoGrowth: Partial<SeoGrowthState> | null | undefined,
+): SeoGrowthState {
+  const fallback = createEmptySeoGrowthState()
+
+  return {
+    ...fallback,
+    ...(seoGrowth || {}),
+    websiteAnalysis: seoGrowth?.websiteAnalysis
+      ? {
+          generatedAt: seoGrowth.websiteAnalysis.generatedAt || '',
+          score: clampNumber(seoGrowth.websiteAnalysis.score, 0, 100, 0),
+          summary: seoGrowth.websiteAnalysis.summary || '',
+          strengths: Array.isArray(seoGrowth.websiteAnalysis.strengths)
+            ? seoGrowth.websiteAnalysis.strengths.filter(Boolean)
+            : [],
+          fixes: Array.isArray(seoGrowth.websiteAnalysis.fixes)
+            ? seoGrowth.websiteAnalysis.fixes.filter(Boolean)
+            : [],
+          checks: Array.isArray(seoGrowth.websiteAnalysis.checks)
+            ? seoGrowth.websiteAnalysis.checks
+                .map((check, index) => ({
+                  id: check.id || `seo-check-${index + 1}`,
+                  label: check.label || '',
+                  status: ['pass', 'warning', 'fail'].includes(check.status)
+                    ? check.status
+                    : 'warning',
+                  detail: check.detail || '',
+                }))
+                .filter((check) => check.label || check.detail)
+            : [],
+          llmReadinessNotes: Array.isArray(seoGrowth.websiteAnalysis.llmReadinessNotes)
+            ? seoGrowth.websiteAnalysis.llmReadinessNotes.filter(Boolean)
+            : [],
+        }
+      : null,
+    blogStrategy: Array.isArray(seoGrowth?.blogStrategy)
+      ? seoGrowth.blogStrategy
+          .map((post, index) => ({
+            id: post.id || `blog-post-${index + 1}`,
+            dayOffset: clampNumber(post.dayOffset, 0, 365, index * 4),
+            keywordClusterId: post.keywordClusterId || `cluster-${index + 1}`,
+            keywordTopic: post.keywordTopic || '',
+            title: post.title || '',
+            intent: post.intent || 'informational',
+            targetKeywords: Array.isArray(post.targetKeywords)
+              ? post.targetKeywords.filter(Boolean)
+              : [],
+            tableIdeas: Array.isArray(post.tableIdeas) ? post.tableIdeas.filter(Boolean) : [],
+            outline: Array.isArray(post.outline) ? post.outline.filter(Boolean) : [],
+            llmNotes: Array.isArray(post.llmNotes) ? post.llmNotes.filter(Boolean) : [],
+            cta: post.cta || '',
+          }))
+          .filter((post) => post.title || post.keywordTopic)
+      : [],
+    freeTools: Array.isArray(seoGrowth?.freeTools)
+      ? seoGrowth.freeTools
+          .map((tool, index) => ({
+            id: tool.id || `free-tool-${index + 1}`,
+            category: tool.category || '',
+            title: tool.title || '',
+            url: tool.url || '',
+            workflow: tool.workflow || '',
+          }))
+          .filter((tool) => tool.title)
+      : [],
+    backlinkProspects: Array.isArray(seoGrowth?.backlinkProspects)
+      ? seoGrowth.backlinkProspects
+          .map((prospect, index) => ({
+            id: prospect.id || `backlink-${index + 1}`,
+            website: prospect.website || '',
+            domain: prospect.domain || '',
+            title: prospect.title || '',
+            contactName: prospect.contactName || '',
+            contactEmail: prospect.contactEmail || '',
+            scrapedSummary: prospect.scrapedSummary || '',
+            relevanceReason: prospect.relevanceReason || '',
+            backlinkAngle: prospect.backlinkAngle || '',
+            costToList:
+              typeof prospect.costToList === 'number' && Number.isFinite(prospect.costToList)
+                ? prospect.costToList
+                : null,
+            estimatedTraffic:
+              typeof prospect.estimatedTraffic === 'number' && Number.isFinite(prospect.estimatedTraffic)
+                ? prospect.estimatedTraffic
+                : null,
+            relevanceScore: clampNumber(prospect.relevanceScore, 0, 100, 50),
+            trafficScore: clampNumber(prospect.trafficScore, 0, 100, 50),
+            authorityScore: clampNumber(prospect.authorityScore, 0, 100, 50),
+            contactabilityScore: clampNumber(prospect.contactabilityScore, 0, 100, 50),
+            costScore: clampNumber(prospect.costScore, 0, 100, 50),
+            valueScore: clampNumber(prospect.valueScore, 0, 100, 50),
+            status: [
+              'new',
+              'first_contact',
+              'second_contact',
+              'in_negotiation',
+              'closed',
+              'rejected',
+            ].includes(prospect.status)
+              ? prospect.status
+              : 'new',
+            listIds: Array.isArray(prospect.listIds) ? prospect.listIds.filter(Boolean) : [],
+            customizedEmailSubject: prospect.customizedEmailSubject || '',
+            customizedEmailBody: prospect.customizedEmailBody || '',
+            source: prospect.source || '',
+            discoveredAt: prospect.discoveredAt || '',
+            lastContactedAt: prospect.lastContactedAt || '',
+          }))
+          .filter((prospect) => prospect.website || prospect.domain || prospect.title)
+      : [],
+    prospectLists: Array.isArray(seoGrowth?.prospectLists)
+      ? seoGrowth.prospectLists
+          .map((list, index) => ({
+            id: list.id || `backlink-list-${index + 1}`,
+            name: list.name || '',
+            description: list.description || '',
+            prospectIds: Array.isArray(list.prospectIds) ? list.prospectIds.filter(Boolean) : [],
+            createdAt: list.createdAt || '',
+            updatedAt: list.updatedAt || '',
+          }))
+          .filter((list) => list.name)
+      : [],
+    backlinkEmailJobs: Array.isArray(seoGrowth?.backlinkEmailJobs)
+      ? seoGrowth.backlinkEmailJobs
+          .map((job, index) => ({
+            id: job.id || `backlink-email-job-${index + 1}`,
+            status: job.status === 'queued' ? ('queued' as const) : ('completed' as const),
+            prospectIds: Array.isArray(job.prospectIds) ? job.prospectIds.filter(Boolean) : [],
+            subject: job.subject || '',
+            bodyPreview: job.bodyPreview || '',
+            createdAt: job.createdAt || '',
+            completedAt: job.completedAt || '',
+          }))
+          .filter((job) => job.prospectIds.length > 0 || job.subject)
+      : [],
+    lastAnalyzedAt: seoGrowth?.lastAnalyzedAt || '',
+    lastBlogStrategyAt: seoGrowth?.lastBlogStrategyAt || '',
+    lastBacklinkScrapeAt: seoGrowth?.lastBacklinkScrapeAt || '',
+    lastBacklinkEmailAt: seoGrowth?.lastBacklinkEmailAt || '',
+  }
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback
+  }
+
+  return Math.max(min, Math.min(max, value))
+}
+
+function isLaunchAssetKind(value: unknown): value is LaunchAssetKind {
+  return (
+    value === 'screenshots' ||
+    value === 'image_ads' ||
+    value === 'video_ads' ||
+    value === 'text_ads'
+  )
+}
+
+function isLaunchAssetMediaType(value: unknown): value is LaunchAssetMediaType {
+  return value === 'image' || value === 'video' || value === 'text'
+}
+
+function isLaunchAssetFormat(value: unknown): value is LaunchAssetFormat {
+  return (
+    value === '16:9' ||
+    value === '9:16' ||
+    value === '1:1' ||
+    value === '4:5' ||
+    value === '1.91:1' ||
+    value === 'text'
+  )
+}
+
+function isGeneratedAssetStatus(value: unknown): value is GeneratedLaunchAssetStatus {
+  return value === 'succeeded' || value === 'failed'
+}
+
+export function normalizeRedditRecommendations(
+  recommendations:
+    | {
+        engagementSubreddits?: Partial<SubredditRecommendation>[] | null
+        selfPromotionSubreddits?: Partial<SubredditRecommendation>[] | null
+      }
+    | null
+    | undefined,
+  fallback?: RedditRecommendations,
+): RedditRecommendations {
+  return {
+    engagementSubreddits: normalizeSubredditRecommendationList(
+      recommendations?.engagementSubreddits,
+      fallback?.engagementSubreddits,
+    ),
+    selfPromotionSubreddits: normalizeSubredditRecommendationList(
+      recommendations?.selfPromotionSubreddits,
+      fallback?.selfPromotionSubreddits,
+    ),
+  }
+}
+
+function normalizeSubredditRecommendationList(
+  recommendations: Partial<SubredditRecommendation>[] | null | undefined,
+  fallback: SubredditRecommendation[] = [],
+): SubredditRecommendation[] {
+  const normalized = Array.isArray(recommendations)
+    ? recommendations
+        .map((recommendation) => normalizeSubredditRecommendation(recommendation))
+        .filter((recommendation): recommendation is SubredditRecommendation => Boolean(recommendation))
+    : []
+
+  const selected = normalized.length > 0 ? normalized : fallback
+  const seen = new Set<string>()
+  const deduped: SubredditRecommendation[] = []
+
+  for (const recommendation of selected) {
+    const slug = extractSubredditSlug(recommendation.name || recommendation.url)
+    const key = slug.toLowerCase()
+    if (!slug || seen.has(key)) {
+      continue
+    }
+
+    seen.add(key)
+    deduped.push({
+      name: `r/${slug}`,
+      url: recommendation.url.trim() || buildSubredditUrl(slug),
+      reason: recommendation.reason.trim(),
+      postingGuidance: recommendation.postingGuidance.trim(),
+    })
+  }
+
+  return deduped.slice(0, 6)
+}
+
+function normalizeSubredditRecommendation(
+  recommendation: Partial<SubredditRecommendation> | null | undefined,
+): SubredditRecommendation | null {
+  const name = safeString(recommendation?.name)
+  const rawUrl = safeString(recommendation?.url)
+  const slug = extractSubredditSlug(name || rawUrl)
+
+  if (!slug) {
+    return null
+  }
+
+  return {
+    name: `r/${slug}`,
+    url: rawUrl || buildSubredditUrl(slug),
+    reason: safeString(recommendation?.reason),
+    postingGuidance: safeString(recommendation?.postingGuidance),
+  }
+}
+
+function safeString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function extractSubredditSlug(input: string): string {
+  const trimmed = input.trim()
+  if (!trimmed) {
+    return ''
+  }
+
+  const urlMatch = trimmed.match(/reddit\.com\/r\/([a-z0-9_]+)/i)
+  if (urlMatch?.[1]) {
+    return urlMatch[1]
+  }
+
+  const pathMatch = trimmed.match(/(?:^|\/)r\/([a-z0-9_]+)/i)
+  if (pathMatch?.[1]) {
+    return pathMatch[1]
+  }
+
+  const slug = trimmed.replace(/^r\//i, '').replace(/^\/r\//i, '').split(/[/?#\s]/)[0] || ''
+  return /^[a-z0-9_]+$/i.test(slug) ? slug : ''
+}
+
+function buildSubredditUrl(slug: string): string {
+  return `https://www.reddit.com/r/${slug}/`
 }

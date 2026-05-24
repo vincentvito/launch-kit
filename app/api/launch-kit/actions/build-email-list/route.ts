@@ -16,7 +16,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Build email list action failed.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.error('Build email list action failed.', error)
+    return NextResponse.json({ error: 'Build email list action failed.' }, { status: 500 })
   }
 }

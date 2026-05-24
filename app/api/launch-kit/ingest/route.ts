@@ -21,7 +21,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ brief })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to ingest URL.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.error('Failed to ingest URL.', error)
+    return NextResponse.json({ error: 'Failed to ingest URL.' }, { status: 500 })
   }
 }

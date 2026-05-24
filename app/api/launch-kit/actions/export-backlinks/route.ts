@@ -1,28 +1,24 @@
 import { NextResponse } from 'next/server'
-import { exportLeadsCsv } from '@/lib/launch-kit/prospecting'
-import type { ProspectingState } from '@/lib/launch-kit/types'
+import { normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
+import { exportBacklinkProspectsCsv } from '@/lib/launch-kit/seo'
+import type { SeoGrowthState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
-      prospecting?: ProspectingState
       projectName?: string
-      download?: boolean
+      seoGrowth?: Partial<SeoGrowthState>
     }
 
-    const csv = exportLeadsCsv(body.prospecting)
-    const filename = `${slugify(body.projectName || 'launch-kit-leads')}.csv`
-
-    if (body.download === false) {
-      return NextResponse.json({ csv, filename })
-    }
+    const csv = exportBacklinkProspectsCsv(normalizeSeoGrowthState(body.seoGrowth))
+    const filename = `${slugify(body.projectName || 'launch-kit-backlinks')}-backlinks.csv`
 
     return new NextResponse(csv, {
       status: 200,
       headers: {
-        'content-type': 'text/csv; charset=utf-8',
+        'content-type': 'text/csv;charset=utf-8',
         'content-disposition': `attachment; filename="${filename}"`,
       },
     })
@@ -31,8 +27,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.error('Export leads failed.', error)
-    return NextResponse.json({ error: 'Export leads failed.' }, { status: 500 })
+    console.error('Export backlinks action failed.', error)
+    return NextResponse.json({ error: 'Export backlinks action failed.' }, { status: 500 })
   }
 }
 

@@ -1,4 +1,10 @@
-import { PLATFORM_IDS, PLATFORM_LABELS, type LaunchProjectSnapshot } from '@/lib/launch-kit/types'
+import {
+  PLATFORM_IDS,
+  PLATFORM_LABELS,
+  type LaunchProjectSnapshot,
+  type RedditRecommendations,
+  type SubredditRecommendation,
+} from '@/lib/launch-kit/types'
 
 export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string {
   const lines: string[] = []
@@ -79,6 +85,10 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
     lines.push('')
     lines.push(`**Notes**: ${block.notes}`)
     lines.push('')
+
+    if (blockId === 'reddit' && block.redditRecommendations) {
+      appendRedditRecommendationsMarkdown(lines, block.redditRecommendations)
+    }
   }
 
   lines.push('## Media Kit')
@@ -149,7 +159,74 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   lines.push(`- Last email build at: ${project.kit.prospecting.lastEmailBuildAt || 'N/A'}`)
   lines.push('')
 
+  lines.push('## SEO Growth')
+  lines.push('')
+  if (project.kit.seoGrowth.websiteAnalysis) {
+    lines.push('### Website SEO Analysis')
+    lines.push(`- Score: ${project.kit.seoGrowth.websiteAnalysis.score}/100`)
+    lines.push(project.kit.seoGrowth.websiteAnalysis.summary)
+    lines.push('')
+  }
+
+  lines.push('### Blog Strategy')
+  for (const post of project.kit.seoGrowth.blogStrategy) {
+    lines.push(`- Day ${post.dayOffset + 1}: ${post.title}`)
+    lines.push(`  Cluster: ${post.keywordTopic}`)
+    lines.push(`  Tables: ${post.tableIdeas.join(' | ')}`)
+  }
+  lines.push('')
+
+  lines.push('### Free Tool Suggestions')
+  for (const tool of project.kit.seoGrowth.freeTools) {
+    lines.push(`- ${tool.title}: ${tool.url}`)
+  }
+  lines.push('')
+
+  lines.push('### Backlink Prospects')
+  for (const prospect of project.kit.seoGrowth.backlinkProspects) {
+    lines.push(`- ${prospect.title} (${prospect.domain})`)
+    lines.push(`  Value score: ${prospect.valueScore}`)
+    lines.push(`  Status: ${prospect.status}`)
+    lines.push(`  Cost: ${prospect.costToList ?? 'unknown'}`)
+    lines.push(`  Estimated traffic: ${prospect.estimatedTraffic ?? 'unknown'}`)
+  }
+  lines.push('')
+
   return lines.join('\n')
+}
+
+function appendRedditRecommendationsMarkdown(
+  lines: string[],
+  recommendations: RedditRecommendations,
+) {
+  appendSubredditRecommendationMarkdown(
+    lines,
+    'Relevant Subreddits to Engage In',
+    recommendations.engagementSubreddits,
+  )
+  appendSubredditRecommendationMarkdown(
+    lines,
+    'Self-Promotion Candidate Subreddits',
+    recommendations.selfPromotionSubreddits,
+  )
+}
+
+function appendSubredditRecommendationMarkdown(
+  lines: string[],
+  title: string,
+  recommendations: SubredditRecommendation[],
+) {
+  if (!recommendations.length) {
+    return
+  }
+
+  lines.push(`#### ${title}`)
+  for (const recommendation of recommendations) {
+    lines.push(`- ${recommendation.name}: ${recommendation.url}`)
+    lines.push(`  Reason: ${recommendation.reason}`)
+    lines.push(`  Posting guidance: ${recommendation.postingGuidance}`)
+  }
+  lines.push('')
 }
 
 export function renderPressPackHtml(project: LaunchProjectSnapshot): string {

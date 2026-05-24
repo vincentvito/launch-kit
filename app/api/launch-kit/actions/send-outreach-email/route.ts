@@ -28,7 +28,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Send outreach email action failed.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.error('Send outreach email action failed.', error)
+    return NextResponse.json({ error: 'Send outreach email action failed.' }, { status: 500 })
   }
 }

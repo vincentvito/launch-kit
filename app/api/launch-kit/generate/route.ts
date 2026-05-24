@@ -42,7 +42,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ launchKit })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to generate launch kit.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.error('Failed to generate launch kit.', error)
+    return NextResponse.json({ error: 'Failed to generate launch kit.' }, { status: 500 })
   }
 }

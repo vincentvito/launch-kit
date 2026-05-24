@@ -50,6 +50,9 @@ See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
 - `OPENAI_API_KEY` — optional for Launch Kit AI generation. If omitted, Launch Kit returns template-based fallback content.
 - `OPENAI_MODEL` — optional model override for Launch Kit generation (defaults to `gpt-4.1-mini`).
+- `REPLICATE_IMAGE_MODEL` / `REPLICATE_VIDEO_MODEL` — optional model overrides for Launch Kit asset generation (defaults to `google/imagen-4-fast` and `google/veo-3.1-fast`).
+- `LAUNCH_KIT_DISCOVERY_PROVIDER` / `LAUNCH_KIT_SEO_DISCOVERY_PROVIDER` — optional discovery providers for lead and backlink search. Leave as `mock` for local seeded results.
+- `SERPAPI_API_KEY` — optional. Used only when a discovery provider is set to `serpapi`; otherwise the app falls back to seeded discovery.
 
 ## Going to Production
 

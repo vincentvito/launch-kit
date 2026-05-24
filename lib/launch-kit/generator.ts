@@ -12,11 +12,16 @@ import {
   type OutreachVariant,
   type PlatformBlock,
   type PlatformBlockId,
+  type RedditRecommendations,
   type SeoPostPack,
+  type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import {
+  createEmptyAssetLibrary,
   createEmptyKit,
   createEmptyProspectingState,
+  createEmptySeoGrowthState,
+  normalizeRedditRecommendations,
 } from '@/lib/launch-kit/normalizers'
 import { isPlatformBlockId, safeJsonParse } from '@/lib/launch-kit/utils'
 import { hasReplicateToken, runReplicateStructured } from '@/lib/launch-kit/replicate'
@@ -30,8 +35,23 @@ type GenerateInput = {
   existingKit?: LaunchKit | null
 }
 
+type RawSubredditRecommendation = Partial<SubredditRecommendation>
+
+type RawRedditRecommendations = {
+  engagementSubreddits?: RawSubredditRecommendation[]
+  selfPromotionSubreddits?: RawSubredditRecommendation[]
+}
+
+type RawPlatformBlock = {
+  title?: string
+  body?: string
+  cta?: string
+  notes?: string
+  redditRecommendations?: RawRedditRecommendations
+}
+
 type ModelOutput = {
-  platformBlocks?: Record<string, { title?: string; body?: string; cta?: string; notes?: string }>
+  platformBlocks?: Record<string, RawPlatformBlock>
   mediaKit?: {
     founderCompanyBio?: string
     productOneLiner?: string
@@ -95,6 +115,49 @@ const PLATFORM_BLOCK_SCHEMA = {
     notes: STRING_SCHEMA,
   },
   required: ['title', 'body', 'cta', 'notes'],
+} as const
+
+const SUBREDDIT_RECOMMENDATION_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    name: STRING_SCHEMA,
+    url: STRING_SCHEMA,
+    reason: STRING_SCHEMA,
+    postingGuidance: STRING_SCHEMA,
+  },
+  required: ['name', 'url', 'reason', 'postingGuidance'],
+} as const
+
+const REDDIT_RECOMMENDATIONS_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    engagementSubreddits: {
+      type: 'array',
+      items: SUBREDDIT_RECOMMENDATION_SCHEMA,
+      maxItems: 6,
+    },
+    selfPromotionSubreddits: {
+      type: 'array',
+      items: SUBREDDIT_RECOMMENDATION_SCHEMA,
+      maxItems: 6,
+    },
+  },
+  required: ['engagementSubreddits', 'selfPromotionSubreddits'],
+} as const
+
+const REDDIT_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    title: STRING_SCHEMA,
+    body: STRING_SCHEMA,
+    cta: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+    redditRecommendations: REDDIT_RECOMMENDATIONS_SCHEMA,
+  },
+  required: ['title', 'body', 'cta', 'notes', 'redditRecommendations'],
 } as const
 
 const MEDIA_KIT_SCHEMA = {
@@ -177,7 +240,10 @@ function buildLaunchKitModelSchema(
       type: 'object',
       additionalProperties: false,
       properties: Object.fromEntries(
-        selectedBlocks.map((blockId) => [blockId, PLATFORM_BLOCK_SCHEMA]),
+        selectedBlocks.map((blockId) => [
+          blockId,
+          blockId === 'reddit' ? REDDIT_PLATFORM_BLOCK_SCHEMA : PLATFORM_BLOCK_SCHEMA,
+        ]),
       ),
       required: selectedBlocks,
     },
@@ -277,10 +343,12 @@ export async function generateLaunchKit(input: GenerateInput): Promise<LaunchKit
     mediaKit: includeMediaKit
       ? normalizeMediaKit(modelOutput.mediaKit, input.brief)
       : baseKit.mediaKit,
+    assetLibrary: baseKit.assetLibrary || createEmptyAssetLibrary(),
     growthAssets: includeGrowthAssets
       ? normalizeGrowthAssets(modelOutput.growthAssets, selectedGrowthBlocks, input.brief, baseKit.growthAssets)
       : baseKit.growthAssets,
     prospecting: baseKit.prospecting || createEmptyProspectingState(),
+    seoGrowth: baseKit.seoGrowth || createEmptySeoGrowthState(),
   }
 
   return nextKit
@@ -388,6 +456,7 @@ async function generateWithReplicate(
       'Do not write generic AI copy. Use concrete details from the brief.',
       'For Hacker News: humble, technical, no hype.',
       'For Reddit: conversational, transparent, context-first.',
+      'For Reddit: also return redditRecommendations with engagementSubreddits and selfPromotionSubreddits. Each list must contain up to 6 relevant subreddits with name, url, reason, and postingGuidance. Use r/name format and remind users to check current rules/flairs before self-promotion.',
       'For Indie Hackers: build-in-public, lessons and tradeoffs.',
       'For LinkedIn posts: professional but human, outcome-oriented.',
       'For TikTok and YouTube Shorts: trend-inspired scripts with explicit Hook, Story Beats, and Close CTA.',
@@ -457,6 +526,7 @@ async function generateWithOpenAi(
               'Do not write generic AI copy. Use concrete details from the brief.',
               'For Hacker News: humble, technical, no hype.',
               'For Reddit: conversational, transparent, context-first.',
+              'For Reddit: also return redditRecommendations with engagementSubreddits and selfPromotionSubreddits. Each list must contain up to 6 relevant subreddits with name, url, reason, and postingGuidance. Use r/name format and remind users to check current rules/flairs before self-promotion.',
               'For Indie Hackers: build-in-public, lessons and tradeoffs.',
               'For LinkedIn posts: professional but human, outcome-oriented.',
               'For TikTok and YouTube Shorts: trend-inspired scripts with explicit Hook, Story Beats, and Close CTA.',
@@ -489,6 +559,24 @@ async function generateWithOpenAi(
                       body: 'string',
                       cta: 'string',
                       notes: 'string',
+                      redditRecommendations: {
+                        engagementSubreddits: [
+                          {
+                            name: 'r/example',
+                            url: 'https://www.reddit.com/r/example/',
+                            reason: 'why this subreddit is relevant for audience engagement',
+                            postingGuidance: 'how to participate without making a promotional post',
+                          },
+                        ],
+                        selfPromotionSubreddits: [
+                          {
+                            name: 'r/example',
+                            url: 'https://www.reddit.com/r/example/',
+                            reason: 'why this subreddit may fit a launch or beta post',
+                            postingGuidance: 'which rule, flair, context, or disclosure to check before posting',
+                          },
+                        ],
+                      },
                     },
                   },
                   mediaKit: {
@@ -605,7 +693,7 @@ function getErrorMessage(error: unknown): string {
 
 function normalizeBlock(
   blockId: PlatformBlockId,
-  raw: { title?: string; body?: string; cta?: string; notes?: string } | undefined,
+  raw: RawPlatformBlock | undefined,
   brief: ExtractedBrief,
 ): PlatformBlock {
   return {
@@ -615,6 +703,14 @@ function normalizeBlock(
     body: raw?.body?.trim() || fallbackBlockBody(blockId, brief),
     cta: raw?.cta?.trim() || brief.cta,
     notes: raw?.notes?.trim() || 'Generated from your product brief and adapted to this platform.',
+    ...(blockId === 'reddit'
+      ? {
+          redditRecommendations: normalizeRedditRecommendations(
+            raw?.redditRecommendations,
+            fallbackRedditRecommendations(brief),
+          ),
+        }
+      : {}),
   }
 }
 
@@ -783,6 +879,9 @@ function fallbackLaunchKit(
       body: fallbackBlockBody(blockId, brief),
       cta: brief.cta,
       notes: 'Template output (set REPLICATE_API_TOKEN or OPENAI_API_KEY for AI-enhanced results).',
+      ...(blockId === 'reddit'
+        ? { redditRecommendations: normalizeRedditRecommendations(undefined, fallbackRedditRecommendations(brief)) }
+        : {}),
     }
   }
 
@@ -813,8 +912,10 @@ function fallbackLaunchKit(
     mediaKit: includeMediaKit
       ? normalizeMediaKit(undefined, brief)
       : baseKit.mediaKit,
+    assetLibrary: baseKit.assetLibrary || createEmptyAssetLibrary(),
     growthAssets: growth,
     prospecting: baseKit.prospecting || createEmptyProspectingState(),
+    seoGrowth: baseKit.seoGrowth || createEmptySeoGrowthState(),
   }
 }
 
@@ -945,22 +1046,109 @@ function fallbackSeoPostPacks(brief: ExtractedBrief): SeoPostPack[] {
   }))
 }
 
+function fallbackRedditRecommendations(brief: ExtractedBrief): RedditRecommendations {
+  const product = brief.productName || 'your product'
+  const audience = brief.targetUsers[0] || brief.icp || 'early users'
+  const category = brief.keywordResearch.clusters[0]?.topic || brief.positioning || 'the product category'
+
+  return {
+    engagementSubreddits: [
+      {
+        name: 'r/startups',
+        url: 'https://www.reddit.com/r/startups/',
+        reason: `Founder and startup operators can discuss the launch problem ${product} addresses.`,
+        postingGuidance: 'Participate in feedback and strategy threads first; avoid dropping a launch link without context.',
+      },
+      {
+        name: 'r/SaaS',
+        url: 'https://www.reddit.com/r/SaaS/',
+        reason: `Useful for SaaS positioning, pricing, onboarding, and growth discussions around ${category}.`,
+        postingGuidance: 'Lead with lessons, metrics, or a specific question for other SaaS builders.',
+      },
+      {
+        name: 'r/Entrepreneur',
+        url: 'https://www.reddit.com/r/Entrepreneur/',
+        reason: `Broad founder audience that can react to the business pain and customer angle for ${audience}.`,
+        postingGuidance: 'Frame the post as a business lesson or decision point, not a product announcement.',
+      },
+      {
+        name: 'r/smallbusiness',
+        url: 'https://www.reddit.com/r/smallbusiness/',
+        reason: `Relevant when ${product} helps operators, lean teams, or service businesses solve practical work.`,
+        postingGuidance: 'Answer existing operator questions and mention the product only when it is directly relevant.',
+      },
+      {
+        name: 'r/ProductManagement',
+        url: 'https://www.reddit.com/r/ProductManagement/',
+        reason: `Product-minded readers can engage with the workflow, prioritization, and customer discovery angle.`,
+        postingGuidance: 'Use a problem-first discussion prompt and avoid promotional links unless rules allow them.',
+      },
+      {
+        name: 'r/indiehackers',
+        url: 'https://www.reddit.com/r/indiehackers/',
+        reason: `Good fit for build-in-public context, founder tradeoffs, and early-user learning around ${product}.`,
+        postingGuidance: 'Share what was learned while building and ask for specific feedback from other makers.',
+      },
+    ],
+    selfPromotionSubreddits: [
+      {
+        name: 'r/SideProject',
+        url: 'https://www.reddit.com/r/SideProject/',
+        reason: 'Common destination for makers sharing new projects, launches, and early product experiments.',
+        postingGuidance: 'Check current rules and flairs; disclose your role and ask for concrete feedback.',
+      },
+      {
+        name: 'r/sideprojects',
+        url: 'https://www.reddit.com/r/sideprojects/',
+        reason: 'Focused on showcasing side projects and getting reactions from other builders.',
+        postingGuidance: 'Post only when there is a meaningful update and avoid repeating the same pitch.',
+      },
+      {
+        name: 'r/AlphaandBetaUsers',
+        url: 'https://www.reddit.com/r/AlphaandBetaUsers/',
+        reason: 'Built for finding early testers, beta users, and feedback on unfinished products.',
+        postingGuidance: 'Be explicit about beta status, who should test, and what feedback you need.',
+      },
+      {
+        name: 'r/MicroSaas',
+        url: 'https://www.reddit.com/r/MicroSaas/',
+        reason: 'Relevant for lean SaaS products, micro-SaaS launches, and solo-founder experiments.',
+        postingGuidance: 'Lead with the niche, traction, or build story; confirm self-promotion rules before linking.',
+      },
+      {
+        name: 'r/startup_resources',
+        url: 'https://www.reddit.com/r/startup_resources/',
+        reason: 'A candidate for useful startup resources when the product genuinely helps founders or startup teams.',
+        postingGuidance: 'Position the post as a resource and check whether promotional posts require approval.',
+      },
+      {
+        name: 'r/EntrepreneurRideAlong',
+        url: 'https://www.reddit.com/r/EntrepreneurRideAlong/',
+        reason: 'Works for transparent build stories, launch experiments, and progress updates.',
+        postingGuidance: 'Share the journey, numbers, and next experiment instead of a bare launch link.',
+      },
+    ],
+  }
+}
+
 function fallbackBlockBody(blockId: PlatformBlockId, brief: ExtractedBrief): string {
   const highlights = brief.keyClaims.slice(0, 3).map((line) => `- ${line}`).join('\n')
   const painPoints = brief.painPoints.slice(0, 2).map((line) => `- ${line}`).join('\n')
   const valueProps = brief.valueProps.slice(0, 2).map((line) => `- ${line}`).join('\n')
   const proofPoints = brief.proofPoints.slice(0, 2).map((line) => `- ${line}`).join('\n')
+  const proofSection = proofPoints || '- Add a source-backed metric, testimonial, customer logo, or certification before publishing.'
+  const proofCue = brief.proofPoints[0] || 'add a source-backed metric or testimonial before publishing'
   const audience = brief.targetUsers.join(', ') || 'builders'
 
   const templates: Record<PlatformBlockId, string> = {
-    product_hunt: `${brief.productName} is live on Product Hunt.\n\n${brief.positioning}\n\nBuilt for: ${audience}\n\nValue props:\n${valueProps}\n\nProof:\n${proofPoints || '- Building with customer feedback'}\n\nHighlights:\n${highlights}`,
+    product_hunt: `${brief.productName} is live on Product Hunt.\n\n${brief.positioning}\n\nBuilt for: ${audience}\n\nValue props:\n${valueProps}\n\nProof:\n${proofSection}\n\nHighlights:\n${highlights}`,
     hacker_news: `Show HN: ${brief.productName}\n\nI built this for ${audience}. ${brief.positioning}\n\nPain points we targeted:\n${painPoints}\n\nWould value candid feedback on product, positioning, and launch execution.`,
     reddit: `Hey everyone, I built ${brief.productName}. ${brief.positioning}\n\nPain points this addresses:\n${painPoints}\n\nCurious if this resonates with how your team launches products.`,
-    indie_hackers: `Launched ${brief.productName} today.\n\nWho it helps: ${audience}\nWhat worked: ${brief.valueProps[0] || brief.positioning}\nWhat was hard: ${brief.painPoints[0] || 'Translating one story across channels.'}\nProof signals:\n${proofPoints || '- Early user feedback in progress'}\nWhat I am testing next: distribution and onboarding loops.`,
-    linkedin: `Today we launched ${brief.productName}.\n\n${brief.positioning}\n\nBuilt for ${audience}.\nWhy this matters:\n${valueProps}\nProof:\n${proofPoints || '- First launch feedback coming in'}`,
-    tiktok: `Hook: Launch copy should not take all day.\nStory beats: Problem (${brief.painPoints[0] || 'channel-by-channel rewrite'}) -> Solution (${brief.productName}) -> Outcome (${brief.valueProps[0] || 'faster launch execution'}).\nProof cue: ${brief.proofPoints[0] || 'teams can ship with one source URL'}.\nCTA: ${brief.cta}`,
-    youtube_shorts: `Hook: One URL should power your full launch.\nStory beats: Pain (${brief.painPoints[0] || 'fragmented launch messaging'}) -> Workflow (extract brief -> platform drafts) -> Outcome (${brief.valueProps[0] || 'faster launch day shipping'}).\nProof cue: ${brief.proofPoints[0] || 'structured outputs per platform'}.\nCTA: ${brief.cta}`,
-    email_announcement: `Subject: ${brief.productName} is live\n\nHi there,\n\n${brief.positioning}\n\nBuilt for: ${audience}\nPain points:\n${painPoints}\nValue props:\n${valueProps}\nProof:\n${proofPoints || '- Early launch feedback ongoing'}\n\n${brief.cta}`,
+    indie_hackers: `Launched ${brief.productName} today.\n\nWho it helps: ${audience}\nWhat worked: ${brief.valueProps[0] || brief.positioning}\nWhat was hard: ${brief.painPoints[0] || 'Translating one story across channels.'}\nProof signals:\n${proofSection}\nWhat I am testing next: distribution and onboarding loops.`,
+    linkedin: `Today we launched ${brief.productName}.\n\n${brief.positioning}\n\nBuilt for ${audience}.\nWhy this matters:\n${valueProps}\nProof:\n${proofSection}`,
+    tiktok: `Hook: Launch copy should not take all day.\nStory beats: Problem (${brief.painPoints[0] || 'channel-by-channel rewrite'}) -> Solution (${brief.productName}) -> Outcome (${brief.valueProps[0] || 'faster launch execution'}).\nProof cue: ${proofCue}.\nCTA: ${brief.cta}`,
+    youtube_shorts: `Hook: One URL should power your full launch.\nStory beats: Pain (${brief.painPoints[0] || 'fragmented launch messaging'}) -> Workflow (extract brief -> platform drafts) -> Outcome (${brief.valueProps[0] || 'faster launch day shipping'}).\nProof cue: ${proofCue}.\nCTA: ${brief.cta}`,
+    email_announcement: `Subject: ${brief.productName} is live\n\nHi there,\n\n${brief.positioning}\n\nBuilt for: ${audience}\nPain points:\n${painPoints}\nValue props:\n${valueProps}\nProof:\n${proofSection}\n\n${brief.cta}`,
   }
 
   return templates[blockId]

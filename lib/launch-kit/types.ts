@@ -20,6 +20,18 @@ export const GROWTH_BLOCK_IDS = [
 
 export type GrowthBlockId = (typeof GROWTH_BLOCK_IDS)[number]
 
+export type SubredditRecommendation = {
+  name: string
+  url: string
+  reason: string
+  postingGuidance: string
+}
+
+export type RedditRecommendations = {
+  engagementSubreddits: SubredditRecommendation[]
+  selfPromotionSubreddits: SubredditRecommendation[]
+}
+
 export type PlatformBlock = {
   id: PlatformBlockId
   label: string
@@ -27,6 +39,7 @@ export type PlatformBlock = {
   body: string
   cta: string
   notes: string
+  redditRecommendations?: RedditRecommendations
 }
 
 export type KeywordIntent = 'informational' | 'commercial' | 'transactional' | 'navigational'
@@ -118,6 +131,45 @@ export type FollowUpSequence = {
   message: string
 }
 
+export type LaunchAssetKind = 'screenshots' | 'image_ads' | 'video_ads' | 'text_ads'
+export type LaunchAssetMediaType = 'image' | 'video' | 'text'
+export type LaunchAssetFormat = '16:9' | '9:16' | '1:1' | '4:5' | '1.91:1' | 'text'
+export type GeneratedLaunchAssetStatus = 'succeeded' | 'failed'
+
+export type LaunchAssetTemplate = {
+  id: string
+  kind: LaunchAssetKind
+  mediaType: LaunchAssetMediaType
+  title: string
+  description: string
+  angle: string
+  formats: LaunchAssetFormat[]
+  recommendedFormats: LaunchAssetFormat[]
+  durationSeconds?: number
+}
+
+export type GeneratedLaunchAsset = {
+  id: string
+  templateId: string
+  kind: LaunchAssetKind
+  mediaType: LaunchAssetMediaType
+  format: LaunchAssetFormat
+  status: GeneratedLaunchAssetStatus
+  title: string
+  prompt: string
+  outputUrl: string
+  outputText: string
+  replicatePredictionId: string
+  error: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type AssetLibrary = {
+  templates: LaunchAssetTemplate[]
+  generatedAssets: GeneratedLaunchAsset[]
+}
+
 export type GrowthAssets = {
   generatedAt: string
   linkedinOutreach: OutreachPack
@@ -202,13 +254,123 @@ export type ProspectingState = {
   lastEmailBuildAt: string
 }
 
+export type SeoCheckStatus = 'pass' | 'warning' | 'fail'
+
+export type WebsiteSeoCheck = {
+  id: string
+  label: string
+  status: SeoCheckStatus
+  detail: string
+}
+
+export type WebsiteSeoAnalysis = {
+  generatedAt: string
+  score: number
+  summary: string
+  strengths: string[]
+  fixes: string[]
+  checks: WebsiteSeoCheck[]
+  llmReadinessNotes: string[]
+}
+
+export type BlogStrategyPost = {
+  id: string
+  dayOffset: number
+  keywordClusterId: string
+  keywordTopic: string
+  title: string
+  intent: KeywordIntent
+  targetKeywords: string[]
+  tableIdeas: string[]
+  outline: string[]
+  llmNotes: string[]
+  cta: string
+}
+
+export type FreeToolSuggestion = {
+  id: string
+  category: string
+  title: string
+  url: string
+  workflow: string
+}
+
+export type BacklinkProspectStatus =
+  | 'new'
+  | 'first_contact'
+  | 'second_contact'
+  | 'in_negotiation'
+  | 'closed'
+  | 'rejected'
+
+export type BacklinkProspect = {
+  id: string
+  website: string
+  domain: string
+  title: string
+  contactName: string
+  contactEmail: string
+  scrapedSummary: string
+  relevanceReason: string
+  backlinkAngle: string
+  costToList: number | null
+  estimatedTraffic: number | null
+  relevanceScore: number
+  trafficScore: number
+  authorityScore: number
+  contactabilityScore: number
+  costScore: number
+  valueScore: number
+  status: BacklinkProspectStatus
+  listIds: string[]
+  customizedEmailSubject: string
+  customizedEmailBody: string
+  source: string
+  discoveredAt: string
+  lastContactedAt: string
+}
+
+export type BacklinkProspectList = {
+  id: string
+  name: string
+  description: string
+  prospectIds: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type BacklinkEmailJob = {
+  id: string
+  status: 'queued' | 'completed'
+  prospectIds: string[]
+  subject: string
+  bodyPreview: string
+  createdAt: string
+  completedAt: string
+}
+
+export type SeoGrowthState = {
+  websiteAnalysis: WebsiteSeoAnalysis | null
+  blogStrategy: BlogStrategyPost[]
+  freeTools: FreeToolSuggestion[]
+  backlinkProspects: BacklinkProspect[]
+  prospectLists: BacklinkProspectList[]
+  backlinkEmailJobs: BacklinkEmailJob[]
+  lastAnalyzedAt: string
+  lastBlogStrategyAt: string
+  lastBacklinkScrapeAt: string
+  lastBacklinkEmailAt: string
+}
+
 export type LaunchKit = {
   generatedAt: string
   language: string
   platformBlocks: Record<PlatformBlockId, PlatformBlock>
   mediaKit: MediaKit
+  assetLibrary: AssetLibrary
   growthAssets: GrowthAssets
   prospecting: ProspectingState
+  seoGrowth: SeoGrowthState
 }
 
 export type LaunchProjectSnapshot = {
@@ -247,3 +409,161 @@ export const GROWTH_BLOCK_LABELS: Record<GrowthBlockId, string> = {
   cold_email_outreach: 'Cold Outreach Email',
   seo_posts: 'SEO Blog Post Packs',
 }
+
+export const DEFAULT_LAUNCH_ASSET_TEMPLATES: LaunchAssetTemplate[] = [
+  {
+    id: 'screenshot_product_showcase',
+    kind: 'screenshots',
+    mediaType: 'image',
+    title: 'Product Showcase Screenshot',
+    description: 'A polished website screenshot on a gradient launch background.',
+    angle: 'Turn the live product page into a premium launch visual with a short editorial title.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['16:9', '9:16'],
+  },
+  {
+    id: 'image_ad_problem_solution',
+    kind: 'image_ads',
+    mediaType: 'image',
+    title: 'Problem / Solution',
+    description: 'A direct ad creative that contrasts pain with the promised outcome.',
+    angle: 'Show the audience problem clearly, then introduce the product as the clean solution.',
+    formats: ['1:1', '4:5', '9:16', '1.91:1', '16:9'],
+    recommendedFormats: ['1:1', '4:5', '9:16'],
+  },
+  {
+    id: 'image_ad_social_proof',
+    kind: 'image_ads',
+    mediaType: 'image',
+    title: 'Social Proof',
+    description: 'A credibility-first ad using proof points and trust cues.',
+    angle: 'Make the strongest available proof feel specific, credible, and easy to scan.',
+    formats: ['1:1', '4:5', '9:16', '1.91:1', '16:9'],
+    recommendedFormats: ['1:1', '4:5', '1.91:1'],
+  },
+  {
+    id: 'image_ad_feature_benefit',
+    kind: 'image_ads',
+    mediaType: 'image',
+    title: 'Feature to Benefit',
+    description: 'A product-led ad that translates a core feature into a user outcome.',
+    angle: 'Visualize one product capability and the practical benefit it creates.',
+    formats: ['1:1', '4:5', '9:16', '1.91:1', '16:9'],
+    recommendedFormats: ['1:1', '16:9', '9:16'],
+  },
+  {
+    id: 'image_ad_before_after',
+    kind: 'image_ads',
+    mediaType: 'image',
+    title: 'Before / After',
+    description: 'A transformation ad for showing what changes after adoption.',
+    angle: 'Contrast the old workflow with the improved state after using the product.',
+    formats: ['1:1', '4:5', '9:16', '1.91:1', '16:9'],
+    recommendedFormats: ['4:5', '9:16', '16:9'],
+  },
+  {
+    id: 'image_ad_offer_cta',
+    kind: 'image_ads',
+    mediaType: 'image',
+    title: 'Offer CTA',
+    description: 'A conversion-focused ad centered on a clear next step.',
+    angle: 'Make the call to action feel low-friction, useful, and connected to the product promise.',
+    formats: ['1:1', '4:5', '9:16', '1.91:1', '16:9'],
+    recommendedFormats: ['1.91:1', '1:1', '9:16'],
+  },
+  {
+    id: 'video_ad_hook_problem_fix',
+    kind: 'video_ads',
+    mediaType: 'video',
+    title: 'Hook / Problem / Fix',
+    description: 'A short-form video ad with an immediate hook and clear resolution.',
+    angle: 'Open on a familiar problem, show the friction, then reveal the product fix.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['9:16', '16:9'],
+    durationSeconds: 8,
+  },
+  {
+    id: 'video_ad_product_walkthrough',
+    kind: 'video_ads',
+    mediaType: 'video',
+    title: 'Product Walkthrough',
+    description: 'A quick product-motion ad for showing the core workflow.',
+    angle: 'Move through the product experience as a concise visual story with one outcome.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['16:9', '9:16'],
+    durationSeconds: 8,
+  },
+  {
+    id: 'video_ad_founder_story',
+    kind: 'video_ads',
+    mediaType: 'video',
+    title: 'Founder Story',
+    description: 'A founder-led narrative ad about why the product exists.',
+    angle: 'Frame the product as the answer to a lived customer or founder pain.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['9:16'],
+    durationSeconds: 8,
+  },
+  {
+    id: 'video_ad_social_proof',
+    kind: 'video_ads',
+    mediaType: 'video',
+    title: 'Proof Montage',
+    description: 'A credibility montage built around proof, outcomes, and trust.',
+    angle: 'Sequence proof cues, user outcomes, and a calm CTA without hype.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['16:9', '9:16'],
+    durationSeconds: 8,
+  },
+  {
+    id: 'video_ad_objection_handler',
+    kind: 'video_ads',
+    mediaType: 'video',
+    title: 'Objection Handler',
+    description: 'A concise video ad that answers the audience’s first hesitation.',
+    angle: 'Acknowledge the likely objection, then show why the product makes the next step easier.',
+    formats: ['16:9', '9:16'],
+    recommendedFormats: ['9:16'],
+    durationSeconds: 8,
+  },
+  {
+    id: 'text_ad_x_short',
+    kind: 'text_ads',
+    mediaType: 'text',
+    title: 'X Short Post',
+    description: 'A compact X ad with one punchy idea and CTA.',
+    angle: 'Write a short paid-style X post that creates curiosity without sounding clickbait.',
+    formats: ['text'],
+    recommendedFormats: ['text'],
+  },
+  {
+    id: 'text_ad_x_thread',
+    kind: 'text_ads',
+    mediaType: 'text',
+    title: 'X Thread',
+    description: 'A short X thread that builds from problem to product.',
+    angle: 'Write a concise X thread with a strong opener, clear stakes, and a soft CTA.',
+    formats: ['text'],
+    recommendedFormats: ['text'],
+  },
+  {
+    id: 'text_ad_threads_post',
+    kind: 'text_ads',
+    mediaType: 'text',
+    title: 'Threads Post',
+    description: 'A conversational Threads ad with native, casual pacing.',
+    angle: 'Write a conversational Threads post that feels human, useful, and easy to reply to.',
+    formats: ['text'],
+    recommendedFormats: ['text'],
+  },
+  {
+    id: 'text_ad_threads_thread',
+    kind: 'text_ads',
+    mediaType: 'text',
+    title: 'Threads Thread',
+    description: 'A compact Threads sequence for story-led promotion.',
+    angle: 'Write a short Threads sequence that moves from relatable pain to practical next step.',
+    formats: ['text'],
+    recommendedFormats: ['text'],
+  },
+]

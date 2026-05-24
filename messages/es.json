@@ -249,7 +249,13 @@
       "metaLabel": "Meta",
       "copyCtaPrefix": "CTA",
       "copyNotesPrefix": "Notas",
-      "tabsAriaLabel": "Pestanas de salidas generadas"
+      "tabsAriaLabel": "Pestanas de salidas generadas",
+      "reddit": {
+        "engagementTitle": "Subreddits relevantes para participar",
+        "selfPromotionTitle": "Subreddits candidatos para self-promotion",
+        "reasonLabel": "Razon",
+        "postingGuidanceLabel": "Guia de publicacion"
+      }
     },
     "platformLabels": {
       "product_hunt": "Product Hunt",
@@ -289,6 +295,219 @@
         "checklist": "Checklist de Visuales / Assets",
         "screenshots": "Capturas y Logos",
         "contact": "Datos de Contacto del Sitio"
+      }
+    },
+    "results": {
+      "title": "Canales y Assets",
+      "subtitle": "Explora canales de trafico por fuente: launch platforms, social, SEO y busqueda AI, email, autoridad y partnerships.",
+      "sidebar": {
+        "channels": "Canales",
+        "assets": "Assets"
+      },
+      "channelGroups": {
+        "launch_platforms": {
+          "title": "Launch Platforms",
+          "description": "Consigue atencion en comunidades de lanzamiento."
+        },
+        "marketplaces": {
+          "title": "Marketplaces",
+          "description": "Lista donde founders, compradores y operadores comparan startups."
+        },
+        "social_community": {
+          "title": "Social & Community",
+          "description": "Convierte el lanzamiento en posts nativos."
+        },
+        "seo_ai_search": {
+          "title": "SEO & AI Search",
+          "description": "Captura trafico duradero desde buscadores y LLMs."
+        },
+        "email": {
+          "title": "Email",
+          "description": "Encuentra contactos, importa listas y simula envios."
+        },
+        "authority_backlinks": {
+          "title": "Authority & Backlinks",
+          "description": "Crea trafico referido y confianza de dominio."
+        },
+        "press_partnerships": {
+          "title": "Press & Partnerships",
+          "description": "Toma credibilidad prestada de audiencias existentes."
+        }
+      },
+      "channels": {
+        "product_hunt": { "title": "Product Hunt", "description": "Copy de pagina de lanzamiento" },
+        "hacker_news": { "title": "Hacker News", "description": "Post Show HN" },
+        "indie_hackers": { "title": "Indie Hackers", "description": "Historia del founder" },
+        "launch_directories": { "title": "Launch Directories", "description": "Playbook de listing" },
+        "trustmrr": { "title": "TrustMRR", "description": "Marketplace de startups con revenue verificado" },
+        "acquire_com": { "title": "Acquire.com", "description": "Marketplace de adquisicion de startups" },
+        "flippa": { "title": "Flippa", "description": "Marketplace de negocios online" },
+        "x": { "title": "X", "description": "Outreach corto" },
+        "linkedin": { "title": "LinkedIn", "description": "Post profesional" },
+        "threads": { "title": "Threads", "description": "Thread casual de lanzamiento" },
+        "reddit": { "title": "Reddit", "description": "Post de comunidad" },
+        "instagram": { "title": "Instagram", "description": "Plan visual de lanzamiento" },
+        "tiktok": { "title": "TikTok", "description": "Script de video corto" },
+        "youtube_shorts": { "title": "YouTube Shorts", "description": "Script de video corto" },
+        "website_seo": { "title": "Website SEO", "description": "Checks tecnicos y de contenido" },
+        "keyword_research": { "title": "Keyword Research", "description": "Clusters de busqueda" },
+        "blog_cadence": { "title": "Blog Cadence", "description": "Un post cada 4 dias" },
+        "geo_llm_visibility": { "title": "GEO / LLM Visibility", "description": "Preparacion para respuestas AI" },
+        "comparison_alternatives": { "title": "Comparison / Alternatives Pages", "description": "Playbook SEO de alta intencion" },
+        "email_scrape_contacts": { "title": "Scrapear Website para Contactos", "description": "Encuentra contactos relevantes" },
+        "email_import_list": { "title": "Importar Lista", "description": "Pega CSV o emails" },
+        "email_automation": { "title": "Automatizar Envio de Emails", "description": "Jobs simulados de outreach" },
+        "backlink_building": { "title": "Backlink Building", "description": "Prospecta y puntua sitios" },
+        "guest_posts": { "title": "Guest Posts", "description": "Playbook de backlinks editoriales" },
+        "partner_pages": { "title": "Partner Pages", "description": "Menciones en ecosistemas" },
+        "directory_outreach": { "title": "Directory Outreach", "description": "Pitches a directorios relevantes" },
+        "media_kit": { "title": "Media Kit", "description": "Assets listos para prensa" },
+        "pr_pitch": { "title": "PR Pitch", "description": "Playbook para periodistas" },
+        "podcast_pitch": { "title": "Podcast Pitch", "description": "Angulo de entrevista founder" },
+        "newsletter_partnerships": { "title": "Newsletter Partnerships", "description": "Playbook de audiencia prestada" }
+      },
+      "assets": {
+        "kinds": {
+          "screenshots": { "title": "Screenshots", "description": "Visuales de lanzamiento con gradiente" },
+          "image_ads": { "title": "Image Ads", "description": "Creatividades evergreen para paid social" },
+          "video_ads": { "title": "Video Ads", "description": "Videos cortos para paid social" },
+          "text_ads": { "title": "Text Ads", "description": "Copy para X y Threads" }
+        },
+        "actions": {
+          "generate": "Generar",
+          "generating": "Generando",
+          "copyPrompt": "Copiar Prompt",
+          "copyText": "Copiar Texto",
+          "copied": "Copiado",
+          "openOutput": "Abrir Output"
+        },
+        "labels": {
+          "formats": "Formatos",
+          "noGeneratedAsset": "Todavia no se genero ningun asset.",
+          "failed": "Fallo la generacion del asset.",
+          "generated": "Asset generado."
+        },
+        "templates": {
+          "screenshot_product_showcase": {
+            "title": "Screenshot Showcase de Producto",
+            "description": "Una captura pulida del website sobre un fondo de lanzamiento con gradiente."
+          },
+          "image_ad_problem_solution": {
+            "title": "Problema / Solucion",
+            "description": "Una creatividad directa que contrasta dolor con resultado."
+          },
+          "image_ad_social_proof": {
+            "title": "Prueba Social",
+            "description": "Un ad de credibilidad con pruebas y senales de confianza."
+          },
+          "image_ad_feature_benefit": {
+            "title": "Feature a Beneficio",
+            "description": "Un ad product-led que traduce una feature en outcome."
+          },
+          "image_ad_before_after": {
+            "title": "Antes / Despues",
+            "description": "Un ad de transformacion para mostrar que cambia despues de adoptar el producto."
+          },
+          "image_ad_offer_cta": {
+            "title": "Oferta CTA",
+            "description": "Un ad orientado a conversion con un proximo paso claro."
+          },
+          "video_ad_hook_problem_fix": {
+            "title": "Hook / Problema / Fix",
+            "description": "Un video corto con hook inmediato y resolucion clara."
+          },
+          "video_ad_product_walkthrough": {
+            "title": "Product Walkthrough",
+            "description": "Un ad con movimiento de producto para mostrar el workflow central."
+          },
+          "video_ad_founder_story": {
+            "title": "Historia Founder",
+            "description": "Una narrativa founder-led sobre por que existe el producto."
+          },
+          "video_ad_social_proof": {
+            "title": "Montaje de Prueba",
+            "description": "Un montaje de credibilidad con pruebas, outcomes y confianza."
+          },
+          "video_ad_objection_handler": {
+            "title": "Manejo de Objecion",
+            "description": "Un video conciso que responde la primera duda de la audiencia."
+          },
+          "text_ad_x_short": {
+            "title": "Post Corto para X",
+            "description": "Un ad compacto para X con una idea fuerte y CTA."
+          },
+          "text_ad_x_thread": {
+            "title": "Thread para X",
+            "description": "Un thread corto para X que conecta problema y producto."
+          },
+          "text_ad_threads_post": {
+            "title": "Post para Threads",
+            "description": "Un ad conversacional para Threads con ritmo nativo."
+          },
+          "text_ad_threads_thread": {
+            "title": "Thread para Threads",
+            "description": "Una secuencia compacta en Threads para promocion con historia."
+          }
+        }
+      },
+      "marketplaces": {
+        "openWebsite": "Abrir Website"
+      },
+      "focus": {
+        "websiteSeo": "Analiza crawlability, estructura de contenido, pruebas, oportunidades de schema y preparacion LLM desde el brief actual.",
+        "geo": "Da forma a la historia del producto para que las respuestas AI identifiquen la entidad, resuman la categoria y citen paginas utiles."
+      },
+      "email": {
+        "scrapeDescription": "Usa el agente de prospecting existente para encontrar empresas y contactos relevantes desde el contexto del website.",
+        "scrapeAction": "Scrapear Contactos",
+        "buildListAction": "Crear Lista Email",
+        "noContacts": "Todavia no hay contactos. Scrapea contactos o importa una lista para empezar.",
+        "importDescription": "Pega filas CSV o contactos separados por lineas. Soporta email, nombre + email, o empresa + website + email.",
+        "importPlaceholder": "Alex Rivera, Growth Lead, Acme, alex@acme.com, https://acme.com\nMaya Chen <maya@example.com>\npartners@example.org",
+        "importAction": "Importar Contactos",
+        "importEmpty": "Pega al menos un email o fila de contacto primero.",
+        "automationDescription": "Personaliza outreach y simula envio de emails. En v1 no se envia ningun email real.",
+        "personalizeAction": "Personalizar Emails",
+        "sendAction": "Enviar Email (Stub)",
+        "noJobs": "Todavia no hay jobs de email simulados."
+      },
+      "geo": {
+        "steps": {
+          "entities": "Haz que {product} sea facil de reconocer con lenguaje consistente de producto, categoria y audiencia.",
+          "answers": "Agrega bloques de respuesta directa, FAQs, comparaciones y definiciones concisas.",
+          "citations": "Crea paginas con pruebas originales, tablas y resumenes faciles de citar."
+        }
+      },
+      "playbook": {
+        "objectiveLabel": "Objetivo",
+        "stepsLabel": "Pasos",
+        "assetsLabel": "Assets",
+        "objective": "Usa {channel} como canal de trafico enfocado sin asumir que un post generico sirve para todos lados.",
+        "steps": {
+          "adapt": "Adapta la historia de {product} al formato nativo del canal.",
+          "proof": "Abre con una prueba: {proof}.",
+          "cta": "Cierra con un CTA de baja friccion: {cta}."
+        },
+        "assets": {
+          "shortPitch": "Pitch corto",
+          "proofPoint": "Punto de prueba",
+          "followUp": "Angulo de follow-up"
+        }
+      },
+      "playbookSamples": {
+        "launch_directories": "Lista {product} en directorios donde {audience} ya compara herramientas. Usa categoria clara, prueba, screenshots y el CTA: {cta}.",
+        "trustmrr": "Posiciona {product} para TrustMRR con contexto de revenue verificado, un angulo claro de adquisicion o descubrimiento para {audience}, prueba ({proof}) y el CTA: {cta}.",
+        "acquire_com": "Prepara un perfil listo para Acquire.com para {product}: categoria concisa, narrativa de fit para compradores, prueba de traccion ({proof}) y proximos pasos claros para operadores interesados.",
+        "flippa": "Enmarca {product} para Flippa con el modelo de negocio, senales de trafico o revenue, carga operativa, prueba ({proof}) y un CTA amigable para compradores: {cta}.",
+        "threads": "Usa Threads para una historia casual: que cambio, por que importa a {audience}, y una prueba concreta: {proof}.",
+        "instagram": "Convierte {product} en una historia visual: slide del problema, slide del workflow, slide de prueba y un CTA hacia {cta}.",
+        "comparison_alternatives": "Crea paginas de alta intencion comparando {product} contra workflows antiguos, hojas de calculo, agencias y alternativas directas para {audience}.",
+        "guest_posts": "Pitcha guest posts practicos que ensenen a {audience} a resolver el problema de lanzamiento mientras mencionan naturalmente {product}.",
+        "partner_pages": "Encuentra partners complementarios cuyas audiencias necesiten {proof}; propone un intercambio de recurso util o mencion en partner page.",
+        "directory_outreach": "Prioriza directorios con categorias relevantes, trafico visible, costos justos y una ruta clara para enviar {product}.",
+        "pr_pitch": "Pitcha periodistas con un hook claro: {product} ayuda a {audience}, respaldado por {proof}, con assets listos en el media kit.",
+        "podcast_pitch": "Pitcha podcasts de founders con la historia detras de {product}, el problema de lanzamiento y aprendizajes utiles para {audience}.",
+        "newsletter_partnerships": "Pitcha newsletters leidas por {audience} con un angulo util, un blurb corto y un CTA trackeable: {cta}."
       }
     },
     "savedProjects": {
@@ -346,67 +565,91 @@
         "cold_email_outreach": "Email de Outreach en Frio",
         "seo_posts": "Packs de Posts SEO"
       },
-      "advanced": {
-        "title": "Growth Avanzado",
-        "description": "SEO, prospecting, aprobaciones y controles de ejecucion de outreach."
-      },
       "seo": {
         "title": "SEO Growth",
-        "description": "Los clusters de keywords y packs SEO generados viven aqui, fuera de las pestanas principales de lanzamiento.",
+        "description": "Analisis SEO, keywords, cadencia de blog, prospectos de backlinks, controles de email y herramientas gratis viven aqui.",
         "keywordTitle": "Clusters de keywords",
-        "keywordEmpty": "Todavia no hay clusters. Abre Brand Guidelines para agregarlos o editarlos."
-      },
-      "actionBar": {
-        "title": "Barra de Acciones (con Aprobacion)",
-        "description": "Revisa cada accion, apruebala y luego ejecutala.",
-        "leadsCount": "{count} leads en el estado actual del proyecto"
-      },
-      "actions": {
-        "prospect": {
-          "title": "Scrapear Clientes Potenciales",
-          "description": "Ejecuta discovery por queries para empresas y contactos afines al ICP."
+        "keywordEmpty": "Todavia no hay clusters. Abre Brand Guidelines para agregarlos o editarlos.",
+        "actions": {
+          "analyze": "Analizar SEO",
+          "blog": "Crear Estrategia Blog",
+          "backlinks": "Buscar Prospectos Backlink",
+          "personalizeEmails": "Personalizar Emails",
+          "sendEmails": "Enviar Email (Stub)",
+          "exportBacklinks": "Exportar Backlinks"
         },
-        "build_email_list": {
-          "title": "Construir Lista de Emails",
-          "description": "Infiere emails de contacto, deduplica y agrega registros con confianza."
+        "analysis": {
+          "title": "Analisis SEO del Website",
+          "empty": "Ejecuta el analisis SEO para resumir fortalezas, mejoras, checks tecnicos y preparacion para LLMs.",
+          "strengths": "Fortalezas",
+          "fixes": "Mejoras",
+          "llmReadiness": "Preparacion LLM",
+          "status": {
+            "pass": "OK",
+            "warning": "Aviso",
+            "fail": "Fallo"
+          }
         },
-        "score_segment": {
-          "title": "Scoring y Segmentacion",
-          "description": "Clasifica leads en hot, warm y cold."
+        "blog": {
+          "title": "Estrategia Blog",
+          "description": "Un post cada 4 dias, con ideas de tablas y estructura util para LLMs.",
+          "empty": "Crea una estrategia blog para convertir los clusters en una cadencia de 4 dias.",
+          "dayOffset": "Dia {day}",
+          "tables": "Ideas de tablas",
+          "llmNotes": "Notas LLM"
         },
-        "personalize_outreach": {
-          "title": "Generar Outreach Personalizado",
-          "description": "Rellena borradores de LinkedIn, X y email con contexto del lead."
+        "tools": {
+          "title": "Herramientas Gratis Sugeridas",
+          "description": "Herramientas gratis para indexacion, QA tecnico, expansion de keywords y visibilidad en motores de respuesta.",
+          "empty": "Ejecuta el analisis SEO o crea la estrategia blog para poblar sugerencias de herramientas."
         },
-        "followup_sequences": {
-          "title": "Crear Secuencias de Follow-up",
-          "description": "Borradores de seguimiento para Dia 0, Dia 3 y Dia 7."
-        },
-        "send_outreach_email": {
-          "title": "Enviar Email Outreach (Stub)",
-          "description": "Encola y completa un envio simulado (sin entrega real en v1)."
-        },
-        "export_leads": {
-          "title": "Exportar Leads CSV",
-          "description": "Descarga la tabla actual de leads en CSV."
+        "backlinks": {
+          "title": "Prospectos Backlink",
+          "description": "Scrapea sitios relevantes, puntua oportunidades, organiza listas, personaliza emails y controla etapas de outreach.",
+          "formula": "Value score = 35% relevancia + 25% trafico + 20% autoridad + 10% contactabilidad + 10% costo. Trafico o costo desconocido usa un 50 neutral.",
+          "empty": "Todavia no hay prospectos backlink. Empieza con Buscar Prospectos Backlink.",
+          "emptyFiltered": "Ningun prospecto coincide con los filtros actuales.",
+          "selectFirst": "Selecciona al menos un prospecto backlink primero.",
+          "selected": "{count} prospectos seleccionados",
+          "listName": "Nombre lista",
+          "listPlaceholder": "Outreach alto valor",
+          "addToList": "Agregar {count} a Lista",
+          "unknown": "Desconocido",
+          "noEmail": "Sin email aun",
+          "emailJobs": "Trabajos recientes de email backlink",
+          "prospects": "prospectos",
+          "filters": {
+            "search": "Buscar",
+            "searchPlaceholder": "Dominio, resumen, angulo",
+            "list": "Lista",
+            "allLists": "Todas las listas",
+            "maxCost": "Costo max",
+            "minTraffic": "Trafico min",
+            "minValue": "Value score min"
+          },
+          "headers": {
+            "select": "Seleccionar",
+            "site": "Sitio",
+            "status": "Estado",
+            "value": "Valor",
+            "traffic": "Trafico",
+            "cost": "Costo",
+            "email": "Email",
+            "reason": "Motivo"
+          },
+          "statuses": {
+            "new": "Nuevo",
+            "first_contact": "Primer Contacto",
+            "second_contact": "Segundo Contacto",
+            "in_negotiation": "En Negociacion",
+            "closed": "Cerrado",
+            "rejected": "Rechazado"
+          }
         }
       },
-      "approvals": {
-        "title": "Aprobacion Requerida",
-        "confirmation": "Aprueba esta accion para ejecutarla sobre tu snapshot actual.",
-        "cancel": "Cancelar",
-        "approveRun": "Aprobar y Ejecutar",
-        "running": "Ejecutando..."
-      },
       "prospecting": {
-        "title": "Estado de Prospecting",
         "selectedLeads": "{count} leads seleccionados",
         "noEmail": "Sin email aun",
-        "empty": "Todavia no hay leads. Empieza con Scrapear Clientes Potenciales.",
-        "personalizedTitle": "Preview de Outreach Personalizado",
-        "personalizedEmpty": "Todavia no hay borradores personalizados.",
-        "actionLogTitle": "Log Reciente de Acciones",
-        "actionLogEmpty": "Aun no se han ejecutado acciones.",
         "headers": {
           "select": "Seleccionar",
           "contact": "Contacto",
@@ -415,13 +658,6 @@
           "score": "Score",
           "reason": "Motivo"
         }
-      },
-      "actionStatus": {
-        "pending_approval": "Pendiente de Aprobacion",
-        "approved": "Aprobado",
-        "running": "Ejecutando",
-        "completed": "Completado",
-        "failed": "Fallo"
       }
     },
     "export": {
@@ -464,6 +700,7 @@
       "saveFailed": "No se pudo guardar el proyecto ahora.",
       "saveRequiresKit": "Genera un launch kit antes de guardar.",
       "projectLoadFailed": "No se pudo cargar este proyecto.",
+      "assetGenerateFailed": "La generacion del asset fallo. Revisa los datos del proyecto y la configuracion del API.",
       "actionFailed": "La accion fallo. Revisa los datos del proyecto e intenta de nuevo."
     },
     "messages": {
@@ -471,6 +708,7 @@
       "kitGenerated": "Launch kit generado correctamente.",
       "blockRegenerated": "Bloque regenerado correctamente.",
       "growthBlockRegenerated": "Bloque de growth regenerado correctamente.",
+      "assetGenerated": "Asset generado correctamente.",
       "savedCloud": "Proyecto guardado en tu cuenta.",
       "savedLocal": "Proyecto guardado localmente en este navegador.",
       "loadedCloud": "Proyecto cargado desde la nube.",
@@ -479,6 +717,7 @@
       "urlPrefilled": "URL precargada desde la landing. Extrae cuando quieras.",
       "demoLoaded": "Kit de ejemplo cargado. Puedes editar o regenerar cualquier bloque.",
       "leadsExported": "CSV de leads exportado.",
+      "backlinksExported": "CSV de prospectos backlink exportado.",
       "actionCompleted": "Accion completada."
     }
   }

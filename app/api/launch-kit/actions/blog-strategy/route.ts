@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { runProspectAction } from '@/lib/launch-kit/prospecting'
-import { normalizeBrief } from '@/lib/launch-kit/normalizers'
-import type { ExtractedBrief, ProspectingState } from '@/lib/launch-kit/types'
+import { normalizeBrief, normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
+import { runBlogStrategyAction } from '@/lib/launch-kit/seo'
+import type { ExtractedBrief, SeoGrowthState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
 
@@ -9,17 +9,16 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
       brief?: Partial<ExtractedBrief>
-      prospecting?: ProspectingState
+      seoGrowth?: Partial<SeoGrowthState>
     }
 
     if (!body.brief) {
       return NextResponse.json({ error: 'Brief is required.' }, { status: 400 })
     }
 
-    const brief = normalizeBrief(body.brief)
-    const result = await runProspectAction({
-      brief,
-      prospecting: body.prospecting,
+    const result = runBlogStrategyAction({
+      brief: normalizeBrief(body.brief),
+      seoGrowth: normalizeSeoGrowthState(body.seoGrowth),
     })
 
     return NextResponse.json(result)
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.error('Prospecting action failed.', error)
-    return NextResponse.json({ error: 'Prospecting action failed.' }, { status: 500 })
+    console.error('Blog strategy action failed.', error)
+    return NextResponse.json({ error: 'Blog strategy action failed.' }, { status: 500 })
   }
 }

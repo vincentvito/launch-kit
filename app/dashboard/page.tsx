@@ -1,28 +1,36 @@
 'use client'
 
 import Link from 'next/link'
-import { type KeyboardEvent, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Playfair_Display, Space_Grotesk } from 'next/font/google'
 import {
+  BarChart3,
   BookOpenText,
   ChevronRight,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
   Copy,
+  ExternalLink,
   FileSpreadsheet,
+  Filter,
+  ImageIcon,
   Layers3,
+  Link2,
+  ListPlus,
   Lock,
   Mail,
+  MessageSquareText,
+  Monitor,
   PanelRightClose,
   PanelRightOpen,
   PenSquare,
   Search,
   Send,
   Sparkles,
-  Users2,
+  Video,
   Wand2,
 } from 'lucide-react'
 import { signOut, useSession } from '@/lib/auth-client'
@@ -32,43 +40,129 @@ import { Button } from '@/components/ui/button'
 import { createDemoSnapshot } from '@/lib/launch-kit/demo'
 import {
   PLATFORM_IDS,
+  type BacklinkProspectStatus,
   type ExtractedBrief,
+  type GeneratedLaunchAsset,
   type GrowthBlockId,
   type KeywordCluster,
+  type LaunchAssetFormat,
+  type LaunchAssetKind,
   type LaunchKit,
   type LaunchProjectSnapshot,
   type PlatformBlockId,
   type ProjectSummary,
+  type RedditRecommendations,
+  type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 
 const GUEST_PROJECTS_KEY = 'launch-kit-guest-projects-v1'
-const OUTREACH_BLOCK_IDS = ['linkedin_outreach', 'x_outreach', 'cold_email_outreach'] as const
+
+type TrafficChannelGroupId =
+  | 'launch_platforms'
+  | 'marketplaces'
+  | 'social_community'
+  | 'seo_ai_search'
+  | 'email'
+  | 'authority_backlinks'
+  | 'press_partnerships'
+
+type TrafficChannelId =
+  | 'product_hunt'
+  | 'hacker_news'
+  | 'indie_hackers'
+  | 'launch_directories'
+  | 'trustmrr'
+  | 'acquire_com'
+  | 'flippa'
+  | 'x'
+  | 'linkedin'
+  | 'threads'
+  | 'reddit'
+  | 'instagram'
+  | 'tiktok'
+  | 'youtube_shorts'
+  | 'website_seo'
+  | 'keyword_research'
+  | 'blog_cadence'
+  | 'geo_llm_visibility'
+  | 'comparison_alternatives'
+  | 'email_scrape_contacts'
+  | 'email_import_list'
+  | 'email_automation'
+  | 'backlink_building'
+  | 'guest_posts'
+  | 'partner_pages'
+  | 'directory_outreach'
+  | 'media_kit'
+  | 'pr_pitch'
+  | 'podcast_pitch'
+  | 'newsletter_partnerships'
+
+type TrafficChannelGroup = {
+  id: TrafficChannelGroupId
+  channels: TrafficChannelId[]
+}
+
+type ResultBrowserSection = 'channels' | 'assets'
+
+const TRAFFIC_CHANNEL_GROUPS: TrafficChannelGroup[] = [
+  {
+    id: 'launch_platforms',
+    channels: ['product_hunt', 'hacker_news', 'indie_hackers', 'launch_directories'],
+  },
+  {
+    id: 'marketplaces',
+    channels: ['trustmrr', 'acquire_com', 'flippa'],
+  },
+  {
+    id: 'social_community',
+    channels: ['x', 'linkedin', 'threads', 'reddit', 'instagram', 'tiktok', 'youtube_shorts'],
+  },
+  {
+    id: 'seo_ai_search',
+    channels: ['website_seo', 'keyword_research', 'blog_cadence', 'geo_llm_visibility', 'comparison_alternatives'],
+  },
+  {
+    id: 'email',
+    channels: ['email_scrape_contacts', 'email_import_list', 'email_automation'],
+  },
+  {
+    id: 'authority_backlinks',
+    channels: ['backlink_building', 'guest_posts', 'partner_pages', 'directory_outreach'],
+  },
+  {
+    id: 'press_partnerships',
+    channels: ['media_kit', 'pr_pitch', 'podcast_pitch', 'newsletter_partnerships'],
+  },
+]
+
+const DEFAULT_OPEN_TRAFFIC_GROUPS: Record<TrafficChannelGroupId, boolean> = {
+  launch_platforms: true,
+  marketplaces: true,
+  social_community: true,
+  seo_ai_search: true,
+  email: true,
+  authority_backlinks: true,
+  press_partnerships: true,
+}
+
+const ASSET_NAV_ITEMS: LaunchAssetKind[] = ['screenshots', 'image_ads', 'video_ads', 'text_ads']
+
+const MARKETPLACE_CHANNEL_URLS: Partial<Record<TrafficChannelId, string>> = {
+  trustmrr: 'https://trustmrr.com/',
+  acquire_com: 'https://acquire.com/',
+  flippa: 'https://flippa.com/',
+}
 
 type SavedProjectItem = ProjectSummary & {
   storage: 'server' | 'guest'
   snapshot?: LaunchProjectSnapshot
 }
 
-type GrowthActionId =
-  | 'prospect'
-  | 'build_email_list'
-  | 'score_segment'
-  | 'personalize_outreach'
-  | 'followup_sequences'
-  | 'send_outreach_email'
-  | 'export_leads'
-
-const OUTPUT_TAB_IDS = [...PLATFORM_IDS, ...OUTREACH_BLOCK_IDS] as const
-type OutputTabId = (typeof OUTPUT_TAB_IDS)[number]
 type DashboardStep = 1 | 2 | 3
 type OnboardingCardIndex = 0 | 1 | 2
 type StepStatus = 'locked' | 'active' | 'complete'
-type PendingAction = {
-  id: GrowthActionId
-  title: string
-  description: string
-}
 type GenerateContentInput = {
   selectedBlocks?: PlatformBlockId[]
   selectedGrowthBlocks?: GrowthBlockId[]
@@ -86,14 +180,13 @@ const interfaceSans = Space_Grotesk({
   weight: ['400', '500', '600', '700'],
 })
 
-const ACTION_ORDER: GrowthActionId[] = [
-  'prospect',
-  'build_email_list',
-  'score_segment',
-  'personalize_outreach',
-  'followup_sequences',
-  'send_outreach_email',
-  'export_leads',
+const BACKLINK_STATUS_OPTIONS: BacklinkProspectStatus[] = [
+  'new',
+  'first_contact',
+  'second_contact',
+  'in_negotiation',
+  'closed',
+  'rejected',
 ]
 
 export default function DashboardPage() {
@@ -125,14 +218,23 @@ export default function DashboardPage() {
   const [guestProjects, setGuestProjects] = useState<LaunchProjectSnapshot[]>([])
   const [queryHydrated, setQueryHydrated] = useState(false)
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [isActionRunning, setIsActionRunning] = useState(false)
-  const [activeOutputTab, setActiveOutputTab] = useState<OutputTabId>('product_hunt')
+  const [activeTrafficChannel, setActiveTrafficChannel] = useState<TrafficChannelId>('product_hunt')
+  const [activeResultSection, setActiveResultSection] = useState<ResultBrowserSection>('channels')
+  const [activeAssetKind, setActiveAssetKind] = useState<LaunchAssetKind>('screenshots')
   const [activeStep, setActiveStep] = useState<DashboardStep>(1)
   const [activeOnboardingCard, setActiveOnboardingCard] = useState<OnboardingCardIndex>(0)
   const [isUtilityDrawerOpen, setIsUtilityDrawerOpen] = useState(false)
-  const [showMediaKit, setShowMediaKit] = useState(false)
-  const [showAdvancedGrowth, setShowAdvancedGrowth] = useState(false)
+  const [emailImportText, setEmailImportText] = useState('')
+  const [isSeoActionRunning, setIsSeoActionRunning] = useState(false)
+  const [selectedBacklinkProspectIds, setSelectedBacklinkProspectIds] = useState<string[]>([])
+  const [backlinkSearch, setBacklinkSearch] = useState('')
+  const [backlinkListFilter, setBacklinkListFilter] = useState('all')
+  const [backlinkMaxCost, setBacklinkMaxCost] = useState('')
+  const [backlinkMinTraffic, setBacklinkMinTraffic] = useState('')
+  const [backlinkMinValue, setBacklinkMinValue] = useState('')
+  const [backlinkListName, setBacklinkListName] = useState('')
+  const [generatingAssetKey, setGeneratingAssetKey] = useState('')
 
   useEffect(() => {
     const locale = document.cookie
@@ -160,6 +262,7 @@ export default function DashboardPage() {
 
     const urlParam = searchParams?.get('url')?.trim() || ''
     const wantsDemo = searchParams?.get('demo') === '1'
+    const wantsResultsView = searchParams?.get('view') === 'results'
 
     if (!urlParam && !wantsDemo) {
       setQueryHydrated(true)
@@ -179,15 +282,18 @@ export default function DashboardPage() {
       return
     }
 
-    const demoSnapshot = createDemoSnapshot()
+    const demoSnapshot = createDemoSnapshot(window.location.origin)
     setSourceUrl(demoSnapshot.sourceUrl)
     setBrief(normalizeBrief(demoSnapshot.brief))
     setKit(normalizeKit(demoSnapshot.kit, demoSnapshot.brief.language))
     setProjectId(demoSnapshot.id)
     setProjectName(demoSnapshot.name)
-    setActiveStep(3)
+    setActiveStep(wantsResultsView ? 3 : 2)
+    setActiveTrafficChannel('product_hunt')
+    setActiveResultSection('channels')
+    setActiveAssetKind('screenshots')
     setError('')
-    setSuccess(t('messages.demoLoaded'))
+    setSuccess(wantsResultsView ? '' : t('messages.demoLoaded'))
     setQueryHydrated(true)
   }, [queryHydrated, searchParams, t])
 
@@ -208,6 +314,15 @@ export default function DashboardPage() {
 
     const leadIds = new Set(kit.prospecting.leads.map((lead) => lead.id))
     setSelectedLeadIds((current) => current.filter((id) => leadIds.has(id)))
+  }, [kit])
+
+  useEffect(() => {
+    if (!kit) {
+      return
+    }
+
+    const prospectIds = new Set(kit.seoGrowth.backlinkProspects.map((prospect) => prospect.id))
+    setSelectedBacklinkProspectIds((current) => current.filter((id) => prospectIds.has(id)))
   }, [kit])
 
   useEffect(() => {
@@ -272,6 +387,46 @@ export default function DashboardPage() {
     }, getExportLabels(t))
   }, [brief, kit, projectId, projectName, t])
 
+  const filteredBacklinkProspects = useMemo(() => {
+    if (!kit) {
+      return []
+    }
+
+    const search = backlinkSearch.trim().toLowerCase()
+    const maxCost = parseNumberFilter(backlinkMaxCost)
+    const minTraffic = parseNumberFilter(backlinkMinTraffic)
+    const minValue = parseNumberFilter(backlinkMinValue)
+
+    return kit.seoGrowth.backlinkProspects
+      .filter((prospect) => {
+        const matchesSearch =
+          !search ||
+          [
+            prospect.title,
+            prospect.domain,
+            prospect.website,
+            prospect.scrapedSummary,
+            prospect.relevanceReason,
+            prospect.backlinkAngle,
+          ]
+            .join(' ')
+            .toLowerCase()
+            .includes(search)
+        const matchesList =
+          backlinkListFilter === 'all' || prospect.listIds.includes(backlinkListFilter)
+        const matchesCost =
+          maxCost === null ||
+          (typeof prospect.costToList === 'number' && prospect.costToList <= maxCost)
+        const matchesTraffic =
+          minTraffic === null ||
+          (typeof prospect.estimatedTraffic === 'number' && prospect.estimatedTraffic >= minTraffic)
+        const matchesValue = minValue === null || prospect.valueScore >= minValue
+
+        return matchesSearch && matchesList && matchesCost && matchesTraffic && matchesValue
+      })
+      .sort((a, b) => b.valueScore - a.valueScore)
+  }, [backlinkListFilter, backlinkMaxCost, backlinkMinTraffic, backlinkMinValue, backlinkSearch, kit])
+
   const canOpenStep2 = Boolean(brief)
   const canOpenStep3 = Boolean(kit)
   const generatedPlatformCount = kit
@@ -281,6 +436,7 @@ export default function DashboardPage() {
       }).length
     : 0
   const hasGeneratedResults = Boolean(kit && hasGeneratedResultsInKit(kit))
+  const isFocusedResultsView = searchParams?.get('view') === 'results' && Boolean(kit)
 
   const step1Status: StepStatus = brief ? 'complete' : 'active'
   const step2Status: StepStatus = !canOpenStep2 ? 'locked' : hasGeneratedResults && activeStep !== 2 ? 'complete' : 'active'
@@ -288,38 +444,13 @@ export default function DashboardPage() {
 
   const getPlatformOutputLabel = (tabId: PlatformBlockId) => t(`platformLabels.${tabId}`)
   const getGrowthOutputLabel = (tabId: GrowthBlockId) => t(`growth.outputLabels.${tabId}`)
-  const getOutputTabLabel = (tabId: OutputTabId) => (isPlatformTab(tabId) ? getPlatformOutputLabel(tabId) : getGrowthOutputLabel(tabId))
   const stepStatusLabels: Record<StepStatus, string> = {
     locked: t('stepStatus.locked'),
     active: t('stepStatus.active'),
     complete: t('stepStatus.complete'),
   }
-  const tabListLabel = t('output.tabsAriaLabel')
-
-  const onOutputTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) {
-      return
-    }
-
-    event.preventDefault()
-    const currentIndex = OUTPUT_TAB_IDS.indexOf(activeOutputTab)
-    let nextIndex = currentIndex
-
-    if (event.key === 'ArrowRight') {
-      nextIndex = (currentIndex + 1) % OUTPUT_TAB_IDS.length
-    } else if (event.key === 'ArrowLeft') {
-      nextIndex = (currentIndex - 1 + OUTPUT_TAB_IDS.length) % OUTPUT_TAB_IDS.length
-    } else if (event.key === 'Home') {
-      nextIndex = 0
-    } else if (event.key === 'End') {
-      nextIndex = OUTPUT_TAB_IDS.length - 1
-    }
-
-    const nextTabId = OUTPUT_TAB_IDS[nextIndex]
-    setActiveOutputTab(nextTabId)
-    const nextButton = document.querySelector<HTMLButtonElement>(`[data-output-tab="${nextTabId}"]`)
-    nextButton?.focus()
-  }
+  const currentGenerationFeedback =
+    isGenerating && generationFeedbackSteps.length > 0 ? generationFeedbackSteps[generationFeedbackIndex] : ''
 
   const openStep = (step: DashboardStep) => {
     if (step === 2 && !canOpenStep2) {
@@ -424,6 +555,8 @@ export default function DashboardPage() {
       setProjectId(null)
       setProjectName(json.brief.productName || t('fields.untitledProject'))
       setActiveOnboardingCard(0)
+      setActiveResultSection('channels')
+      setActiveAssetKind('screenshots')
       setActiveStep(2)
       setSuccess(t('messages.briefReady'))
     } catch (ingestError) {
@@ -520,6 +653,51 @@ export default function DashboardPage() {
       setIsGenerating(false)
       setGenerationFeedbackSteps([])
       setGenerationFeedbackIndex(0)
+    }
+  }
+
+  const onGenerateAsset = async (templateId: string, format: LaunchAssetFormat) => {
+    if (!brief || !kit) {
+      return
+    }
+
+    const assetKey = `${templateId}:${format}`
+    setError('')
+    setSuccess('')
+    setGeneratingAssetKey(assetKey)
+
+    try {
+      const response = await fetch('/api/launch-kit/assets/generate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          brief,
+          launchKit: kit,
+          templateId,
+          format,
+        }),
+      })
+
+      const json = (await response.json()) as { launchKit?: LaunchKit; error?: string }
+      if (!response.ok || !json.launchKit) {
+        throw new Error(json.error || t('errors.assetGenerateFailed'))
+      }
+
+      const nextKit = normalizeKit(json.launchKit, brief.language)
+      const asset = nextKit.assetLibrary.generatedAssets.find(
+        (item) => item.templateId === templateId && item.format === format,
+      )
+      setKit(nextKit)
+
+      if (asset?.status === 'failed') {
+        setError(asset.error || t('errors.assetGenerateFailed'))
+      } else {
+        setSuccess(t('messages.assetGenerated'))
+      }
+    } catch (assetError) {
+      setError(assetError instanceof Error ? assetError.message : t('errors.assetGenerateFailed'))
+    } finally {
+      setGeneratingAssetKey('')
     }
   }
 
@@ -625,8 +803,11 @@ export default function DashboardPage() {
     setProjectId(snapshot.id)
     setProjectName(snapshot.name)
     setSelectedLeadIds([])
+    setSelectedBacklinkProspectIds([])
     setActiveOnboardingCard(0)
     setActiveStep(hasGeneratedResultsInKit(nextKit) ? 3 : nextBrief.productName ? 2 : 1)
+    setActiveResultSection('channels')
+    setActiveAssetKind('screenshots')
     setSuccess(isGuest ? t('messages.loadedLocal') : t('messages.loadedCloud'))
   }
 
@@ -681,8 +862,26 @@ export default function DashboardPage() {
     }
 
     const block = kit.platformBlocks[blockId]
+    const redditRecommendations =
+      blockId === 'reddit' && block.redditRecommendations
+        ? formatRedditRecommendationsForCopy(block.redditRecommendations, {
+            engagement: t('output.reddit.engagementTitle'),
+            selfPromotion: t('output.reddit.selfPromotionTitle'),
+            reason: t('output.reddit.reasonLabel'),
+            postingGuidance: t('output.reddit.postingGuidanceLabel'),
+          })
+        : ''
+
     await navigator.clipboard.writeText(
-      `${block.title}\n\n${block.body}\n\n${t('output.copyCtaPrefix')}: ${block.cta}\n\n${t('output.copyNotesPrefix')}: ${block.notes}`,
+      [
+        block.title,
+        block.body,
+        `${t('output.copyCtaPrefix')}: ${block.cta}`,
+        `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        redditRecommendations,
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
     )
     setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
   }
@@ -830,30 +1029,11 @@ export default function DashboardPage() {
     })
   }
 
-  const actionDefinitions: Array<{
-    id: GrowthActionId
-    title: string
-    description: string
-  }> = ACTION_ORDER.map((id) => ({
-    id,
-    title: t(`growth.actions.${id}.title`),
-    description: t(`growth.actions.${id}.description`),
-  }))
-
-  const openActionApproval = (actionId: GrowthActionId) => {
-    const action = actionDefinitions.find((item) => item.id === actionId)
-    if (!action) {
-      return
-    }
-
-    setPendingAction({
-      id: action.id,
-      title: action.title,
-      description: action.description,
-    })
-  }
-
-  const applyKitPatch = (update: { prospecting?: LaunchKit['prospecting']; growthAssets?: LaunchKit['growthAssets'] }) => {
+  const applyKitPatch = (update: {
+    prospecting?: LaunchKit['prospecting']
+    growthAssets?: LaunchKit['growthAssets']
+    seoGrowth?: LaunchKit['seoGrowth']
+  }) => {
     setKit((current) => {
       if (!current) {
         return current
@@ -864,6 +1044,7 @@ export default function DashboardPage() {
           ...current,
           prospecting: update.prospecting || current.prospecting,
           growthAssets: update.growthAssets || current.growthAssets,
+          seoGrowth: update.seoGrowth || current.seoGrowth,
         },
         current.language,
       )
@@ -876,8 +1057,59 @@ export default function DashboardPage() {
     )
   }
 
-  const runApprovedAction = async () => {
-    if (!pendingAction || !brief || !kit) {
+  const toggleBacklinkProspectSelection = (prospectId: string) => {
+    setSelectedBacklinkProspectIds((current) =>
+      current.includes(prospectId)
+        ? current.filter((id) => id !== prospectId)
+        : [...current, prospectId],
+    )
+  }
+
+  const runSeoAction = async (
+    path: string,
+    body: Record<string, unknown>,
+    afterSuccess?: (seoGrowth: LaunchKit['seoGrowth']) => void,
+  ) => {
+    if (!kit) {
+      return
+    }
+
+    setIsSeoActionRunning(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = (await response.json()) as {
+        seoGrowth?: LaunchKit['seoGrowth']
+        info?: string
+        error?: string
+      }
+
+      if (!response.ok || !json.seoGrowth) {
+        throw new Error(json.error || t('errors.actionFailed'))
+      }
+
+      applyKitPatch({ seoGrowth: json.seoGrowth })
+      afterSuccess?.(json.seoGrowth)
+      setSuccess(json.info || t('messages.actionCompleted'))
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t('errors.actionFailed'))
+    } finally {
+      setIsSeoActionRunning(false)
+    }
+  }
+
+  const runProspectingPatch = async (
+    path: string,
+    body: Record<string, unknown>,
+    afterSuccess?: (prospecting: LaunchKit['prospecting']) => void,
+  ) => {
+    if (!kit) {
       return
     }
 
@@ -886,141 +1118,218 @@ export default function DashboardPage() {
     setSuccess('')
 
     try {
-      if (pendingAction.id === 'prospect') {
-        const response = await fetch('/api/launch-kit/actions/prospect', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            brief,
-            prospecting: kit.prospecting,
-          }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'build_email_list') {
-        const response = await fetch('/api/launch-kit/actions/build-email-list', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ prospecting: kit.prospecting }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'score_segment') {
-        const response = await fetch('/api/launch-kit/actions/score-segment', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ prospecting: kit.prospecting }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'personalize_outreach') {
-        const response = await fetch('/api/launch-kit/actions/personalize-outreach', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            brief,
-            launchKit: kit,
-            selectedLeadIds,
-          }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'followup_sequences') {
-        const response = await fetch('/api/launch-kit/actions/followup-sequences', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            brief,
-            launchKit: kit,
-          }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          growthAssets?: LaunchKit['growthAssets']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting || !json.growthAssets) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting, growthAssets: json.growthAssets })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'send_outreach_email') {
-        const response = await fetch('/api/launch-kit/actions/send-outreach-email', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            launchKit: kit,
-            selectedLeadIds,
-          }),
-        })
-        const json = (await response.json()) as {
-          prospecting?: LaunchKit['prospecting']
-          info?: string
-          error?: string
-        }
-        if (!response.ok || !json.prospecting) {
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-        applyKitPatch({ prospecting: json.prospecting })
-        setSuccess(json.info || t('messages.actionCompleted'))
-      } else if (pendingAction.id === 'export_leads') {
-        const response = await fetch('/api/launch-kit/actions/export-leads', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            projectName: projectName || brief.productName,
-            prospecting: kit.prospecting,
-            download: true,
-          }),
-        })
-
-        if (!response.ok) {
-          const json = (await response.json()) as { error?: string }
-          throw new Error(json.error || t('errors.actionFailed'))
-        }
-
-        const blob = await response.blob()
-        downloadBlob(blob, `${slugify(projectName || brief.productName || 'launch-kit-leads')}.csv`)
-        setSuccess(t('messages.leadsExported'))
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = (await response.json()) as {
+        prospecting?: LaunchKit['prospecting']
+        info?: string
+        error?: string
       }
+
+      if (!response.ok || !json.prospecting) {
+        throw new Error(json.error || t('errors.actionFailed'))
+      }
+
+      applyKitPatch({ prospecting: json.prospecting })
+      afterSuccess?.(json.prospecting)
+      setSuccess(json.info || t('messages.actionCompleted'))
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : t('errors.actionFailed'))
     } finally {
       setIsActionRunning(false)
-      setPendingAction(null)
+    }
+  }
+
+  const onScrapeEmailContacts = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runProspectingPatch('/api/launch-kit/actions/prospect', {
+      brief,
+      prospecting: kit.prospecting,
+    })
+  }
+
+  const onBuildEmailList = async () => {
+    if (!kit) {
+      return
+    }
+
+    await runProspectingPatch('/api/launch-kit/actions/build-email-list', {
+      prospecting: kit.prospecting,
+    })
+  }
+
+  const onImportEmailList = async () => {
+    if (!kit) {
+      return
+    }
+
+    if (!emailImportText.trim()) {
+      setError(t('results.email.importEmpty'))
+      return
+    }
+
+    await runProspectingPatch(
+      '/api/launch-kit/actions/import-email-list',
+      {
+        prospecting: kit.prospecting,
+        rawContacts: emailImportText,
+      },
+      () => setEmailImportText(''),
+    )
+  }
+
+  const onPersonalizeEmailOutreach = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runProspectingPatch('/api/launch-kit/actions/personalize-outreach', {
+      brief,
+      launchKit: kit,
+      selectedLeadIds,
+    })
+  }
+
+  const onSendOutreachEmail = async () => {
+    if (!kit) {
+      return
+    }
+
+    await runProspectingPatch('/api/launch-kit/actions/send-outreach-email', {
+      launchKit: kit,
+      selectedLeadIds,
+    })
+  }
+
+  const onRunSeoAnalysis = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/analyze-seo', {
+      brief,
+      seoGrowth: kit.seoGrowth,
+    })
+  }
+
+  const onRunBlogStrategy = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/blog-strategy', {
+      brief,
+      seoGrowth: kit.seoGrowth,
+    })
+  }
+
+  const onRunBacklinkProspects = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/backlink-prospect', {
+      brief,
+      seoGrowth: kit.seoGrowth,
+    })
+  }
+
+  const onAddBacklinkProspectsToList = async () => {
+    if (!kit) {
+      return
+    }
+
+    if (selectedBacklinkProspectIds.length === 0) {
+      setError(t('growth.seo.backlinks.selectFirst'))
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/add-backlink-prospects-to-list', {
+      seoGrowth: kit.seoGrowth,
+      prospectIds: selectedBacklinkProspectIds,
+      listName: backlinkListName,
+    })
+  }
+
+  const onUpdateBacklinkProspectStatus = async (
+    prospectId: string,
+    status: BacklinkProspectStatus,
+  ) => {
+    if (!kit) {
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/update-backlink-prospect-status', {
+      seoGrowth: kit.seoGrowth,
+      prospectId,
+      status,
+    })
+  }
+
+  const onPersonalizeBacklinkEmails = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    await runSeoAction('/api/launch-kit/actions/personalize-backlink-emails', {
+      brief,
+      seoGrowth: kit.seoGrowth,
+      prospectIds: selectedBacklinkProspectIds,
+    })
+  }
+
+  const onSendBacklinkEmails = async () => {
+    if (!kit) {
+      return
+    }
+
+    await runSeoAction(
+      '/api/launch-kit/actions/send-backlink-emails',
+      {
+        seoGrowth: kit.seoGrowth,
+        prospectIds: selectedBacklinkProspectIds,
+      },
+      () => setSelectedBacklinkProspectIds([]),
+    )
+  }
+
+  const onExportBacklinks = async () => {
+    if (!brief || !kit) {
+      return
+    }
+
+    setIsSeoActionRunning(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      const response = await fetch('/api/launch-kit/actions/export-backlinks', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          projectName: projectName || brief.productName,
+          seoGrowth: kit.seoGrowth,
+        }),
+      })
+
+      if (!response.ok) {
+        const json = (await response.json()) as { error?: string }
+        throw new Error(json.error || t('errors.actionFailed'))
+      }
+
+      const blob = await response.blob()
+      downloadBlob(blob, `${slugify(projectName || brief.productName || 'launch-kit-backlinks')}-backlinks.csv`)
+      setSuccess(t('messages.backlinksExported'))
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : t('errors.actionFailed'))
+    } finally {
+      setIsSeoActionRunning(false)
     }
   }
 
@@ -1092,110 +1401,116 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[2rem] border border-violet-100 bg-white px-6 py-7 shadow-[0_30px_70px_-45px_rgba(100,40,180,0.45)] sm:px-8 sm:py-9">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.15),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(217,70,239,0.12),transparent_42%)]" />
-          <div className="relative">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
-                  {t('steps.step1Label')} - {t('steps.step3Label')}
-                </p>
-                <h1 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900 sm:text-4xl`}>
-                  {t('workflowHeader.title')}
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-zinc-600 sm:text-base">
-                  {t('workflowHeader.description')}
-                </p>
+      <main
+        className={`relative z-10 mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 ${
+          isFocusedResultsView ? 'max-w-[1500px]' : 'max-w-7xl'
+        }`}
+      >
+        {!isFocusedResultsView ? (
+          <section className="relative overflow-hidden rounded-[2rem] border border-violet-100 bg-white px-6 py-7 shadow-[0_30px_70px_-45px_rgba(100,40,180,0.45)] sm:px-8 sm:py-9">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.15),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(217,70,239,0.12),transparent_42%)]" />
+            <div className="relative">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+                    {t('steps.step1Label')} - {t('steps.step3Label')}
+                  </p>
+                  <h1 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900 sm:text-4xl`}>
+                    {t('workflowHeader.title')}
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-sm text-zinc-600 sm:text-base">
+                    {t('workflowHeader.description')}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsUtilityDrawerOpen((value) => !value)}
+                  className="border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
+                >
+                  {isUtilityDrawerOpen ? (
+                    <>
+                      <PanelRightClose className="mr-1.5 h-4 w-4" />
+                      {t('utility.closeButton')}
+                    </>
+                  ) : (
+                    <>
+                      <PanelRightOpen className="mr-1.5 h-4 w-4" />
+                      {t('utility.openButton')}
+                    </>
+                  )}
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setIsUtilityDrawerOpen((value) => !value)}
-                className="border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
-              >
-                {isUtilityDrawerOpen ? (
-                  <>
-                    <PanelRightClose className="mr-1.5 h-4 w-4" />
-                    {t('utility.closeButton')}
-                  </>
-                ) : (
-                  <>
-                    <PanelRightOpen className="mr-1.5 h-4 w-4" />
-                    {t('utility.openButton')}
-                  </>
-                )}
-              </Button>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => openStep(1)}
+                  className={`rounded-xl border p-3 text-left transition ${
+                    activeStep === 1 ? 'border-violet-400 bg-violet-50/80' : 'border-violet-100 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {t('steps.step1Label')}: {t('steps.step1Title')}
+                    </p>
+                    <StepStatusPill status={step1Status} labels={stepStatusLabels} />
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
+                    {brief?.sourceUrl || sourceUrl || t('steps.step1Description')}
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openStep(2)}
+                  disabled={!canOpenStep2}
+                  className={`rounded-xl border p-3 text-left transition ${
+                    !canOpenStep2
+                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
+                      : activeStep === 2
+                        ? 'border-violet-400 bg-violet-50/80'
+                        : 'border-violet-100 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {t('steps.step2Label')}: {t('steps.step2Title')}
+                    </p>
+                    <StepStatusPill status={step2Status} labels={stepStatusLabels} />
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
+                    {brief ? `${brief.productName} - ${brief.language.toUpperCase()}` : t('steps.step2Empty')}
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openStep(3)}
+                  disabled={!canOpenStep3}
+                  className={`rounded-xl border p-3 text-left transition ${
+                    !canOpenStep3
+                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
+                      : activeStep === 3
+                        ? 'border-violet-400 bg-violet-50/80'
+                        : 'border-violet-100 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {t('steps.step3Label')}: {t('steps.step3Title')}
+                    </p>
+                    <StepStatusPill status={step3Status} labels={stepStatusLabels} />
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
+                    {kit
+                      ? `${generatedPlatformCount} platform blocks • ${new Date(kit.generatedAt).toLocaleString()}`
+                      : t('steps.step3Empty')}
+                  </p>
+                </button>
+              </div>
             </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <button
-                type="button"
-                onClick={() => openStep(1)}
-                className={`rounded-xl border p-3 text-left transition ${
-                  activeStep === 1 ? 'border-violet-400 bg-violet-50/80' : 'border-violet-100 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-zinc-900">
-                    {t('steps.step1Label')}: {t('steps.step1Title')}
-                  </p>
-                  <StepStatusPill status={step1Status} labels={stepStatusLabels} />
-                </div>
-                <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
-                  {brief?.sourceUrl || sourceUrl || t('steps.step1Description')}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => openStep(2)}
-                disabled={!canOpenStep2}
-                className={`rounded-xl border p-3 text-left transition ${
-                  !canOpenStep2
-                    ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
-                    : activeStep === 2
-                      ? 'border-violet-400 bg-violet-50/80'
-                      : 'border-violet-100 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-zinc-900">
-                    {t('steps.step2Label')}: {t('steps.step2Title')}
-                  </p>
-                  <StepStatusPill status={step2Status} labels={stepStatusLabels} />
-                </div>
-                <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
-                  {brief ? `${brief.productName} - ${brief.language.toUpperCase()}` : t('steps.step2Empty')}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => openStep(3)}
-                disabled={!canOpenStep3}
-                className={`rounded-xl border p-3 text-left transition ${
-                  !canOpenStep3
-                    ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
-                    : activeStep === 3
-                      ? 'border-violet-400 bg-violet-50/80'
-                      : 'border-violet-100 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-zinc-900">
-                    {t('steps.step3Label')}: {t('steps.step3Title')}
-                  </p>
-                  <StepStatusPill status={step3Status} labels={stepStatusLabels} />
-                </div>
-                <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
-                  {kit
-                    ? `${generatedPlatformCount} platform blocks • ${new Date(kit.generatedAt).toLocaleString()}`
-                    : t('steps.step3Empty')}
-                </p>
-              </button>
-            </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         {(error || success) && (
           <section className="mt-4">
@@ -1212,7 +1527,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        <section className="mt-6 space-y-4">
+        <section className={`${isFocusedResultsView ? 'space-y-4' : 'mt-6 space-y-4'}`}>
           <article
             className={`rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
               activeStep === 1 ? '' : 'hidden'
@@ -1356,7 +1671,8 @@ export default function DashboardPage() {
                           <Field
                             label={t('fields.targetUsers')}
                             value={brief.targetUsers.join('\n')}
-                            onChange={(value) => setBriefField('targetUsers', splitLines(value))}
+                            onChange={(value) => setBriefField('targetUsers', splitEditableLines(value))}
+                            onBlur={(value) => setBriefField('targetUsers', splitLines(value))}
                             multiline
                           />
                         </>
@@ -1367,19 +1683,22 @@ export default function DashboardPage() {
                           <Field
                             label={t('fields.painPoints')}
                             value={brief.painPoints.join('\n')}
-                            onChange={(value) => setBriefField('painPoints', splitLines(value))}
+                            onChange={(value) => setBriefField('painPoints', splitEditableLines(value))}
+                            onBlur={(value) => setBriefField('painPoints', splitLines(value))}
                             multiline
                           />
                           <Field
                             label={t('fields.valueProps')}
                             value={brief.valueProps.join('\n')}
-                            onChange={(value) => setBriefField('valueProps', splitLines(value))}
+                            onChange={(value) => setBriefField('valueProps', splitEditableLines(value))}
+                            onBlur={(value) => setBriefField('valueProps', splitLines(value))}
                             multiline
                           />
                           <Field
                             label={t('fields.proofPoints')}
                             value={brief.proofPoints.join('\n')}
-                            onChange={(value) => setBriefField('proofPoints', splitLines(value))}
+                            onChange={(value) => setBriefField('proofPoints', splitEditableLines(value))}
+                            onBlur={(value) => setBriefField('proofPoints', splitLines(value))}
                             multiline
                           />
                         </>
@@ -1448,32 +1767,52 @@ export default function DashboardPage() {
           </article>
 
           <article
-            className={`rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
-              activeStep === 3 ? '' : 'hidden'
-            }`}
+            className={
+              isFocusedResultsView
+                ? 'space-y-4'
+                : `rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
+                    activeStep === 3 ? '' : 'hidden'
+                  }`
+            }
           >
-            <button
-              type="button"
-              onClick={() => openStep(3)}
-              disabled={!canOpenStep3}
-              className="w-full text-left disabled:cursor-not-allowed"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <BookOpenText className="h-4 w-4 text-violet-600" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-                    {t('steps.step3Label')} • {t('steps.step3Title')}
-                  </p>
+            {!isFocusedResultsView ? (
+              <button
+                type="button"
+                onClick={() => openStep(3)}
+                disabled={!canOpenStep3}
+                className="w-full text-left disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpenText className="h-4 w-4 text-violet-600" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+                      {t('steps.step3Label')} • {t('steps.step3Title')}
+                    </p>
+                  </div>
+                  <StepStatusPill status={step3Status} labels={stepStatusLabels} />
                 </div>
-                <StepStatusPill status={step3Status} labels={stepStatusLabels} />
-              </div>
-              <p className="mt-2 text-sm text-zinc-600">{t('steps.step3Description')}</p>
-            </button>
+                <p className="mt-2 text-sm text-zinc-600">{t('steps.step3Description')}</p>
+              </button>
+            ) : null}
 
-            {activeStep === 3 ? (
+            {activeStep === 3 || isFocusedResultsView ? (
               brief ? (
-                <div className="mt-4 space-y-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className={isFocusedResultsView ? 'space-y-4' : 'mt-4 space-y-5'}>
+                  <div
+                    className={`flex flex-wrap items-center justify-between gap-2 ${
+                      isFocusedResultsView
+                        ? 'rounded-2xl border border-violet-100 bg-white p-3 shadow-sm'
+                        : ''
+                    }`}
+                  >
+                    {isFocusedResultsView ? (
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-zinc-900">
+                          {projectName || brief.productName}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-zinc-600">{brief.sourceUrl}</p>
+                      </div>
+                    ) : null}
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         variant="outline"
@@ -1491,386 +1830,117 @@ export default function DashboardPage() {
                       >
                         {t('actions.openPressPack')}
                       </Button>
+                      {isFocusedResultsView ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsUtilityDrawerOpen(true)}
+                          className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
+                        >
+                          <PanelRightOpen className="mr-1.5 h-4 w-4" />
+                          {t('actions.openBrandGuidelines')}
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
 
                   {kit ? (
                     <>
-                      <div className="rounded-2xl border border-violet-100 bg-white p-4">
-                        <div className="mb-3 flex items-center justify-between gap-2">
-                          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
-                            {t('growth.outputs.title')}
-                          </h3>
-                          <p className="text-xs text-zinc-600">{t('growth.outputs.subtitle')}</p>
-                        </div>
-
-                        <div className="overflow-x-auto pb-2">
-                          <div
-                            role="tablist"
-                            aria-label={tabListLabel}
-                            onKeyDown={onOutputTabKeyDown}
-                            className="flex min-w-max gap-2"
-                          >
-                            {OUTPUT_TAB_IDS.map((tabId) => (
-                              <button
-                                key={tabId}
-                                type="button"
-                                id={`output-tab-${tabId}`}
-                                role="tab"
-                                data-output-tab={tabId}
-                                aria-selected={activeOutputTab === tabId}
-                                aria-controls={`output-tabpanel-${tabId}`}
-                                tabIndex={activeOutputTab === tabId ? 0 : -1}
-                                onClick={() => setActiveOutputTab(tabId)}
-                                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                                  activeOutputTab === tabId
-                                    ? 'border-violet-500 bg-violet-600 text-white'
-                                    : 'border-violet-200 bg-violet-50/60 text-violet-700 hover:border-violet-300 hover:bg-violet-100'
-                                }`}
-                              >
-                                {getOutputTabLabel(tabId)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div
-                          role="tabpanel"
-                          id={`output-tabpanel-${activeOutputTab}`}
-                          aria-labelledby={`output-tab-${activeOutputTab}`}
-                          className="mt-3 rounded-xl border border-violet-100 bg-violet-50/30 p-3"
-                        >
-                          {isPlatformTab(activeOutputTab) ? (
-                            <PlatformBlockPanel
-                              displayLabel={getPlatformOutputLabel(activeOutputTab)}
-                              block={kit.platformBlocks[activeOutputTab]}
-                              onCopy={() => void copyBlock(activeOutputTab)}
-                              onRegenerate={() => void onRegenerateBlock(activeOutputTab)}
-                              isGenerating={isGenerating}
-                              feedbackText={
-                                isGenerating && generationFeedbackSteps.length > 0
-                                  ? generationFeedbackSteps[generationFeedbackIndex]
-                                  : ''
-                              }
-                              labels={{
-                                copy: t('actions.copyBlock'),
-                                regenerate: t('actions.regenerateBlock'),
-                                title: t('output.titleLabel'),
-                                body: t('output.bodyLabel'),
-                                cta: t('output.ctaLabel'),
-                                notes: t('output.notesLabel'),
-                              }}
-                            />
-                          ) : (
-                            <GrowthBlockPanel
-                              displayLabel={getGrowthOutputLabel(activeOutputTab)}
-                              blockId={activeOutputTab}
-                              kit={kit}
-                              onCopy={() => void copyGrowthBlock(activeOutputTab)}
-                              onRegenerate={() => void onRegenerateGrowthBlock(activeOutputTab)}
-                              isGenerating={isGenerating}
-                              feedbackText={
-                                isGenerating && generationFeedbackSteps.length > 0
-                                  ? generationFeedbackSteps[generationFeedbackIndex]
-                                  : ''
-                              }
-                              labels={{
-                                copy: t('actions.copyBlock'),
-                                regenerate: t('actions.regenerateBlock'),
-                                emptyOutreach: t('growth.outputs.emptyOutreach'),
-                                emptySeo: t('growth.outputs.emptySeo'),
-                                subject: t('output.subjectLabel'),
-                                cta: t('output.ctaLabel'),
-                                outline: t('output.outlineLabel'),
-                              }}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl border border-violet-100 bg-violet-50/30 p-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowMediaKit((value) => !value)}
-                          className="flex w-full items-center justify-between gap-2 text-left"
-                        >
-                          <div>
-                            <h3 className={`${editorialSerif.className} text-xl text-zinc-900`}>
-                              {t('mediaKit.generatedTitle')}
-                            </h3>
-                            <p className="mt-1 text-xs text-zinc-600">
-                              {showMediaKit ? t('mediaKit.hideGenerated') : t('mediaKit.showGenerated')}
-                            </p>
-                          </div>
-                          {showMediaKit ? (
-                            <ChevronUp className="h-4 w-4 text-violet-600" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-violet-600" />
-                          )}
-                        </button>
-
-                        {showMediaKit ? (
-                          <div className="mt-3">
-                            <MediaField label={t('mediaKit.fields.bio')} value={kit.mediaKit.founderCompanyBio} />
-                            <MediaField label={t('mediaKit.fields.oneLiner')} value={kit.mediaKit.productOneLiner} />
-                            <MediaField label={t('mediaKit.fields.boilerplate')} value={kit.mediaKit.boilerplate} />
-                            <MediaField label={t('mediaKit.fields.pressRelease')} value={kit.mediaKit.pressRelease} />
-                            <MediaField
-                              label={t('mediaKit.fields.checklist')}
-                              value={kit.mediaKit.keyVisualsChecklist.map((item) => `- ${item}`).join('\n')}
-                            />
-                            <MediaField
-                              label={t('mediaKit.fields.screenshots')}
-                              value={kit.mediaKit.screenshotsAndLogos}
-                            />
-                            <MediaField label={t('mediaKit.fields.contact')} value={kit.mediaKit.contactDetails} />
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div className="rounded-2xl border border-violet-100 bg-white p-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowAdvancedGrowth((value) => !value)}
-                          className="flex w-full items-center justify-between gap-2 text-left"
-                        >
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                              {t('growth.advanced.title')}
-                            </p>
-                            <p className="mt-1 text-xs text-zinc-600">
-                              {t('growth.advanced.description')}
-                            </p>
-                          </div>
-                          {showAdvancedGrowth ? (
-                            <ChevronUp className="h-4 w-4 text-violet-600" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-violet-600" />
-                          )}
-                        </button>
-
-                        {showAdvancedGrowth ? (
-                          <div className="mt-4 space-y-4">
-                            <div className="rounded-2xl border border-violet-200 bg-[linear-gradient(135deg,#fff_0%,#faf5ff_55%,#fff_100%)] p-4">
-                              <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                    {t('growth.seo.title')}
-                                  </p>
-                                  <p className="mt-1 max-w-2xl text-xs text-zinc-600">
-                                    {t('growth.seo.description')}
-                                  </p>
-                                </div>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsUtilityDrawerOpen(true)}
-                                  className="border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
-                                >
-                                  {t('actions.openBrandGuidelines')}
-                                </Button>
-                              </div>
-
-                              <div className="mt-3 grid gap-3 xl:grid-cols-[0.8fr_1.2fr]">
-                                <div className="rounded-xl border border-violet-100 bg-white/80 p-3">
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                    {t('growth.seo.keywordTitle')}
-                                  </p>
-                                  {brief?.keywordResearch.notes ? (
-                                    <p className="mt-1 text-xs leading-relaxed text-zinc-600">
-                                      {brief.keywordResearch.notes}
-                                    </p>
-                                  ) : null}
-                                  {brief && brief.keywordResearch.clusters.length > 0 ? (
-                                    <div className="mt-2 space-y-2">
-                                      {brief.keywordResearch.clusters.slice(0, 4).map((cluster) => (
-                                        <div key={cluster.id} className="rounded-lg border border-violet-100 bg-violet-50/50 p-2">
-                                          <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <p className="text-sm font-semibold text-zinc-900">{cluster.topic}</p>
-                                            <span className="rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-violet-700">
-                                              {cluster.priority}
-                                            </span>
-                                          </div>
-                                          <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
-                                            {cluster.keywords.join(', ')}
-                                          </p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="mt-2 rounded-lg border border-violet-100 bg-violet-50 px-3 py-2 text-sm text-violet-700">
-                                      {t('growth.seo.keywordEmpty')}
-                                    </p>
-                                  )}
-                                </div>
-
-                                <GrowthBlockPanel
-                                  displayLabel={getGrowthOutputLabel('seo_posts')}
-                                  blockId="seo_posts"
-                                  kit={kit}
-                                  onCopy={() => void copyGrowthBlock('seo_posts')}
-                                  onRegenerate={() => void onRegenerateGrowthBlock('seo_posts')}
-                                  isGenerating={isGenerating}
-                                  feedbackText={
-                                    isGenerating && generationFeedbackSteps.length > 0
-                                      ? generationFeedbackSteps[generationFeedbackIndex]
-                                      : ''
-                                  }
-                                  labels={{
-                                    copy: t('actions.copyBlock'),
-                                    regenerate: t('actions.regenerateBlock'),
-                                    emptyOutreach: t('growth.outputs.emptyOutreach'),
-                                    emptySeo: t('growth.outputs.emptySeo'),
-                                    subject: t('output.subjectLabel'),
-                                    cta: t('output.ctaLabel'),
-                                    outline: t('output.outlineLabel'),
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                    {t('growth.actionBar.title')}
-                                  </p>
-                                  <p className="text-xs text-zinc-600">{t('growth.actionBar.description')}</p>
-                                </div>
-                                <p className="text-xs text-zinc-500">
-                                  {t('growth.actionBar.leadsCount', { count: kit.prospecting.leads.length })}
-                                </p>
-                              </div>
-
-                              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                                {actionDefinitions.map((action) => (
-                                  <button
-                                    key={action.id}
-                                    type="button"
-                                    onClick={() => openActionApproval(action.id)}
-                                    className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-left transition hover:border-violet-300 hover:bg-violet-50"
-                                  >
-                                    <div className="flex items-start gap-2">
-                                      <ActionIcon actionId={action.id} />
-                                      <div>
-                                        <p className="text-sm font-semibold text-zinc-900">{action.title}</p>
-                                        <p className="mt-1 text-xs text-zinc-600">{action.description}</p>
-                                      </div>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-violet-100 bg-white p-4">
-                              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                <h3 className={`${editorialSerif.className} text-xl text-zinc-900`}>
-                                  {t('growth.prospecting.title')}
-                                </h3>
-                                <p className="text-xs text-zinc-600">
-                                  {t('growth.prospecting.selectedLeads', { count: selectedLeadIds.length })}
-                                </p>
-                              </div>
-
-                              {kit.prospecting.leads.length > 0 ? (
-                                <div className="overflow-x-auto rounded-xl border border-violet-100">
-                                  <table className="w-full min-w-[760px] border-collapse text-sm">
-                                    <thead className="bg-violet-50/70 text-left text-xs uppercase tracking-[0.12em] text-violet-700">
-                                      <tr>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.select')}</th>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.contact')}</th>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.company')}</th>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.email')}</th>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.score')}</th>
-                                        <th className="px-3 py-2">{t('growth.prospecting.headers.reason')}</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {kit.prospecting.leads.slice(0, 24).map((lead) => (
-                                        <tr key={lead.id} className="border-t border-violet-100">
-                                          <td className="px-3 py-2 align-top">
-                                            <input
-                                              type="checkbox"
-                                              checked={selectedLeadIds.includes(lead.id)}
-                                              onChange={() => toggleLeadSelection(lead.id)}
-                                              className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600"
-                                            />
-                                          </td>
-                                          <td className="px-3 py-2 align-top">
-                                            <p className="font-medium text-zinc-900">{lead.name}</p>
-                                            <p className="text-xs text-zinc-600">{lead.role}</p>
-                                          </td>
-                                          <td className="px-3 py-2 align-top">
-                                            <p className="font-medium text-zinc-900">{lead.company}</p>
-                                            <p className="text-xs text-zinc-600">{lead.website}</p>
-                                          </td>
-                                          <td className="px-3 py-2 align-top text-xs text-zinc-700">
-                                            {lead.email || t('growth.prospecting.noEmail')}
-                                          </td>
-                                          <td className="px-3 py-2 align-top">
-                                            <p className="font-semibold text-zinc-900">{lead.score}</p>
-                                            <p className="text-xs uppercase tracking-[0.1em] text-violet-700">{lead.tier}</p>
-                                          </td>
-                                          <td className="px-3 py-2 align-top text-xs text-zinc-600">{lead.reason}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              ) : (
-                                <p className="rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
-                                  {t('growth.prospecting.empty')}
-                                </p>
-                              )}
-
-                              <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                                <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                    {t('growth.prospecting.personalizedTitle')}
-                                  </p>
-                                  {kit.prospecting.personalizedOutreach.length > 0 ? (
-                                    <div className="mt-2 space-y-2">
-                                      {kit.prospecting.personalizedOutreach.slice(0, 3).map((item) => (
-                                        <div key={item.id} className="rounded-lg border border-violet-100 bg-white p-2">
-                                          <p className="text-xs font-semibold text-zinc-900">
-                                            {item.leadName} · {item.company}
-                                          </p>
-                                          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-zinc-700">
-                                            {item.linkedinMessage}
-                                          </p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="mt-2 text-xs text-zinc-600">{t('growth.prospecting.personalizedEmpty')}</p>
-                                  )}
-                                </div>
-
-                                <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                    {t('growth.prospecting.actionLogTitle')}
-                                  </p>
-                                  {kit.prospecting.actionRuns.length > 0 ? (
-                                    <div className="mt-2 space-y-2">
-                                      {kit.prospecting.actionRuns.slice(0, 5).map((run) => (
-                                        <div key={run.id} className="rounded-lg border border-violet-100 bg-white p-2">
-                                          <p className="text-xs font-semibold text-zinc-900">
-                                            {t(`growth.actionStatus.${run.status}`)}
-                                          </p>
-                                          <p className="text-xs text-zinc-700">{run.summary}</p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="mt-2 text-xs text-zinc-600">{t('growth.prospecting.actionLogEmpty')}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
+                      <ResultAssetBrowser
+                        brief={brief}
+                        kit={kit}
+                        activeSection={activeResultSection}
+                        activeChannel={activeTrafficChannel}
+                        activeAssetKind={activeAssetKind}
+                        onChannelChange={(channelId) => {
+                          setActiveResultSection('channels')
+                          setActiveTrafficChannel(channelId)
+                        }}
+                        onAssetKindChange={(assetKind) => {
+                          setActiveResultSection('assets')
+                          setActiveAssetKind(assetKind)
+                        }}
+                        onGenerateAsset={(templateId, format) => void onGenerateAsset(templateId, format)}
+                        generatingAssetKey={generatingAssetKey}
+                        onCopyPlatformBlock={(blockId) => void copyBlock(blockId)}
+                        onRegeneratePlatformBlock={(blockId) => void onRegenerateBlock(blockId)}
+                        onCopyGrowthBlock={(blockId) => void copyGrowthBlock(blockId)}
+                        onRegenerateGrowthBlock={(blockId) => void onRegenerateGrowthBlock(blockId)}
+                        onExportMarkdown={onExportMarkdown}
+                        onOpenPressPack={onOpenPressPack}
+                        isGenerating={isGenerating}
+                        feedbackText={currentGenerationFeedback}
+                        filteredProspects={filteredBacklinkProspects}
+                        selectedProspectIds={selectedBacklinkProspectIds}
+                        backlinkSearch={backlinkSearch}
+                        backlinkListFilter={backlinkListFilter}
+                        backlinkMaxCost={backlinkMaxCost}
+                        backlinkMinTraffic={backlinkMinTraffic}
+                        backlinkMinValue={backlinkMinValue}
+                        backlinkListName={backlinkListName}
+                        isSeoActionRunning={isSeoActionRunning}
+                        onBacklinkSearchChange={setBacklinkSearch}
+                        onBacklinkListFilterChange={setBacklinkListFilter}
+                        onBacklinkMaxCostChange={setBacklinkMaxCost}
+                        onBacklinkMinTrafficChange={setBacklinkMinTraffic}
+                        onBacklinkMinValueChange={setBacklinkMinValue}
+                        onBacklinkListNameChange={setBacklinkListName}
+                        onRunSeoAnalysis={() => void onRunSeoAnalysis()}
+                        onRunBlogStrategy={() => void onRunBlogStrategy()}
+                        onRunBacklinkProspects={() => void onRunBacklinkProspects()}
+                        onToggleProspect={toggleBacklinkProspectSelection}
+                        onAddToList={() => void onAddBacklinkProspectsToList()}
+                        onBacklinkStatusChange={(prospectId, status) =>
+                          void onUpdateBacklinkProspectStatus(prospectId, status)
+                        }
+                        onPersonalizeBacklinkEmails={() => void onPersonalizeBacklinkEmails()}
+                        onSendBacklinkEmails={() => void onSendBacklinkEmails()}
+                        onExportBacklinks={() => void onExportBacklinks()}
+                        selectedLeadIds={selectedLeadIds}
+                        onToggleLead={toggleLeadSelection}
+                        emailImportText={emailImportText}
+                        onEmailImportTextChange={setEmailImportText}
+                        isEmailActionRunning={isActionRunning}
+                        onScrapeEmailContacts={() => void onScrapeEmailContacts()}
+                        onBuildEmailList={() => void onBuildEmailList()}
+                        onImportEmailList={() => void onImportEmailList()}
+                        onPersonalizeEmailOutreach={() => void onPersonalizeEmailOutreach()}
+                        onSendOutreachEmail={() => void onSendOutreachEmail()}
+                        labels={{
+                          title: t('results.title'),
+                          subtitle: t('results.subtitle'),
+                          output: {
+                            copy: t('actions.copyBlock'),
+                            regenerate: t('actions.regenerateBlock'),
+                            title: t('output.titleLabel'),
+                            body: t('output.bodyLabel'),
+                            cta: t('output.ctaLabel'),
+                            notes: t('output.notesLabel'),
+                            subject: t('output.subjectLabel'),
+                            outline: t('output.outlineLabel'),
+                            redditEngagement: t('output.reddit.engagementTitle'),
+                            redditSelfPromotion: t('output.reddit.selfPromotionTitle'),
+                            redditReason: t('output.reddit.reasonLabel'),
+                            redditPostingGuidance: t('output.reddit.postingGuidanceLabel'),
+                            emptyOutreach: t('growth.outputs.emptyOutreach'),
+                            emptySeo: t('growth.outputs.emptySeo'),
+                          },
+                          mediaKit: {
+                            title: t('mediaKit.generatedTitle'),
+                            exportMarkdown: t('actions.exportMarkdown'),
+                            openPressPack: t('actions.openPressPack'),
+                            fields: {
+                              bio: t('mediaKit.fields.bio'),
+                              oneLiner: t('mediaKit.fields.oneLiner'),
+                              boilerplate: t('mediaKit.fields.boilerplate'),
+                              pressRelease: t('mediaKit.fields.pressRelease'),
+                              checklist: t('mediaKit.fields.checklist'),
+                              screenshots: t('mediaKit.fields.screenshots'),
+                              contact: t('mediaKit.fields.contact'),
+                            },
+                          },
+                        }}
+                        t={t}
+                      />
                     </>
                   ) : (
                     <p className="rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
@@ -1957,31 +2027,36 @@ export default function DashboardPage() {
                         <Field
                           label={t('fields.targetUsers')}
                           value={brief.targetUsers.join('\n')}
-                          onChange={(value) => setBriefField('targetUsers', splitLines(value))}
+                          onChange={(value) => setBriefField('targetUsers', splitEditableLines(value))}
+                          onBlur={(value) => setBriefField('targetUsers', splitLines(value))}
                           multiline
                         />
                         <Field
                           label={t('fields.painPoints')}
                           value={brief.painPoints.join('\n')}
-                          onChange={(value) => setBriefField('painPoints', splitLines(value))}
+                          onChange={(value) => setBriefField('painPoints', splitEditableLines(value))}
+                          onBlur={(value) => setBriefField('painPoints', splitLines(value))}
                           multiline
                         />
                         <Field
                           label={t('fields.valueProps')}
                           value={brief.valueProps.join('\n')}
-                          onChange={(value) => setBriefField('valueProps', splitLines(value))}
+                          onChange={(value) => setBriefField('valueProps', splitEditableLines(value))}
+                          onBlur={(value) => setBriefField('valueProps', splitLines(value))}
                           multiline
                         />
                         <Field
                           label={t('fields.keyClaims')}
                           value={brief.keyClaims.join('\n')}
-                          onChange={(value) => setBriefField('keyClaims', splitLines(value))}
+                          onChange={(value) => setBriefField('keyClaims', splitEditableLines(value))}
+                          onBlur={(value) => setBriefField('keyClaims', splitLines(value))}
                           multiline
                         />
                         <Field
                           label={t('fields.proofPoints')}
                           value={brief.proofPoints.join('\n')}
-                          onChange={(value) => setBriefField('proofPoints', splitLines(value))}
+                          onChange={(value) => setBriefField('proofPoints', splitEditableLines(value))}
+                          onBlur={(value) => setBriefField('proofPoints', splitLines(value))}
                           multiline
                         />
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -2081,14 +2156,18 @@ export default function DashboardPage() {
                                 label={t('growth.keywordResearch.keywords')}
                                 value={cluster.keywords.join('\n')}
                                 onChange={(value) =>
-                                  setKeywordClusterField(cluster.id, 'keywords', splitLines(value))
+                                  setKeywordClusterField(cluster.id, 'keywords', splitEditableLines(value))
                                 }
+                                onBlur={(value) => setKeywordClusterField(cluster.id, 'keywords', splitLines(value))}
                                 multiline
                               />
                               <Field
                                 label={t('growth.keywordResearch.contentAngles')}
                                 value={cluster.contentAngles.join('\n')}
                                 onChange={(value) =>
+                                  setKeywordClusterField(cluster.id, 'contentAngles', splitEditableLines(value))
+                                }
+                                onBlur={(value) =>
                                   setKeywordClusterField(cluster.id, 'contentAngles', splitLines(value))
                                 }
                                 multiline
@@ -2188,40 +2267,6 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {pendingAction ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/35 px-4">
-          <div className="w-full max-w-xl rounded-2xl border border-violet-200 bg-white p-5 shadow-2xl shadow-violet-400/20">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-              {t('growth.approvals.title')}
-            </p>
-            <h3 className={`${editorialSerif.className} mt-1 text-2xl leading-tight text-zinc-900`}>
-              {pendingAction.title}
-            </h3>
-            <p className="mt-2 text-sm text-zinc-600">{pendingAction.description}</p>
-
-            <div className="mt-3 rounded-xl border border-violet-100 bg-violet-50/50 p-3 text-sm text-zinc-700">
-              {t('growth.approvals.confirmation')}
-            </div>
-
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPendingAction(null)}
-                className="border-violet-200 text-violet-700 hover:bg-violet-50"
-              >
-                {t('growth.approvals.cancel')}
-              </Button>
-              <Button
-                onClick={() => void runApprovedAction()}
-                disabled={isActionRunning}
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
-              >
-                {isActionRunning ? t('growth.approvals.running') : t('growth.approvals.approveRun')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }
@@ -2256,10 +2301,11 @@ type FieldProps = {
   label: string
   value: string
   onChange: (value: string) => void
+  onBlur?: (value: string) => void
   multiline?: boolean
 }
 
-function Field({ label, value, onChange, multiline = false }: FieldProps) {
+function Field({ label, value, onChange, onBlur, multiline = false }: FieldProps) {
   return (
     <label className="mt-2 block text-sm">
       <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
@@ -2269,6 +2315,7 @@ function Field({ label, value, onChange, multiline = false }: FieldProps) {
         <textarea
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onBlur={(event) => onBlur?.(event.target.value)}
           rows={4}
           className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
         />
@@ -2276,6 +2323,7 @@ function Field({ label, value, onChange, multiline = false }: FieldProps) {
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onBlur={(event) => onBlur?.(event.target.value)}
           className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
         />
       )}
@@ -2288,6 +2336,1705 @@ function MediaField({ label, value }: { label: string; value: string }) {
     <div className="mt-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{label}</p>
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{value}</p>
+    </div>
+  )
+}
+
+function ResultAssetBrowser({
+  brief,
+  kit,
+  activeSection,
+  activeChannel,
+  activeAssetKind,
+  onChannelChange,
+  onAssetKindChange,
+  onGenerateAsset,
+  generatingAssetKey,
+  onCopyPlatformBlock,
+  onRegeneratePlatformBlock,
+  onCopyGrowthBlock,
+  onRegenerateGrowthBlock,
+  onExportMarkdown,
+  onOpenPressPack,
+  isGenerating,
+  feedbackText,
+  filteredProspects,
+  selectedProspectIds,
+  backlinkSearch,
+  backlinkListFilter,
+  backlinkMaxCost,
+  backlinkMinTraffic,
+  backlinkMinValue,
+  backlinkListName,
+  isSeoActionRunning,
+  onBacklinkSearchChange,
+  onBacklinkListFilterChange,
+  onBacklinkMaxCostChange,
+  onBacklinkMinTrafficChange,
+  onBacklinkMinValueChange,
+  onBacklinkListNameChange,
+  onRunSeoAnalysis,
+  onRunBlogStrategy,
+  onRunBacklinkProspects,
+  onToggleProspect,
+  onAddToList,
+  onBacklinkStatusChange,
+  onPersonalizeBacklinkEmails,
+  onSendBacklinkEmails,
+  onExportBacklinks,
+  selectedLeadIds,
+  onToggleLead,
+  emailImportText,
+  onEmailImportTextChange,
+  isEmailActionRunning,
+  onScrapeEmailContacts,
+  onBuildEmailList,
+  onImportEmailList,
+  onPersonalizeEmailOutreach,
+  onSendOutreachEmail,
+  labels,
+  t,
+}: {
+  brief: ExtractedBrief | null
+  kit: LaunchKit
+  activeSection: ResultBrowserSection
+  activeChannel: TrafficChannelId
+  activeAssetKind: LaunchAssetKind
+  onChannelChange: (channelId: TrafficChannelId) => void
+  onAssetKindChange: (assetKind: LaunchAssetKind) => void
+  onGenerateAsset: (templateId: string, format: LaunchAssetFormat) => void
+  generatingAssetKey: string
+  onCopyPlatformBlock: (blockId: PlatformBlockId) => void
+  onRegeneratePlatformBlock: (blockId: PlatformBlockId) => void
+  onCopyGrowthBlock: (blockId: GrowthBlockId) => void
+  onRegenerateGrowthBlock: (blockId: GrowthBlockId) => void
+  onExportMarkdown: () => void
+  onOpenPressPack: () => void
+  isGenerating: boolean
+  feedbackText: string
+  filteredProspects: LaunchKit['seoGrowth']['backlinkProspects']
+  selectedProspectIds: string[]
+  backlinkSearch: string
+  backlinkListFilter: string
+  backlinkMaxCost: string
+  backlinkMinTraffic: string
+  backlinkMinValue: string
+  backlinkListName: string
+  isSeoActionRunning: boolean
+  onBacklinkSearchChange: (value: string) => void
+  onBacklinkListFilterChange: (value: string) => void
+  onBacklinkMaxCostChange: (value: string) => void
+  onBacklinkMinTrafficChange: (value: string) => void
+  onBacklinkMinValueChange: (value: string) => void
+  onBacklinkListNameChange: (value: string) => void
+  onRunSeoAnalysis: () => void
+  onRunBlogStrategy: () => void
+  onRunBacklinkProspects: () => void
+  onToggleProspect: (prospectId: string) => void
+  onAddToList: () => void
+  onBacklinkStatusChange: (prospectId: string, status: BacklinkProspectStatus) => void
+  onPersonalizeBacklinkEmails: () => void
+  onSendBacklinkEmails: () => void
+  onExportBacklinks: () => void
+  selectedLeadIds: string[]
+  onToggleLead: (leadId: string) => void
+  emailImportText: string
+  onEmailImportTextChange: (value: string) => void
+  isEmailActionRunning: boolean
+  onScrapeEmailContacts: () => void
+  onBuildEmailList: () => void
+  onImportEmailList: () => void
+  onPersonalizeEmailOutreach: () => void
+  onSendOutreachEmail: () => void
+  labels: {
+    title: string
+    subtitle: string
+    mediaKit: {
+      title: string
+      exportMarkdown: string
+      openPressPack: string
+      fields: {
+        bio: string
+        oneLiner: string
+        boilerplate: string
+        pressRelease: string
+        checklist: string
+        screenshots: string
+        contact: string
+      }
+    }
+    output: {
+      copy: string
+      regenerate: string
+      title: string
+      body: string
+      cta: string
+      notes: string
+      subject: string
+      outline: string
+      redditEngagement: string
+      redditSelfPromotion: string
+      redditReason: string
+      redditPostingGuidance: string
+      emptyOutreach: string
+      emptySeo: string
+    }
+  }
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const [openGroups, setOpenGroups] = useState<Record<TrafficChannelGroupId, boolean>>(
+    DEFAULT_OPEN_TRAFFIC_GROUPS,
+  )
+  const platformBlockId = getPlatformBlockIdForTrafficChannel(activeChannel)
+  const growthBlockId = getGrowthBlockIdForTrafficChannel(activeChannel)
+  const activeChannelTitle = t(`results.channels.${activeChannel}.title`)
+
+  const toggleGroup = (groupId: TrafficChannelGroupId) => {
+    setOpenGroups((current) => ({ ...current, [groupId]: !current[groupId] }))
+  }
+
+  return (
+    <div className="rounded-2xl border border-violet-100 bg-white p-3 shadow-sm">
+      <div className="grid gap-3 md:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="rounded-xl border border-violet-100 bg-violet-50/45 p-3 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto">
+          <div className="mb-3">
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {labels.title}
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">{labels.subtitle}</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="rounded-lg border border-violet-100 bg-white/70 p-2">
+              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {t('results.sidebar.channels')}
+              </p>
+              <div className="space-y-2">
+                {TRAFFIC_CHANNEL_GROUPS.map((group) => {
+                  const isOpen = openGroups[group.id]
+
+                  return (
+                    <div key={group.id} className="rounded-lg border border-violet-100 bg-white/75">
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(group.id)}
+                        className="flex w-full items-start justify-between gap-2 px-3 py-2 text-left"
+                      >
+                        <span>
+                          <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                            {t(`results.channelGroups.${group.id}.title`)}
+                          </span>
+                          <span className="mt-0.5 block text-xs leading-relaxed text-zinc-500">
+                            {t(`results.channelGroups.${group.id}.description`)}
+                          </span>
+                        </span>
+                        {isOpen ? (
+                          <ChevronUp className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                        ) : (
+                          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                        )}
+                      </button>
+
+                      {isOpen ? (
+                        <div className="space-y-1.5 border-t border-violet-100 p-2">
+                          {group.channels.map((channelId) => {
+                            const isActive = activeSection === 'channels' && activeChannel === channelId
+
+                            return (
+                              <button
+                                key={channelId}
+                                type="button"
+                                onClick={() => onChannelChange(channelId)}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${
+                                  isActive
+                                    ? 'border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20'
+                                    : 'border-violet-100 bg-white text-zinc-700 hover:border-violet-300 hover:bg-violet-50'
+                                }`}
+                              >
+                                <span className={isActive ? 'text-white' : 'text-violet-600'}>
+                                  <TrafficChannelIcon channelId={channelId} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate">{t(`results.channels.${channelId}.title`)}</span>
+                                  <span className={`block truncate text-[11px] ${isActive ? 'text-violet-100' : 'text-zinc-500'}`}>
+                                    {t(`results.channels.${channelId}.description`)}
+                                  </span>
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-violet-100 bg-white/70 p-2">
+              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {t('results.sidebar.assets')}
+              </p>
+              <div className="space-y-1.5">
+                {ASSET_NAV_ITEMS.map((assetKind) => {
+                  const isActive = activeSection === 'assets' && activeAssetKind === assetKind
+
+                  return (
+                    <button
+                      key={assetKind}
+                      type="button"
+                      onClick={() => onAssetKindChange(assetKind)}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${
+                        isActive
+                          ? 'border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20'
+                          : 'border-violet-100 bg-white text-zinc-700 hover:border-violet-300 hover:bg-violet-50'
+                      }`}
+                    >
+                      <span className={isActive ? 'text-white' : 'text-violet-600'}>
+                        <AssetKindIcon assetKind={assetKind} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{t(`results.assets.kinds.${assetKind}.title`)}</span>
+                        <span className={`block truncate text-[11px] ${isActive ? 'text-violet-100' : 'text-zinc-500'}`}>
+                          {t(`results.assets.kinds.${assetKind}.description`)}
+                        </span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0 rounded-xl border border-violet-100 bg-violet-50/30 p-3">
+          {activeSection === 'channels' ? (
+            <>
+              {platformBlockId ? (
+                <PlatformBlockPanel
+                  displayLabel={activeChannelTitle}
+                  block={kit.platformBlocks[platformBlockId]}
+                  onCopy={() => onCopyPlatformBlock(platformBlockId)}
+                  onRegenerate={() => onRegeneratePlatformBlock(platformBlockId)}
+                  isGenerating={isGenerating}
+                  feedbackText={feedbackText}
+                  labels={labels.output}
+                />
+              ) : null}
+
+          {growthBlockId ? (
+            <GrowthBlockPanel
+              displayLabel={activeChannelTitle}
+              blockId={growthBlockId}
+              kit={kit}
+              onCopy={() => onCopyGrowthBlock(growthBlockId)}
+              onRegenerate={() => onRegenerateGrowthBlock(growthBlockId)}
+              isGenerating={isGenerating}
+              feedbackText={feedbackText}
+              labels={labels.output}
+            />
+          ) : null}
+
+          {activeChannel === 'website_seo' ? (
+            <SeoAnalysisChannelPanel
+              kit={kit}
+              onRunSeoAnalysis={onRunSeoAnalysis}
+              isSeoActionRunning={isSeoActionRunning}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'keyword_research' ? (
+            <KeywordResearchChannelPanel brief={brief} t={t} />
+          ) : null}
+
+          {activeChannel === 'blog_cadence' ? (
+            <BlogCadenceChannelPanel
+              kit={kit}
+              isSeoActionRunning={isSeoActionRunning}
+              onRunBlogStrategy={onRunBlogStrategy}
+              onCopySeoPosts={() => onCopyGrowthBlock('seo_posts')}
+              onRegenerateSeoPosts={() => onRegenerateGrowthBlock('seo_posts')}
+              isGenerating={isGenerating}
+              feedbackText={feedbackText}
+              outputLabels={labels.output}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'geo_llm_visibility' ? (
+            <GeoVisibilityChannelPanel kit={kit} brief={brief} onRunSeoAnalysis={onRunSeoAnalysis} t={t} />
+          ) : null}
+
+          {activeChannel === 'email_scrape_contacts' ? (
+            <EmailContactsChannelPanel
+              kit={kit}
+              selectedLeadIds={selectedLeadIds}
+              onToggleLead={onToggleLead}
+              onScrapeEmailContacts={onScrapeEmailContacts}
+              onBuildEmailList={onBuildEmailList}
+              isEmailActionRunning={isEmailActionRunning}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'email_import_list' ? (
+            <EmailImportChannelPanel
+              value={emailImportText}
+              onChange={onEmailImportTextChange}
+              onImport={onImportEmailList}
+              isEmailActionRunning={isEmailActionRunning}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'email_automation' ? (
+            <EmailAutomationChannelPanel
+              kit={kit}
+              selectedLeadIds={selectedLeadIds}
+              onPersonalizeEmailOutreach={onPersonalizeEmailOutreach}
+              onSendOutreachEmail={onSendOutreachEmail}
+              isEmailActionRunning={isEmailActionRunning}
+              outputLabels={labels.output}
+              onCopyAnnouncement={() => onCopyPlatformBlock('email_announcement')}
+              onRegenerateAnnouncement={() => onRegeneratePlatformBlock('email_announcement')}
+              onCopyColdEmail={() => onCopyGrowthBlock('cold_email_outreach')}
+              onRegenerateColdEmail={() => onRegenerateGrowthBlock('cold_email_outreach')}
+              isGenerating={isGenerating}
+              feedbackText={feedbackText}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'backlink_building' ? (
+            <BacklinkChannelPanel
+              kit={kit}
+              filteredProspects={filteredProspects}
+              selectedProspectIds={selectedProspectIds}
+              search={backlinkSearch}
+              listFilter={backlinkListFilter}
+              maxCost={backlinkMaxCost}
+              minTraffic={backlinkMinTraffic}
+              minValue={backlinkMinValue}
+              listName={backlinkListName}
+              isSeoActionRunning={isSeoActionRunning}
+              onSearchChange={onBacklinkSearchChange}
+              onListFilterChange={onBacklinkListFilterChange}
+              onMaxCostChange={onBacklinkMaxCostChange}
+              onMinTrafficChange={onBacklinkMinTrafficChange}
+              onMinValueChange={onBacklinkMinValueChange}
+              onListNameChange={onBacklinkListNameChange}
+              onRunBacklinkProspects={onRunBacklinkProspects}
+              onToggleProspect={onToggleProspect}
+              onAddToList={onAddToList}
+              onStatusChange={onBacklinkStatusChange}
+              onPersonalizeEmails={onPersonalizeBacklinkEmails}
+              onSendEmails={onSendBacklinkEmails}
+              onExportBacklinks={onExportBacklinks}
+              t={t}
+            />
+          ) : null}
+
+          {activeChannel === 'media_kit' ? (
+            <MediaKitChannelPanel
+              kit={kit}
+              labels={labels.mediaKit}
+              onExportMarkdown={onExportMarkdown}
+              onOpenPressPack={onOpenPressPack}
+            />
+          ) : null}
+
+              {isPlaybookChannel(activeChannel) ? (
+                <TrafficPlaybookPanel
+                  channelId={activeChannel}
+                  brief={brief}
+                  kit={kit}
+                  websiteUrl={MARKETPLACE_CHANNEL_URLS[activeChannel]}
+                  t={t}
+                />
+              ) : null}
+            </>
+          ) : (
+            <AssetLibraryPanel
+              brief={brief}
+              kit={kit}
+              activeAssetKind={activeAssetKind}
+              onGenerateAsset={onGenerateAsset}
+              generatingAssetKey={generatingAssetKey}
+              t={t}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
+  if (channelId === 'trustmrr' || channelId === 'acquire_com' || channelId === 'flippa') {
+    return <BarChart3 className="h-4 w-4" />
+  }
+
+  if (
+    channelId === 'website_seo' ||
+    channelId === 'keyword_research' ||
+    channelId === 'blog_cadence' ||
+    channelId === 'geo_llm_visibility' ||
+    channelId === 'comparison_alternatives'
+  ) {
+    return <Search className="h-4 w-4" />
+  }
+
+  if (
+    channelId === 'email_scrape_contacts' ||
+    channelId === 'email_import_list' ||
+    channelId === 'email_automation' ||
+    channelId === 'newsletter_partnerships'
+  ) {
+    return <Mail className="h-4 w-4" />
+  }
+
+  if (
+    channelId === 'backlink_building' ||
+    channelId === 'guest_posts' ||
+    channelId === 'partner_pages' ||
+    channelId === 'directory_outreach'
+  ) {
+    return <Link2 className="h-4 w-4" />
+  }
+
+  if (channelId === 'media_kit' || channelId === 'pr_pitch' || channelId === 'podcast_pitch') {
+    return <FileSpreadsheet className="h-4 w-4" />
+  }
+
+  return <Layers3 className="h-4 w-4" />
+}
+
+function AssetKindIcon({ assetKind }: { assetKind: LaunchAssetKind }) {
+  if (assetKind === 'screenshots') {
+    return <Monitor className="h-4 w-4" />
+  }
+
+  if (assetKind === 'image_ads') {
+    return <ImageIcon className="h-4 w-4" />
+  }
+
+  if (assetKind === 'video_ads') {
+    return <Video className="h-4 w-4" />
+  }
+
+  return <MessageSquareText className="h-4 w-4" />
+}
+
+function AssetLibraryPanel({
+  brief,
+  kit,
+  activeAssetKind,
+  onGenerateAsset,
+  generatingAssetKey,
+  t,
+}: {
+  brief: ExtractedBrief | null
+  kit: LaunchKit
+  activeAssetKind: LaunchAssetKind
+  onGenerateAsset: (templateId: string, format: LaunchAssetFormat) => void
+  generatingAssetKey: string
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const [selectedFormats, setSelectedFormats] = useState<Record<string, LaunchAssetFormat>>({})
+  const [copiedKey, setCopiedKey] = useState('')
+  const templates = kit.assetLibrary.templates.filter((template) => template.kind === activeAssetKind)
+
+  const copyValue = async (key: string, value: string) => {
+    if (!value) {
+      return
+    }
+
+    await navigator.clipboard.writeText(value)
+    setCopiedKey(key)
+    window.setTimeout(() => setCopiedKey(''), 1400)
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-violet-100 bg-white p-4">
+        <div className="flex items-start gap-3">
+          <span className="mt-1 rounded-lg border border-violet-100 bg-violet-50 p-2 text-violet-700">
+            <AssetKindIcon assetKind={activeAssetKind} />
+          </span>
+          <div>
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {t(`results.assets.kinds.${activeAssetKind}.title`)}
+            </h3>
+            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">
+              {t(`results.assets.kinds.${activeAssetKind}.description`)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 xl:grid-cols-2">
+        {templates.map((template) => {
+          const selectedFormat =
+            selectedFormats[template.id] || template.recommendedFormats[0] || template.formats[0]
+          const generatedAsset = findGeneratedAsset(
+            kit.assetLibrary.generatedAssets,
+            template.id,
+            selectedFormat,
+          )
+          const assetKey = `${template.id}:${selectedFormat}`
+          const isGeneratingAsset = generatingAssetKey === assetKey
+
+          return (
+            <div key={template.id} className="rounded-xl border border-violet-100 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-zinc-900">
+                    {t(`results.assets.templates.${template.id}.title`)}
+                  </h4>
+                  <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+                    {t(`results.assets.templates.${template.id}.description`)}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-lg border border-violet-100 bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700">
+                  {selectedFormat}
+                </span>
+              </div>
+
+              {template.formats.length > 1 ? (
+                <div className="mt-3 flex flex-wrap gap-1.5" aria-label={t('results.assets.labels.formats')}>
+                  {template.formats.map((format) => {
+                    const isSelected = selectedFormat === format
+
+                    return (
+                      <button
+                        key={format}
+                        type="button"
+                        onClick={() =>
+                          setSelectedFormats((current) => ({ ...current, [template.id]: format }))
+                        }
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${
+                          isSelected
+                            ? 'border-violet-500 bg-violet-600 text-white'
+                            : 'border-violet-100 bg-white text-zinc-600 hover:border-violet-300 hover:bg-violet-50'
+                        }`}
+                      >
+                        {format}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+
+              <GeneratedAssetPreview asset={generatedAsset} t={t} />
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => onGenerateAsset(template.id, selectedFormat)}
+                  disabled={!brief || Boolean(generatingAssetKey)}
+                  className="rounded-xl bg-violet-600 text-white hover:bg-violet-700"
+                >
+                  <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+                  {isGeneratingAsset ? t('results.assets.actions.generating') : t('results.assets.actions.generate')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void copyValue(`${assetKey}:prompt`, generatedAsset?.prompt || '')}
+                  disabled={!generatedAsset?.prompt}
+                  className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                >
+                  <Copy className="mr-1.5 h-3.5 w-3.5" />
+                  {copiedKey === `${assetKey}:prompt`
+                    ? t('results.assets.actions.copied')
+                    : t('results.assets.actions.copyPrompt')}
+                </Button>
+                {generatedAsset?.outputText ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void copyValue(`${assetKey}:text`, generatedAsset.outputText)}
+                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                  >
+                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    {copiedKey === `${assetKey}:text`
+                      ? t('results.assets.actions.copied')
+                      : t('results.assets.actions.copyText')}
+                  </Button>
+                ) : null}
+                {generatedAsset?.outputUrl ? (
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                  >
+                    <a href={generatedAsset.outputUrl} target="_blank" rel="noreferrer">
+                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                      {t('results.assets.actions.openOutput')}
+                    </a>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function GeneratedAssetPreview({
+  asset,
+  t,
+}: {
+  asset?: GeneratedLaunchAsset
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  if (!asset) {
+    return (
+      <div className="mt-4 rounded-xl border border-dashed border-violet-200 bg-violet-50/50 px-3 py-6 text-center text-sm text-violet-700">
+        {t('results.assets.labels.noGeneratedAsset')}
+      </div>
+    )
+  }
+
+  if (asset.status === 'failed') {
+    return (
+      <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-sm text-rose-700">
+        {asset.error || t('results.assets.labels.failed')}
+      </div>
+    )
+  }
+
+  if (asset.mediaType === 'image' && asset.outputUrl) {
+    return (
+      <div className="mt-4 overflow-hidden rounded-xl border border-violet-100 bg-zinc-950">
+        <img src={asset.outputUrl} alt={asset.title} className="h-auto w-full object-cover" />
+      </div>
+    )
+  }
+
+  if (asset.mediaType === 'video' && asset.outputUrl) {
+    return (
+      <div className="mt-4 overflow-hidden rounded-xl border border-violet-100 bg-zinc-950">
+        <video src={asset.outputUrl} controls className="h-auto w-full" />
+      </div>
+    )
+  }
+
+  if (asset.mediaType === 'text' && asset.outputText) {
+    return (
+      <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+          {asset.title}
+        </p>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{asset.outputText}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-3 text-sm text-violet-700">
+      {t('results.assets.labels.generated')}
+    </div>
+  )
+}
+
+function findGeneratedAsset(
+  assets: GeneratedLaunchAsset[],
+  templateId: string,
+  format: LaunchAssetFormat,
+): GeneratedLaunchAsset | undefined {
+  return assets.find((asset) => asset.templateId === templateId && asset.format === format)
+}
+
+function SeoAnalysisChannelPanel({
+  kit,
+  onRunSeoAnalysis,
+  isSeoActionRunning,
+  t,
+}: {
+  kit: LaunchKit
+  onRunSeoAnalysis: () => void
+  isSeoActionRunning: boolean
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const analysis = kit.seoGrowth.websiteAnalysis
+
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            {t('growth.seo.analysis.title')}
+          </h3>
+          <p className="mt-1 text-xs text-zinc-600">{t('results.focus.websiteSeo')}</p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onRunSeoAnalysis}
+          disabled={isSeoActionRunning}
+          className="border-violet-200 text-violet-700 hover:bg-violet-50"
+        >
+          <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
+          {t('growth.seo.actions.analyze')}
+        </Button>
+      </div>
+
+      {analysis ? (
+        <div className="mt-3 space-y-3">
+          <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm leading-relaxed text-zinc-700">{analysis.summary}</p>
+              <span className="rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-violet-700">
+                {analysis.score}/100
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <SeoBulletList title={t('growth.seo.analysis.strengths')} items={analysis.strengths} />
+            <SeoBulletList title={t('growth.seo.analysis.fixes')} items={analysis.fixes} />
+          </div>
+          <div className="grid gap-2 lg:grid-cols-2">
+            {analysis.checks.map((check) => (
+              <div key={check.id} className="rounded-lg border border-violet-100 bg-violet-50/35 p-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-zinc-900">{check.label}</p>
+                  <span className="rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-violet-700">
+                    {t(`growth.seo.analysis.status.${check.status}`)}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-zinc-600">{check.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+          {t('growth.seo.analysis.empty')}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function KeywordResearchChannelPanel({
+  brief,
+  t,
+}: {
+  brief: ExtractedBrief | null
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const clusters = brief?.keywordResearch.clusters || []
+
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+        {t('growth.keywordResearch.title')}
+      </h3>
+      <p className="mt-1 text-xs text-zinc-600">{brief?.keywordResearch.notes || t('growth.keywordResearch.description')}</p>
+      {clusters.length > 0 ? (
+        <div className="mt-3 grid gap-2 lg:grid-cols-2">
+          {clusters.slice(0, 8).map((cluster) => (
+            <div key={cluster.id} className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-zinc-900">{cluster.topic}</p>
+                <span className="rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-violet-700">
+                  {t(`growth.keywordResearch.priorities.${cluster.priority}`)}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-zinc-600">{cluster.keywords.slice(0, 8).join(', ')}</p>
+              <p className="mt-2 text-xs font-semibold text-violet-700">{t('growth.keywordResearch.contentAngles')}</p>
+              <p className="mt-1 text-xs text-zinc-700">{cluster.contentAngles.slice(0, 3).join(' | ')}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+          {t('growth.seo.keywordEmpty')}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function BlogCadenceChannelPanel({
+  kit,
+  isSeoActionRunning,
+  onRunBlogStrategy,
+  onCopySeoPosts,
+  onRegenerateSeoPosts,
+  isGenerating,
+  feedbackText,
+  outputLabels,
+  t,
+}: {
+  kit: LaunchKit
+  isSeoActionRunning: boolean
+  onRunBlogStrategy: () => void
+  onCopySeoPosts: () => void
+  onRegenerateSeoPosts: () => void
+  isGenerating: boolean
+  feedbackText: string
+  outputLabels: {
+    copy: string
+    regenerate: string
+    emptyOutreach: string
+    emptySeo: string
+    subject: string
+    cta: string
+    outline: string
+  }
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-violet-100 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {t('growth.seo.blog.title')}
+            </h3>
+            <p className="mt-1 text-xs text-zinc-600">{t('growth.seo.blog.description')}</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onRunBlogStrategy}
+            disabled={isSeoActionRunning}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <BookOpenText className="mr-1.5 h-3.5 w-3.5" />
+            {t('growth.seo.actions.blog')}
+          </Button>
+        </div>
+        {kit.seoGrowth.blogStrategy.length > 0 ? (
+          <div className="mt-3 grid gap-2 lg:grid-cols-2">
+            {kit.seoGrowth.blogStrategy.slice(0, 8).map((post) => (
+              <div key={post.id} className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-700">
+                  {t('growth.seo.blog.dayOffset', { day: post.dayOffset + 1 })}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-zinc-900">{post.title}</p>
+                <p className="mt-1 text-xs text-zinc-600">{post.targetKeywords.slice(0, 5).join(', ')}</p>
+                <p className="mt-2 text-xs font-semibold text-violet-700">{t('growth.seo.blog.tables')}</p>
+                <p className="mt-1 text-xs text-zinc-700">{post.tableIdeas.slice(0, 2).join(' | ')}</p>
+                <p className="mt-2 text-xs font-semibold text-violet-700">{t('growth.seo.blog.llmNotes')}</p>
+                <p className="mt-1 text-xs text-zinc-700">{post.llmNotes.slice(0, 2).join(' | ')}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+            {t('growth.seo.blog.empty')}
+          </p>
+        )}
+      </div>
+
+      <GrowthBlockPanel
+        displayLabel={t('growth.outputLabels.seo_posts')}
+        blockId="seo_posts"
+        kit={kit}
+        onCopy={onCopySeoPosts}
+        onRegenerate={onRegenerateSeoPosts}
+        isGenerating={isGenerating}
+        feedbackText={feedbackText}
+        labels={outputLabels}
+      />
+    </div>
+  )
+}
+
+function GeoVisibilityChannelPanel({
+  kit,
+  brief,
+  onRunSeoAnalysis,
+  t,
+}: {
+  kit: LaunchKit
+  brief: ExtractedBrief | null
+  onRunSeoAnalysis: () => void
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const notes = kit.seoGrowth.websiteAnalysis?.llmReadinessNotes || []
+
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            {t('results.channels.geo_llm_visibility.title')}
+          </h3>
+          <p className="mt-1 text-xs text-zinc-600">{t('results.focus.geo')}</p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onRunSeoAnalysis}
+          className="border-violet-200 text-violet-700 hover:bg-violet-50"
+        >
+          <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
+          {t('growth.seo.actions.analyze')}
+        </Button>
+      </div>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+            {t('growth.seo.analysis.llmReadiness')}
+          </p>
+          {notes.length > 0 ? (
+            <ul className="mt-2 space-y-1 text-sm text-zinc-700">
+              {notes.map((note) => (
+                <li key={note}>- {note}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-zinc-600">{t('growth.seo.analysis.empty')}</p>
+          )}
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+            {t('results.playbook.stepsLabel')}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-zinc-700">
+            <li>{t('results.geo.steps.entities', { product: brief?.productName || 'Product' })}</li>
+            <li>{t('results.geo.steps.answers')}</li>
+            <li>{t('results.geo.steps.citations')}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EmailContactsChannelPanel({
+  kit,
+  selectedLeadIds,
+  onToggleLead,
+  onScrapeEmailContacts,
+  onBuildEmailList,
+  isEmailActionRunning,
+  t,
+}: {
+  kit: LaunchKit
+  selectedLeadIds: string[]
+  onToggleLead: (leadId: string) => void
+  onScrapeEmailContacts: () => void
+  onBuildEmailList: () => void
+  isEmailActionRunning: boolean
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            {t('results.channels.email_scrape_contacts.title')}
+          </h3>
+          <p className="mt-1 text-xs text-zinc-600">{t('results.email.scrapeDescription')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onScrapeEmailContacts}
+            disabled={isEmailActionRunning}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Search className="mr-1.5 h-3.5 w-3.5" />
+            {t('results.email.scrapeAction')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onBuildEmailList}
+            disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Mail className="mr-1.5 h-3.5 w-3.5" />
+            {t('results.email.buildListAction')}
+          </Button>
+        </div>
+      </div>
+      <LeadTable
+        leads={kit.prospecting.leads}
+        selectedLeadIds={selectedLeadIds}
+        onToggleLead={onToggleLead}
+        emptyMessage={t('results.email.noContacts')}
+        t={t}
+      />
+    </div>
+  )
+}
+
+function EmailImportChannelPanel({
+  value,
+  onChange,
+  onImport,
+  isEmailActionRunning,
+  t,
+}: {
+  value: string
+  onChange: (value: string) => void
+  onImport: () => void
+  isEmailActionRunning: boolean
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+        {t('results.channels.email_import_list.title')}
+      </h3>
+      <p className="mt-1 text-xs text-zinc-600">{t('results.email.importDescription')}</p>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={t('results.email.importPlaceholder')}
+        rows={9}
+        className="mt-3 w-full rounded-xl border border-violet-200 bg-violet-50/30 px-3 py-2 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
+      />
+      <div className="mt-3 flex justify-end">
+        <Button
+          type="button"
+          onClick={onImport}
+          disabled={isEmailActionRunning}
+          className="rounded-xl bg-violet-600 text-white shadow-md shadow-violet-500/25 hover:bg-violet-700"
+        >
+          <ListPlus className="mr-2 h-4 w-4" />
+          {t('results.email.importAction')}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function EmailAutomationChannelPanel({
+  kit,
+  selectedLeadIds,
+  onPersonalizeEmailOutreach,
+  onSendOutreachEmail,
+  isEmailActionRunning,
+  outputLabels,
+  onCopyAnnouncement,
+  onRegenerateAnnouncement,
+  onCopyColdEmail,
+  onRegenerateColdEmail,
+  isGenerating,
+  feedbackText,
+  t,
+}: {
+  kit: LaunchKit
+  selectedLeadIds: string[]
+  onPersonalizeEmailOutreach: () => void
+  onSendOutreachEmail: () => void
+  isEmailActionRunning: boolean
+  outputLabels: {
+    copy: string
+    regenerate: string
+    title: string
+    body: string
+    cta: string
+    notes: string
+    subject: string
+    outline: string
+    redditEngagement: string
+    redditSelfPromotion: string
+    redditReason: string
+    redditPostingGuidance: string
+    emptyOutreach: string
+    emptySeo: string
+  }
+  onCopyAnnouncement: () => void
+  onRegenerateAnnouncement: () => void
+  onCopyColdEmail: () => void
+  onRegenerateColdEmail: () => void
+  isGenerating: boolean
+  feedbackText: string
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-violet-100 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {t('results.channels.email_automation.title')}
+            </h3>
+            <p className="mt-1 text-xs text-zinc-600">{t('results.email.automationDescription')}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onPersonalizeEmailOutreach}
+              disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
+              className="border-violet-200 text-violet-700 hover:bg-violet-50"
+            >
+              <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+              {t('results.email.personalizeAction')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onSendOutreachEmail}
+              disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
+              className="border-violet-200 text-violet-700 hover:bg-violet-50"
+            >
+              <Send className="mr-1.5 h-3.5 w-3.5" />
+              {t('results.email.sendAction')}
+            </Button>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          {t('growth.prospecting.selectedLeads', { count: selectedLeadIds.length })}
+        </p>
+        {kit.prospecting.emailJobs.length > 0 ? (
+          <div className="mt-3 grid gap-2 lg:grid-cols-2">
+            {kit.prospecting.emailJobs.slice(0, 4).map((job) => (
+              <div key={job.id} className="rounded-lg border border-violet-100 bg-violet-50/35 p-2">
+                <p className="text-xs font-semibold text-zinc-900">{job.subject}</p>
+                <p className="mt-1 text-xs text-zinc-600">{job.bodyPreview}</p>
+                <p className="mt-1 text-[11px] text-violet-700">
+                  {job.leadIds.length} {t('growth.seo.backlinks.prospects')}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-lg border border-violet-100 bg-violet-50 px-3 py-2 text-sm text-violet-700">
+            {t('results.email.noJobs')}
+          </p>
+        )}
+      </div>
+
+      <PlatformBlockPanel
+        displayLabel={t('platformLabels.email_announcement')}
+        block={kit.platformBlocks.email_announcement}
+        onCopy={onCopyAnnouncement}
+        onRegenerate={onRegenerateAnnouncement}
+        isGenerating={isGenerating}
+        feedbackText={feedbackText}
+        labels={outputLabels}
+      />
+
+      <GrowthBlockPanel
+        displayLabel={t('growth.outputLabels.cold_email_outreach')}
+        blockId="cold_email_outreach"
+        kit={kit}
+        onCopy={onCopyColdEmail}
+        onRegenerate={onRegenerateColdEmail}
+        isGenerating={isGenerating}
+        feedbackText={feedbackText}
+        labels={outputLabels}
+      />
+    </div>
+  )
+}
+
+function LeadTable({
+  leads,
+  selectedLeadIds,
+  onToggleLead,
+  emptyMessage,
+  t,
+}: {
+  leads: LaunchKit['prospecting']['leads']
+  selectedLeadIds: string[]
+  onToggleLead: (leadId: string) => void
+  emptyMessage: string
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  if (!leads.length) {
+    return (
+      <p className="mt-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+        {emptyMessage}
+      </p>
+    )
+  }
+
+  return (
+    <div className="mt-3 overflow-x-auto rounded-xl border border-violet-100">
+      <table className="w-full min-w-[760px] border-collapse text-sm">
+        <thead className="bg-violet-50/70 text-left text-xs uppercase tracking-[0.12em] text-violet-700">
+          <tr>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.select')}</th>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.contact')}</th>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.company')}</th>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.email')}</th>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.score')}</th>
+            <th className="px-3 py-2">{t('growth.prospecting.headers.reason')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leads.slice(0, 30).map((lead) => (
+            <tr key={lead.id} className="border-t border-violet-100">
+              <td className="px-3 py-2 align-top">
+                <input
+                  type="checkbox"
+                  checked={selectedLeadIds.includes(lead.id)}
+                  onChange={() => onToggleLead(lead.id)}
+                  className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600"
+                />
+              </td>
+              <td className="px-3 py-2 align-top">
+                <p className="font-medium text-zinc-900">{lead.name}</p>
+                <p className="text-xs text-zinc-600">{lead.role}</p>
+              </td>
+              <td className="px-3 py-2 align-top">
+                <p className="font-medium text-zinc-900">{lead.company}</p>
+                <p className="text-xs text-zinc-600">{lead.website}</p>
+              </td>
+              <td className="px-3 py-2 align-top text-xs text-zinc-700">
+                {lead.email || t('growth.prospecting.noEmail')}
+              </td>
+              <td className="px-3 py-2 align-top">
+                <p className="font-semibold text-zinc-900">{lead.score}</p>
+                <p className="text-xs uppercase tracking-[0.1em] text-violet-700">{lead.tier}</p>
+              </td>
+              <td className="px-3 py-2 align-top text-xs text-zinc-600">{lead.reason}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function BacklinkChannelPanel({
+  kit,
+  filteredProspects,
+  selectedProspectIds,
+  search,
+  listFilter,
+  maxCost,
+  minTraffic,
+  minValue,
+  listName,
+  isSeoActionRunning,
+  onSearchChange,
+  onListFilterChange,
+  onMaxCostChange,
+  onMinTrafficChange,
+  onMinValueChange,
+  onListNameChange,
+  onRunBacklinkProspects,
+  onToggleProspect,
+  onAddToList,
+  onStatusChange,
+  onPersonalizeEmails,
+  onSendEmails,
+  onExportBacklinks,
+  t,
+}: {
+  kit: LaunchKit
+  filteredProspects: LaunchKit['seoGrowth']['backlinkProspects']
+  selectedProspectIds: string[]
+  search: string
+  listFilter: string
+  maxCost: string
+  minTraffic: string
+  minValue: string
+  listName: string
+  isSeoActionRunning: boolean
+  onSearchChange: (value: string) => void
+  onListFilterChange: (value: string) => void
+  onMaxCostChange: (value: string) => void
+  onMinTrafficChange: (value: string) => void
+  onMinValueChange: (value: string) => void
+  onListNameChange: (value: string) => void
+  onRunBacklinkProspects: () => void
+  onToggleProspect: (prospectId: string) => void
+  onAddToList: () => void
+  onStatusChange: (prospectId: string, status: BacklinkProspectStatus) => void
+  onPersonalizeEmails: () => void
+  onSendEmails: () => void
+  onExportBacklinks: () => void
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const prospectLists = kit.seoGrowth.prospectLists
+  const hasBacklinkProspects = kit.seoGrowth.backlinkProspects.length > 0
+
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            {t('growth.seo.backlinks.title')}
+          </h3>
+          <p className="mt-1 max-w-3xl text-xs text-zinc-600">{t('growth.seo.backlinks.description')}</p>
+          <p className="mt-1 max-w-3xl text-[11px] text-zinc-500">{t('growth.seo.backlinks.formula')}</p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onRunBacklinkProspects}
+            disabled={isSeoActionRunning}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Link2 className="mr-1.5 h-3.5 w-3.5" />
+            {t('growth.seo.actions.backlinks')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onPersonalizeEmails}
+            disabled={isSeoActionRunning || !hasBacklinkProspects}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Mail className="mr-1.5 h-3.5 w-3.5" />
+            {t('growth.seo.actions.personalizeEmails')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onSendEmails}
+            disabled={isSeoActionRunning || !hasBacklinkProspects}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Send className="mr-1.5 h-3.5 w-3.5" />
+            {t('growth.seo.actions.sendEmails')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onExportBacklinks}
+            disabled={isSeoActionRunning || !hasBacklinkProspects}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />
+            {t('growth.seo.actions.exportBacklinks')}
+          </Button>
+        </div>
+      </div>
+
+      {hasBacklinkProspects ? (
+        <>
+          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+            <FilterField label={t('growth.seo.backlinks.filters.search')}>
+              <input
+                value={search}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder={t('growth.seo.backlinks.filters.searchPlaceholder')}
+                className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              />
+            </FilterField>
+            <FilterField label={t('growth.seo.backlinks.filters.list')}>
+              <select
+                value={listFilter}
+                onChange={(event) => onListFilterChange(event.target.value)}
+                className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              >
+                <option value="all">{t('growth.seo.backlinks.filters.allLists')}</option>
+                {prospectLists.map((list) => (
+                  <option key={list.id} value={list.id}>
+                    {list.name}
+                  </option>
+                ))}
+              </select>
+            </FilterField>
+            <FilterField label={t('growth.seo.backlinks.filters.maxCost')}>
+              <input
+                value={maxCost}
+                onChange={(event) => onMaxCostChange(event.target.value)}
+                inputMode="numeric"
+                className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              />
+            </FilterField>
+            <FilterField label={t('growth.seo.backlinks.filters.minTraffic')}>
+              <input
+                value={minTraffic}
+                onChange={(event) => onMinTrafficChange(event.target.value)}
+                inputMode="numeric"
+                className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              />
+            </FilterField>
+            <FilterField label={t('growth.seo.backlinks.filters.minValue')}>
+              <input
+                value={minValue}
+                onChange={(event) => onMinValueChange(event.target.value)}
+                inputMode="numeric"
+                className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              />
+            </FilterField>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <FilterField label={t('growth.seo.backlinks.listName')}>
+              <input
+                value={listName}
+                onChange={(event) => onListNameChange(event.target.value)}
+                placeholder={t('growth.seo.backlinks.listPlaceholder')}
+                className="w-full min-w-[220px] rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
+              />
+            </FilterField>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onAddToList}
+              disabled={isSeoActionRunning || selectedProspectIds.length === 0}
+              className="border-violet-200 text-violet-700 hover:bg-violet-50"
+            >
+              <ListPlus className="mr-1.5 h-3.5 w-3.5" />
+              {t('growth.seo.backlinks.addToList', { count: selectedProspectIds.length })}
+            </Button>
+            <p className="pb-1 text-xs text-zinc-500">
+              {t('growth.seo.backlinks.selected', { count: selectedProspectIds.length })}
+            </p>
+          </div>
+        </>
+      ) : null}
+
+      {filteredProspects.length > 0 ? (
+        <div className="mt-3 overflow-x-auto rounded-xl border border-violet-100">
+          <table className="w-full min-w-[1120px] border-collapse text-sm">
+            <thead className="bg-violet-50/70 text-left text-xs uppercase tracking-[0.12em] text-violet-700">
+              <tr>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.select')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.site')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.status')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.value')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.traffic')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.cost')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.email')}</th>
+                <th className="px-3 py-2">{t('growth.seo.backlinks.headers.reason')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProspects.map((prospect) => (
+                <tr key={prospect.id} className="border-t border-violet-100">
+                  <td className="px-3 py-2 align-top">
+                    <input
+                      type="checkbox"
+                      checked={selectedProspectIds.includes(prospect.id)}
+                      onChange={() => onToggleProspect(prospect.id)}
+                      className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600"
+                    />
+                  </td>
+                  <td className="px-3 py-2 align-top">
+                    <p className="font-medium text-zinc-900">{prospect.title}</p>
+                    <a
+                      href={prospect.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-violet-700 hover:underline"
+                    >
+                      {prospect.domain || prospect.website}
+                    </a>
+                    <p className="mt-1 line-clamp-2 text-xs text-zinc-600">{prospect.scrapedSummary}</p>
+                  </td>
+                  <td className="px-3 py-2 align-top">
+                    <select
+                      value={prospect.status}
+                      onChange={(event) =>
+                        onStatusChange(prospect.id, event.target.value as BacklinkProspectStatus)
+                      }
+                      disabled={isSeoActionRunning}
+                      className="rounded-lg border border-violet-200 bg-white px-2 py-1 text-xs text-zinc-700 outline-none focus:border-violet-400"
+                    >
+                      {BACKLINK_STATUS_OPTIONS.map((status) => (
+                        <option key={status} value={status}>
+                          {t(`growth.seo.backlinks.statuses.${status}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2 align-top">
+                    <p className="font-semibold text-zinc-900">{prospect.valueScore}</p>
+                    <p className="text-[11px] text-zinc-500">
+                      R {prospect.relevanceScore} / T {prospect.trafficScore} / A {prospect.authorityScore}
+                    </p>
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-zinc-700">
+                    {formatTraffic(prospect.estimatedTraffic, t('growth.seo.backlinks.unknown'))}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-zinc-700">
+                    {formatCost(prospect.costToList, t('growth.seo.backlinks.unknown'))}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-zinc-700">
+                    <p>{prospect.contactEmail || t('growth.seo.backlinks.noEmail')}</p>
+                    {prospect.customizedEmailSubject ? (
+                      <p className="mt-1 line-clamp-2 font-medium text-zinc-900">
+                        {prospect.customizedEmailSubject}
+                      </p>
+                    ) : null}
+                  </td>
+                  <td className="px-3 py-2 align-top text-xs text-zinc-600">
+                    <p className="line-clamp-2">{prospect.relevanceReason}</p>
+                    <p className="mt-1 font-medium text-violet-700">{prospect.backlinkAngle}</p>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="mt-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+          {hasBacklinkProspects ? t('growth.seo.backlinks.emptyFiltered') : t('growth.seo.backlinks.empty')}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function MediaKitChannelPanel({
+  kit,
+  labels,
+  onExportMarkdown,
+  onOpenPressPack,
+}: {
+  kit: LaunchKit
+  labels: {
+    title: string
+    exportMarkdown: string
+    openPressPack: string
+    fields: {
+      bio: string
+      oneLiner: string
+      boilerplate: string
+      pressRelease: string
+      checklist: string
+      screenshots: string
+      contact: string
+    }
+  }
+  onExportMarkdown: () => void
+  onOpenPressPack: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>{labels.title}</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onExportMarkdown}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />
+            {labels.exportMarkdown}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onOpenPressPack}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+            {labels.openPressPack}
+          </Button>
+        </div>
+      </div>
+      <MediaField label={labels.fields.bio} value={kit.mediaKit.founderCompanyBio} />
+      <MediaField label={labels.fields.oneLiner} value={kit.mediaKit.productOneLiner} />
+      <MediaField label={labels.fields.boilerplate} value={kit.mediaKit.boilerplate} />
+      <MediaField label={labels.fields.pressRelease} value={kit.mediaKit.pressRelease} />
+      <MediaField
+        label={labels.fields.checklist}
+        value={kit.mediaKit.keyVisualsChecklist.map((item) => `- ${item}`).join('\n')}
+      />
+      <MediaField label={labels.fields.screenshots} value={kit.mediaKit.screenshotsAndLogos} />
+      <MediaField label={labels.fields.contact} value={kit.mediaKit.contactDetails} />
+    </div>
+  )
+}
+
+function TrafficPlaybookPanel({
+  channelId,
+  brief,
+  kit,
+  websiteUrl,
+  t,
+}: {
+  channelId: TrafficChannelId
+  brief: ExtractedBrief | null
+  kit: LaunchKit
+  websiteUrl?: string
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  const product = brief?.productName || 'Product'
+  const audience = brief?.targetUsers[0] || brief?.icp || 'your target audience'
+  const proof = brief?.proofPoints[0] || kit.mediaKit.productOneLiner || brief?.positioning || product
+  const cta = brief?.cta || 'Learn more'
+
+  return (
+    <div className="rounded-xl border border-violet-100 bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="mt-1 rounded-lg border border-violet-100 bg-violet-50 p-2 text-violet-700">
+            <TrafficChannelIcon channelId={channelId} />
+          </span>
+          <div>
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {t(`results.channels.${channelId}.title`)}
+            </h3>
+            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">
+              {t(`results.playbookSamples.${channelId}`, { product, audience, proof, cta })}
+            </p>
+          </div>
+        </div>
+        {websiteUrl ? (
+          <Button
+            asChild
+            variant="outline"
+            className="shrink-0 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Link href={websiteUrl} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+              {t('results.marketplaces.openWebsite')}
+            </Link>
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+            {t('results.playbook.objectiveLabel')}
+          </p>
+          <p className="mt-2 text-sm text-zinc-700">
+            {t('results.playbook.objective', { channel: t(`results.channels.${channelId}.title`) })}
+          </p>
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+            {t('results.playbook.stepsLabel')}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-zinc-700">
+            <li>{t('results.playbook.steps.adapt', { product })}</li>
+            <li>{t('results.playbook.steps.proof', { proof })}</li>
+            <li>{t('results.playbook.steps.cta', { cta })}</li>
+          </ul>
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
+            {t('results.playbook.assetsLabel')}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-zinc-700">
+            <li>{t('results.playbook.assets.shortPitch')}</li>
+            <li>{t('results.playbook.assets.proofPoint')}</li>
+            <li>{t('results.playbook.assets.followUp')}</li>
+          </ul>
+        </div>
+      </div>
     </div>
   )
 }
@@ -2314,8 +4061,19 @@ function PlatformBlockPanel({
     body: string
     cta: string
     notes: string
+    redditEngagement: string
+    redditSelfPromotion: string
+    redditReason: string
+    redditPostingGuidance: string
   }
 }) {
+  const redditRecommendations = block.id === 'reddit' ? block.redditRecommendations : undefined
+  const hasRedditRecommendations = Boolean(
+    redditRecommendations &&
+      (redditRecommendations.engagementSubreddits.length > 0 ||
+        redditRecommendations.selfPromotionSubreddits.length > 0),
+  )
+
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2359,7 +4117,73 @@ function PlatformBlockPanel({
 
       <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{labels.notes}</p>
       <p className="text-sm text-zinc-600">{block.notes}</p>
+
+      {hasRedditRecommendations && redditRecommendations ? (
+        <div className="mt-5 grid gap-5 border-t border-violet-100 pt-4 md:grid-cols-2">
+          <SubredditRecommendationList
+            title={labels.redditEngagement}
+            recommendations={redditRecommendations.engagementSubreddits}
+            labels={{
+              reason: labels.redditReason,
+              postingGuidance: labels.redditPostingGuidance,
+            }}
+          />
+          <SubredditRecommendationList
+            title={labels.redditSelfPromotion}
+            recommendations={redditRecommendations.selfPromotionSubreddits}
+            labels={{
+              reason: labels.redditReason,
+              postingGuidance: labels.redditPostingGuidance,
+            }}
+          />
+        </div>
+      ) : null}
     </div>
+  )
+}
+
+function SubredditRecommendationList({
+  title,
+  recommendations,
+  labels,
+}: {
+  title: string
+  recommendations: SubredditRecommendation[]
+  labels: {
+    reason: string
+    postingGuidance: string
+  }
+}) {
+  if (!recommendations.length) {
+    return null
+  }
+
+  return (
+    <section>
+      <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{title}</h4>
+      <ul className="mt-3 space-y-3">
+        {recommendations.map((recommendation) => (
+          <li key={`${title}-${recommendation.name}`} className="border-l border-violet-200 pl-3">
+            <a
+              href={recommendation.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:text-violet-900"
+            >
+              {recommendation.name}
+              <ExternalLink className="h-3 w-3" />
+            </a>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+              <span className="font-semibold text-zinc-700">{labels.reason}:</span> {recommendation.reason}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+              <span className="font-semibold text-zinc-700">{labels.postingGuidance}:</span>{' '}
+              {recommendation.postingGuidance}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -2558,26 +4382,33 @@ function SeoPostPreview({
   )
 }
 
-function ActionIcon({ actionId }: { actionId: GrowthActionId }) {
-  if (actionId === 'prospect') {
-    return <Search className="mt-0.5 h-4 w-4 text-violet-600" />
+function SeoBulletList({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) {
+    return null
   }
-  if (actionId === 'build_email_list') {
-    return <Mail className="mt-0.5 h-4 w-4 text-violet-600" />
-  }
-  if (actionId === 'score_segment') {
-    return <Layers3 className="mt-0.5 h-4 w-4 text-violet-600" />
-  }
-  if (actionId === 'personalize_outreach') {
-    return <Users2 className="mt-0.5 h-4 w-4 text-violet-600" />
-  }
-  if (actionId === 'followup_sequences') {
-    return <CheckCircle2 className="mt-0.5 h-4 w-4 text-violet-600" />
-  }
-  if (actionId === 'send_outreach_email') {
-    return <Send className="mt-0.5 h-4 w-4 text-violet-600" />
-  }
-  return <FileSpreadsheet className="mt-0.5 h-4 w-4 text-violet-600" />
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-violet-700">{title}</p>
+      <ul className="mt-1 space-y-1 text-xs text-zinc-700">
+        {items.slice(0, 4).map((item) => (
+          <li key={item}>- {item}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function FilterField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block text-xs">
+      <span className="mb-1 flex items-center gap-1 font-semibold text-violet-700">
+        <Filter className="h-3 w-3" />
+        {label}
+      </span>
+      {children}
+    </label>
+  )
 }
 
 function splitLines(input: string): string[] {
@@ -2587,8 +4418,50 @@ function splitLines(input: string): string[] {
     .filter(Boolean)
 }
 
-function isPlatformTab(tabId: OutputTabId): tabId is PlatformBlockId {
-  return PLATFORM_IDS.includes(tabId as PlatformBlockId)
+function splitEditableLines(input: string): string[] {
+  return input.split(/\r?\n/)
+}
+
+function getPlatformBlockIdForTrafficChannel(channelId: TrafficChannelId): PlatformBlockId | null {
+  if (
+    channelId === 'product_hunt' ||
+    channelId === 'hacker_news' ||
+    channelId === 'indie_hackers' ||
+    channelId === 'linkedin' ||
+    channelId === 'reddit' ||
+    channelId === 'tiktok' ||
+    channelId === 'youtube_shorts'
+  ) {
+    return channelId
+  }
+
+  return null
+}
+
+function getGrowthBlockIdForTrafficChannel(channelId: TrafficChannelId): GrowthBlockId | null {
+  if (channelId === 'x') {
+    return 'x_outreach'
+  }
+
+  return null
+}
+
+function isPlaybookChannel(channelId: TrafficChannelId) {
+  return (
+    channelId === 'launch_directories' ||
+    channelId === 'trustmrr' ||
+    channelId === 'acquire_com' ||
+    channelId === 'flippa' ||
+    channelId === 'threads' ||
+    channelId === 'instagram' ||
+    channelId === 'comparison_alternatives' ||
+    channelId === 'guest_posts' ||
+    channelId === 'partner_pages' ||
+    channelId === 'directory_outreach' ||
+    channelId === 'pr_pitch' ||
+    channelId === 'podcast_pitch' ||
+    channelId === 'newsletter_partnerships'
+  )
 }
 
 function formatOutreachPackForCopy(
@@ -2650,6 +4523,47 @@ function formatSeoPostsForCopy(
     .join('\n\n---\n\n')
 }
 
+function formatRedditRecommendationsForCopy(
+  recommendations: RedditRecommendations,
+  labels: {
+    engagement: string
+    selfPromotion: string
+    reason: string
+    postingGuidance: string
+  },
+): string {
+  const sections = [
+    formatSubredditRecommendationSection(labels.engagement, recommendations.engagementSubreddits, labels),
+    formatSubredditRecommendationSection(labels.selfPromotion, recommendations.selfPromotionSubreddits, labels),
+  ].filter(Boolean)
+
+  return sections.join('\n\n')
+}
+
+function formatSubredditRecommendationSection(
+  title: string,
+  recommendations: SubredditRecommendation[],
+  labels: {
+    reason: string
+    postingGuidance: string
+  },
+): string {
+  if (!recommendations.length) {
+    return ''
+  }
+
+  return [
+    title,
+    ...recommendations.map((recommendation) =>
+      [
+        `${recommendation.name}: ${recommendation.url}`,
+        `${labels.reason}: ${recommendation.reason}`,
+        `${labels.postingGuidance}: ${recommendation.postingGuidance}`,
+      ].join('\n'),
+    ),
+  ].join('\n\n')
+}
+
 function readGuestProjects(): LaunchProjectSnapshot[] {
   if (typeof window === 'undefined') {
     return []
@@ -2699,6 +4613,35 @@ function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'launch-kit'
 }
 
+function parseNumberFilter(value: string): number | null {
+  const parsed = Number(value.replace(/[$,\s]/g, ''))
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
+}
+
+function formatTraffic(value: number | null, unknownLabel: string): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return unknownLabel
+  }
+
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(value >= 10000000 ? 0 : 1)}M`
+  }
+
+  if (value >= 1000) {
+    return `${Math.round(value / 1000)}K`
+  }
+
+  return value.toLocaleString()
+}
+
+function formatCost(value: number | null, unknownLabel: string): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return unknownLabel
+  }
+
+  return `$${value.toLocaleString()}`
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -2730,6 +4673,10 @@ type ExportLabels = {
   title: string
   cta: string
   notes: string
+  redditEngagementSubreddits: string
+  redditSelfPromotionSubreddits: string
+  redditReason: string
+  redditPostingGuidance: string
   mediaKit: string
   founderCompanyBio: string
   productOneLiner: string
@@ -2748,6 +4695,13 @@ type ExportLabels = {
   leads: string
   personalizedOutreach: string
   emailJobsStub: string
+  seoGrowth: string
+  websiteSeoAnalysis: string
+  blogStrategy: string
+  freeTools: string
+  backlinkProspects: string
+  valueScore: string
+  status: string
   pressPackTitleSuffix: string
   pressPackSourceLabel: string
   platformLabels: Record<PlatformBlockId, string>
@@ -2776,6 +4730,10 @@ function getExportLabels(t: (key: string, values?: Record<string, string | numbe
     title: t('output.titleLabel'),
     cta: t('output.copyCtaPrefix'),
     notes: t('output.copyNotesPrefix'),
+    redditEngagementSubreddits: t('output.reddit.engagementTitle'),
+    redditSelfPromotionSubreddits: t('output.reddit.selfPromotionTitle'),
+    redditReason: t('output.reddit.reasonLabel'),
+    redditPostingGuidance: t('output.reddit.postingGuidanceLabel'),
     mediaKit: t('export.markdown.mediaKit'),
     founderCompanyBio: t('mediaKit.fields.bio'),
     productOneLiner: t('mediaKit.fields.oneLiner'),
@@ -2794,6 +4752,13 @@ function getExportLabels(t: (key: string, values?: Record<string, string | numbe
     leads: t('export.markdown.leads'),
     personalizedOutreach: t('export.markdown.personalizedOutreach'),
     emailJobsStub: t('export.markdown.emailJobsStub'),
+    seoGrowth: t('growth.seo.title'),
+    websiteSeoAnalysis: t('growth.seo.analysis.title'),
+    blogStrategy: t('growth.seo.blog.title'),
+    freeTools: t('growth.seo.tools.title'),
+    backlinkProspects: t('growth.seo.backlinks.title'),
+    valueScore: t('growth.seo.backlinks.headers.value'),
+    status: t('growth.seo.backlinks.headers.status'),
     pressPackTitleSuffix: t('export.pressPack.titleSuffix'),
     pressPackSourceLabel: t('export.pressPack.sourceLabel'),
     platformLabels: {
@@ -2881,6 +4846,15 @@ function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabels): st
     lines.push(`${labels.cta}: ${block.cta}`)
     lines.push(`${labels.notes}: ${block.notes}`)
     lines.push('')
+
+    if (blockId === 'reddit' && block.redditRecommendations) {
+      appendRedditRecommendationsMarkdown(lines, block.redditRecommendations, {
+        engagement: labels.redditEngagementSubreddits,
+        selfPromotion: labels.redditSelfPromotionSubreddits,
+        reason: labels.redditReason,
+        postingGuidance: labels.redditPostingGuidance,
+      })
+    }
   }
 
   lines.push(`## ${labels.mediaKit}`)
@@ -2935,7 +4909,82 @@ function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabels): st
   lines.push(`- ${labels.emailJobsStub}: ${project.kit.prospecting.emailJobs.length}`)
   lines.push('')
 
+  lines.push(`## ${labels.seoGrowth}`)
+  lines.push('')
+  if (project.kit.seoGrowth.websiteAnalysis) {
+    lines.push(`### ${labels.websiteSeoAnalysis}`)
+    lines.push(`- ${labels.valueScore}: ${project.kit.seoGrowth.websiteAnalysis.score}/100`)
+    lines.push(project.kit.seoGrowth.websiteAnalysis.summary)
+    lines.push('')
+  }
+
+  lines.push(`### ${labels.blogStrategy}`)
+  for (const post of project.kit.seoGrowth.blogStrategy) {
+    lines.push(`- Day ${post.dayOffset + 1}: ${post.title} [${post.keywordTopic}]`)
+  }
+  lines.push('')
+
+  lines.push(`### ${labels.freeTools}`)
+  for (const tool of project.kit.seoGrowth.freeTools) {
+    lines.push(`- ${tool.title}: ${tool.url}`)
+  }
+  lines.push('')
+
+  lines.push(`### ${labels.backlinkProspects}`)
+  for (const prospect of project.kit.seoGrowth.backlinkProspects) {
+    lines.push(
+      `- ${prospect.title} (${prospect.domain}) - ${labels.valueScore}: ${prospect.valueScore}, ${labels.status}: ${prospect.status}`,
+    )
+  }
+  lines.push('')
+
   return lines.join('\n')
+}
+
+function appendRedditRecommendationsMarkdown(
+  lines: string[],
+  recommendations: RedditRecommendations,
+  labels: {
+    engagement: string
+    selfPromotion: string
+    reason: string
+    postingGuidance: string
+  },
+) {
+  appendSubredditRecommendationMarkdown(
+    lines,
+    labels.engagement,
+    recommendations.engagementSubreddits,
+    labels,
+  )
+  appendSubredditRecommendationMarkdown(
+    lines,
+    labels.selfPromotion,
+    recommendations.selfPromotionSubreddits,
+    labels,
+  )
+}
+
+function appendSubredditRecommendationMarkdown(
+  lines: string[],
+  title: string,
+  recommendations: SubredditRecommendation[],
+  labels: {
+    reason: string
+    postingGuidance: string
+  },
+) {
+  if (!recommendations.length) {
+    return
+  }
+
+  lines.push(`#### ${title}`)
+  for (const recommendation of recommendations) {
+    lines.push(`- ${recommendation.name}: ${recommendation.url}`)
+    lines.push(`  ${labels.reason}: ${recommendation.reason}`)
+    lines.push(`  ${labels.postingGuidance}: ${recommendation.postingGuidance}`)
+  }
+  lines.push('')
 }
 
 function buildPressPackHtml(project: LaunchProjectSnapshot, labels: ExportLabels): string {
@@ -2991,6 +5040,13 @@ function hasGeneratedResultsInKit(kit: LaunchKit): boolean {
     kit.growthAssets.xOutreach.variants.length > 0 ||
     kit.growthAssets.emailOutreach.variants.length > 0 ||
     kit.growthAssets.seoPostPacks.length > 0
+  const hasSeoGrowthOutput = Boolean(
+    kit.seoGrowth.websiteAnalysis ||
+      kit.seoGrowth.blogStrategy.length > 0 ||
+      kit.seoGrowth.freeTools.length > 0 ||
+      kit.seoGrowth.backlinkProspects.length > 0 ||
+      kit.seoGrowth.backlinkEmailJobs.length > 0,
+  )
   const hasMediaKitOutput = Boolean(
     kit.mediaKit.founderCompanyBio.trim() ||
       kit.mediaKit.productOneLiner.trim() ||
@@ -3000,8 +5056,9 @@ function hasGeneratedResultsInKit(kit: LaunchKit): boolean {
       kit.mediaKit.screenshotsAndLogos.trim() ||
       kit.mediaKit.contactDetails.trim(),
   )
+  const hasAssetOutput = kit.assetLibrary.generatedAssets.length > 0
 
-  return hasPlatformOutput || hasGrowthOutput || hasMediaKitOutput
+  return hasPlatformOutput || hasGrowthOutput || hasSeoGrowthOutput || hasMediaKitOutput || hasAssetOutput
 }
 
 function escapeHtml(input: string): string {

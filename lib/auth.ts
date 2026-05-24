@@ -22,7 +22,11 @@ export const auth = betterAuth({
         },
       }
     : {},
-  trustedOrigins: ['http://localhost:3000'],
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    'http://localhost:3000',
+  ].filter(Boolean) as string[],
 })
 
 export const isGoogleAuthEnabled = googleEnabled

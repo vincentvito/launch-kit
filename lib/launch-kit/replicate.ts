@@ -7,7 +7,18 @@ type ReplicatePrediction = {
   output?: unknown
   urls?: {
     get?: string
+    web?: string
   }
+}
+
+export type ReplicatePredictionResult = {
+  id: string
+  status: ReplicatePrediction['status']
+  output: unknown
+  outputUrl: string
+  error: string
+  webUrl: string
+  getUrl: string
 }
 
 type RunReplicateStructuredInput = {
@@ -20,6 +31,14 @@ type RunReplicateStructuredInput = {
   pollTimeoutMs?: number
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high'
   verbosity?: 'low' | 'medium' | 'high'
+}
+
+type RunReplicatePredictionInput = {
+  model: string
+  input: JsonRecord
+  waitSeconds?: number
+  pollTimeoutMs?: number
+  cancelAfter?: string
 }
 
 const DEFAULT_MODEL = 'openai/gpt-5-structured'
@@ -123,6 +142,140 @@ export async function runReplicateStructured<T>(
     console.info('[replicate] parsed', parsed ? 'ok' : 'null')
   }
   return parsed
+}
+
+export async function runReplicatePrediction(
+  input: RunReplicatePredictionInput,
+): Promise<ReplicatePredictionResult | null> {
+  const token = process.env.REPLICATE_API_TOKEN
+  if (!token) {
+    return null
+  }
+
+  const prediction = await createReplicatePrediction({
+    model: input.model,
+    input: input.input,
+    waitSeconds: input.waitSeconds ?? 5,
+    cancelAfter: input.cancelAfter,
+  })
+
+  if (!prediction?.id) {
+    return null
+  }
+
+  const finalPrediction = await pollReplicatePrediction(
+    prediction,
+    input.pollTimeoutMs ?? 480000,
+  )
+
+  return {
+    id: finalPrediction.id,
+    status: finalPrediction.status,
+    output: finalPrediction.output,
+    outputUrl: extractReplicateOutputUrl(finalPrediction.output),
+    error: finalPrediction.error || '',
+    webUrl: finalPrediction.urls?.web || `https://replicate.com/p/${finalPrediction.id}`,
+    getUrl: finalPrediction.urls?.get || `https://api.replicate.com/v1/predictions/${finalPrediction.id}`,
+  }
+}
+
+async function createReplicatePrediction(input: {
+  model: string
+  input: JsonRecord
+  waitSeconds: number
+  cancelAfter?: string
+}): Promise<ReplicatePrediction | null> {
+  const token = process.env.REPLICATE_API_TOKEN
+  if (!token) {
+    return null
+  }
+
+  const response = await fetch(`https://api.replicate.com/v1/models/${input.model}/predictions`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+      prefer: `wait=${input.waitSeconds}`,
+      ...(input.cancelAfter ? { 'cancel-after': input.cancelAfter } : {}),
+    },
+    body: JSON.stringify({ input: input.input }),
+    signal: AbortSignal.timeout(120000),
+  })
+
+  if (!response.ok) {
+    if (DEBUG) {
+      console.warn('[replicate] prediction create failed', response.status, await response.text())
+    }
+    return null
+  }
+
+  return (await response.json()) as ReplicatePrediction
+}
+
+async function pollReplicatePrediction(
+  initialPrediction: ReplicatePrediction,
+  pollTimeoutMs: number,
+): Promise<ReplicatePrediction> {
+  let prediction = initialPrediction
+  const pollDeadline = Date.now() + pollTimeoutMs
+
+  while (!TERMINAL_STATUSES.has(prediction.status) && Date.now() < pollDeadline) {
+    const getUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
+    const statusResponse = await fetch(getUrl, {
+      headers: {
+        authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+      },
+      signal: AbortSignal.timeout(60000),
+    })
+
+    if (!statusResponse.ok) {
+      if (DEBUG) {
+        console.warn('[replicate] prediction poll failed', statusResponse.status, await statusResponse.text())
+      }
+      return {
+        ...prediction,
+        status: 'failed',
+        error: `Replicate poll failed with ${statusResponse.status}`,
+      }
+    }
+
+    prediction = (await statusResponse.json()) as ReplicatePrediction
+
+    if (!TERMINAL_STATUSES.has(prediction.status)) {
+      await sleep(2000)
+    }
+  }
+
+  if (!TERMINAL_STATUSES.has(prediction.status)) {
+    return {
+      ...prediction,
+      status: 'failed',
+      error: 'Replicate prediction timed out',
+    }
+  }
+
+  return prediction
+}
+
+function extractReplicateOutputUrl(output: unknown): string {
+  if (typeof output === 'string') {
+    return output
+  }
+
+  if (Array.isArray(output)) {
+    const firstUrl = output.find((item) => typeof item === 'string' && item.startsWith('http'))
+    return typeof firstUrl === 'string' ? firstUrl : ''
+  }
+
+  if (output && typeof output === 'object') {
+    const record = output as Record<string, unknown>
+    const url = record.url || record.output || record.video || record.image
+    if (typeof url === 'string') {
+      return url
+    }
+  }
+
+  return ''
 }
 
 function parseReplicateOutput<T>(output: unknown): T | null {

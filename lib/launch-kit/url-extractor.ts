@@ -1,3 +1,5 @@
+import { lookup } from 'node:dns/promises'
+import { isIP } from 'node:net'
 import { cleanText, dedupe, safeJsonParse } from '@/lib/launch-kit/utils'
 import type { ExtractedBrief, KeywordCluster, KeywordPriority } from '@/lib/launch-kit/types'
 import { hasReplicateToken, runReplicateStructured } from '@/lib/launch-kit/replicate'
@@ -221,6 +223,7 @@ const KEYWORD_RESEARCH_SCHEMA = {
 
 export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBrief> {
   const normalizedUrl = normalizeUrl(input.url)
+  await assertPublicUrl(normalizedUrl)
   const pages = await crawlSite(normalizedUrl)
 
   if (pages.length === 0) {
@@ -304,7 +307,7 @@ export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBri
     dedupe([...allHeadings.slice(0, 7), ...allBody.slice(0, 8)]),
     10,
   )
-  const proofPoints = preferList(llmInsights?.proofPoints, heuristicProofPoints, 6)
+  const proofPoints = preferProofPoints(llmInsights?.proofPoints, heuristicProofPoints, sourceCorpus, 6)
   const icp = preferText(llmInsights?.icp, heuristicIcp, 220)
   const cta = preferCta(llmInsights?.cta, heuristicCta, ctaCandidates, sourceCorpus)
   const keywordResearch = await synthesizeKeywordResearch({
@@ -420,6 +423,8 @@ async function crawlSite(startUrl: string): Promise<PageExtraction[]> {
 
 async function fetchAndExtract(url: string): Promise<PageExtraction | null> {
   try {
+    await assertPublicUrl(url)
+
     const response = await fetch(url, {
       headers: {
         'user-agent': 'LaunchKitBot/1.0 (+https://clickstudio.dev)',
@@ -1039,25 +1044,181 @@ function inferValueProps(lines: string[]): string[] {
 }
 
 function inferProofPoints(lines: string[]): string[] {
-  const proofCandidates = lines.filter((line) => {
-    const lower = line.toLowerCase()
-    if (lower.includes('/mo') || lower.includes('monthly') || lower.includes('annual')) {
-      return false
-    }
+  return rankProofPoints(lines.map(compactSentence))
+}
 
-    return (
-      /\d/.test(lower) ||
-      lower.includes('trusted by') ||
-      lower.includes('customers') ||
-      lower.includes('case study') ||
-      lower.includes('forbes') ||
-      lower.includes('g2') ||
-      lower.includes('million') ||
-      lower.includes('k users')
-    )
-  })
+function preferProofPoints(
+  candidate: string[] | undefined,
+  fallback: string[],
+  corpus: string[],
+  maxItems: number,
+): string[] {
+  const fromModel = sanitizeProofPointList(candidate || [])
+  const fromFallback = sanitizeProofPointList(fallback)
+  const fromCorpus = rankProofPoints(corpus)
 
-  return dedupe(proofCandidates.map(compactSentence)).slice(0, 6)
+  return dedupe([...fromModel, ...fromFallback, ...fromCorpus])
+    .sort((a, b) => scoreProofPoint(b) - scoreProofPoint(a))
+    .slice(0, maxItems)
+}
+
+function sanitizeProofPointList(input: unknown): string[] {
+  if (!Array.isArray(input)) {
+    return []
+  }
+
+  return rankProofPoints(
+    input
+      .map((item) => (typeof item === 'string' ? compactSentence(item) : ''))
+      .map(cleanLine),
+  )
+}
+
+function rankProofPoints(lines: string[]): string[] {
+  return dedupe(lines.map(compactSentence).map(cleanLine))
+    .filter(isLikelyProofPoint)
+    .sort((a, b) => scoreProofPoint(b) - scoreProofPoint(a))
+    .slice(0, 6)
+}
+
+function isLikelyProofPoint(line: string): boolean {
+  const text = cleanLine(line)
+  if (text.length < 12 || text.length > 180) {
+    return false
+  }
+
+  const lower = text.toLowerCase()
+  if (!isMeaningfulLine(text) && !hasExplicitProofSignal(lower)) {
+    return false
+  }
+
+  if (isBadProofLine(lower)) {
+    return false
+  }
+
+  if (isGenericProofNavLine(lower)) {
+    return false
+  }
+
+  if (hasStandaloneYearOnly(text) && !hasExplicitProofSignal(lower)) {
+    return false
+  }
+
+  const wordCount = lower.split(/\s+/).length
+  if (wordCount <= 3 && !hasMetricProofSignal(text) && !hasCertificationProofSignal(text)) {
+    return false
+  }
+
+  return scoreProofPoint(text) >= 8
+}
+
+function scoreProofPoint(line: string): number {
+  const lower = line.toLowerCase()
+  let score = 0
+
+  if (hasMetricProofSignal(line)) {
+    score += 14
+  }
+
+  if (/\b\d+(?:\.\d+)?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line)) {
+    score += 12
+  }
+
+  if (/\b(?:trusted by|used by|adopted by|backed by|featured in|featured on|as seen in|case study|case studies|rated|reviewed|reviews?|testimonial|testimonials|customers?|users?)\b/i.test(line)) {
+    score += 10
+  }
+
+  if (/\b(?:soc\s?2|iso\s?27001|hipaa|gdpr|ccpa|pci|aicpa|certified|certification|compliant|encrypted|encryption|security audit)\b/i.test(line)) {
+    score += 9
+  }
+
+  if (
+    /\b(?:forbes|techcrunch|product hunt|g2|capterra|gartner|yc|y combinator)\b/i.test(line) &&
+    /\b(?:featured|rated|review|launched|backed|winner|award|top|#\d)\b/i.test(line)
+  ) {
+    score += 8
+  }
+
+  if (/[“”"].{12,}[“”"]/.test(line) || /\b(?:said|says|according to)\b/i.test(line)) {
+    score += 6
+  }
+
+  if (/\b(?:free|pricing|price|plan|monthly|annual|per month|per year|discount|coupon|checkout|cart)\b/i.test(line)) {
+    score -= 12
+  }
+
+  if (/\b(?:copyright|privacy policy|terms|cookies?|all rights reserved|sign in|log in|subscribe to|newsletter)\b/i.test(line)) {
+    score -= 16
+  }
+
+  if (isMostlyNavWords(lower)) {
+    score -= 10
+  }
+
+  return score
+}
+
+function hasExplicitProofSignal(lower: string): boolean {
+  return (
+    /\b(?:trusted by|used by|adopted by|backed by|featured in|featured on|as seen in|case stud|rated|review|testimonial|customer|users?|downloads?|stars?|soc\s?2|iso\s?27001|hipaa|gdpr|certified|compliant|encrypted)\b/i.test(lower) ||
+    hasMetricProofSignal(lower)
+  )
+}
+
+function hasMetricProofSignal(line: string): boolean {
+  return (
+    /\b\d+(?:\.\d+)?\s?(?:k|m|million|billion)?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line) ||
+    /\b\d+(?:\.\d+)?\s?\/\s?5\b/i.test(line) ||
+    (/\b\d+(?:\.\d+)?\s?%\b/i.test(line) &&
+      /\b(?:users?|customers?|teams?|survey|reported|rated|saved|reduced|increased|cut|improved)\b/i.test(line))
+  )
+}
+
+function hasCertificationProofSignal(line: string): boolean {
+  return /\b(?:soc\s?2|iso\s?27001|hipaa|gdpr|ccpa|pci|aicpa|certified|certification|compliant|encrypted|encryption|security audit)\b/i.test(line)
+}
+
+function hasStandaloneYearOnly(line: string): boolean {
+  const numericTokens = line.match(/\b\d{2,4}\b/g) || []
+  return numericTokens.length > 0 && numericTokens.every((token) => /^20\d{2}$|^19\d{2}$/.test(token))
+}
+
+function isGenericProofNavLine(lower: string): boolean {
+  return /^(?:read|view|see|browse|all|more)?\s*(?:reviews?|testimonials?|case studies|customer stories|customers?|users?|press|awards?)\.?$/.test(lower)
+}
+
+function isBadProofLine(lower: string): boolean {
+  if (
+    /\b(?:pricing|price|plan|plans|free trial|book a demo|request a demo|sign up|login|log in|copyright|privacy policy|terms of service|cookie policy|all rights reserved)\b/.test(lower)
+  ) {
+    return true
+  }
+
+  if (/\b(?:get featured|submit your|share your story|find your next customer stor(?:y|ies)|customer stor(?:y|ies)|showcase)\b/.test(lower)) {
+    return true
+  }
+
+  if (
+    /\btrusted by\b/.test(lower) &&
+    !hasMetricProofSignal(lower) &&
+    /\b(?:teams?|companies|businesses|people|organizations?|customers?)\s+(?:that|who|worldwide|everywhere)\b/.test(lower)
+  ) {
+    return true
+  }
+
+  if (/\$|€|£/.test(lower) && !/\b(?:revenue|saved|raised|funding)\b/.test(lower)) {
+    return true
+  }
+
+  if (/\b\d{1,2}:\d{2}\b/.test(lower)) {
+    return true
+  }
+
+  if (/\b(?:tel|phone|email|mailto|address)\b/.test(lower)) {
+    return true
+  }
+
+  return false
 }
 
 function inferIcp(lines: string[], targetUsers: string[], painPoints: string[]): string {
@@ -1099,7 +1260,8 @@ async function synthesizeBriefInsights(input: {
         '- painPoints: array of 3-6 specific frustrations the product solves.',
         '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
         '- keyClaims: array of 4-8 source-grounded product claims.',
-        '- proofPoints: array of up to 5 factual signals from source (numbers, prices, ratings, testimonials, privacy promises, recognitions).',
+        '- proofPoints: array of up to 5 factual evidence signals from source only: metrics, customer/user counts, ratings, testimonials, case studies, press/awards, funding, or security/compliance certifications.',
+        '- Do not put pricing, feature claims, value props, CTAs, dates, navigation labels, or generic marketing claims in proofPoints. Return [] when explicit proof is not present.',
         '- cta: 2-8 words, imperative.',
         '- language: ISO code such as en, es, fr, de, it, pt.',
       ].join('\n'),
@@ -1174,7 +1336,8 @@ async function synthesizeBriefInsights(input: {
               '- painPoints: array of 3-6 specific frustrations the product solves.',
               '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
               '- keyClaims: array of 4-8 source-grounded product claims.',
-              '- proofPoints: array of up to 5 factual signals from source (numbers, prices, ratings, testimonials, privacy promises, recognitions).',
+              '- proofPoints: array of up to 5 factual evidence signals from source only: metrics, customer/user counts, ratings, testimonials, case studies, press/awards, funding, or security/compliance certifications.',
+              '- Do not put pricing, feature claims, value props, CTAs, dates, navigation labels, or generic marketing claims in proofPoints. Return [] when explicit proof is not present.',
               '- cta: 2-8 words, imperative (e.g., "Start free", "Request a demo").',
               '- language: ISO code such as en, es, fr, de, it, pt.',
             ].join('\n'),
@@ -1703,6 +1866,107 @@ function normalizeUrl(input: string): string {
 
   parsed.hash = ''
   return parsed.toString()
+}
+
+async function assertPublicUrl(input: string): Promise<void> {
+  let parsed: URL
+  try {
+    parsed = new URL(input)
+  } catch {
+    throw new Error('Invalid URL')
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('Only HTTP(S) URLs are supported')
+  }
+
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, '')
+
+  if (isBlockedHost(hostname)) {
+    throw new Error('Refusing to fetch a private or internal address')
+  }
+
+  // The hostname may resolve to a private IP (DNS rebinding); resolve and re-check.
+  if (isIP(hostname) === 0) {
+    let resolved: Array<{ address: string }>
+    try {
+      resolved = await lookup(hostname, { all: true })
+    } catch {
+      throw new Error('Could not resolve URL host')
+    }
+
+    if (resolved.some((entry) => isBlockedIp(entry.address))) {
+      throw new Error('Refusing to fetch a private or internal address')
+    }
+  }
+}
+
+function isBlockedHost(hostname: string): boolean {
+  const lower = hostname.toLowerCase()
+  if (lower === 'localhost' || lower.endsWith('.localhost')) {
+    return true
+  }
+  if (isIP(lower) !== 0) {
+    return isBlockedIp(lower)
+  }
+  return false
+}
+
+function isBlockedIp(ip: string): boolean {
+  const version = isIP(ip)
+  if (version === 4) {
+    return isBlockedIpv4(ip)
+  }
+  if (version === 6) {
+    return isBlockedIpv6(ip)
+  }
+  return true
+}
+
+function isBlockedIpv4(ip: string): boolean {
+  const parts = ip.split('.').map(Number)
+  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) {
+    return true
+  }
+
+  const [a, b] = parts
+  if (a === 0 || a === 10 || a === 127) {
+    return true
+  }
+  if (a === 169 && b === 254) {
+    return true
+  }
+  if (a === 172 && b >= 16 && b <= 31) {
+    return true
+  }
+  if (a === 192 && b === 168) {
+    return true
+  }
+  if (a === 100 && b >= 64 && b <= 127) {
+    return true
+  }
+  return false
+}
+
+function isBlockedIpv6(ip: string): boolean {
+  const lower = ip.toLowerCase()
+  if (lower === '::' || lower === '::1') {
+    return true
+  }
+
+  const mapped = lower.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/)
+  if (mapped) {
+    return isBlockedIpv4(mapped[1])
+  }
+
+  const head = lower.split(':')[0]
+  if (head.startsWith('fc') || head.startsWith('fd')) {
+    return true
+  }
+  if (['fe8', 'fe9', 'fea', 'feb'].some((prefix) => head.startsWith(prefix))) {
+    return true
+  }
+  return false
 }
 
 function canonicalizeUrl(input: string): string {

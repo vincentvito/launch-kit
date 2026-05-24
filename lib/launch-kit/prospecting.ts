@@ -260,6 +260,49 @@ export function runBuildEmailListAction(input: {
   }
 }
 
+export function runImportEmailListAction(input: {
+  prospecting: ProspectingState | null | undefined
+  rawContacts: string
+}) {
+  const state = normalizeProspecting(input.prospecting)
+  const imported = parseImportedContacts(input.rawContacts)
+  const existingEmails = new Set(state.leads.map((lead) => lead.email.toLowerCase()).filter(Boolean))
+  const existingKeys = new Set(state.leads.map((lead) => `${lead.company}|${lead.website}`.toLowerCase()))
+  const leads = [...state.leads]
+
+  for (const [index, lead] of imported.entries()) {
+    const emailKey = lead.email.toLowerCase()
+    const identityKey = `${lead.company}|${lead.website}`.toLowerCase()
+    if (existingEmails.has(emailKey) || existingKeys.has(identityKey)) {
+      continue
+    }
+    existingEmails.add(emailKey)
+    existingKeys.add(identityKey)
+    leads.push({
+      ...lead,
+      id: `lead-import-${slugify(lead.email)}-${Date.now()}-${index + 1}`,
+    })
+  }
+
+  const importedCount = leads.length - state.leads.length
+  const next = {
+    ...state,
+    leads: leads.slice(0, MAX_LEADS),
+    lastEmailBuildAt: new Date().toISOString(),
+  }
+
+  next.actionRuns = pushActionRun(next.actionRuns, {
+    type: 'build_email_list',
+    status: 'completed',
+    summary: `Imported ${importedCount} contact${importedCount === 1 ? '' : 's'} into the email list`,
+  })
+
+  return {
+    prospecting: next,
+    info: `Imported ${importedCount} contact${importedCount === 1 ? '' : 's'}`,
+  }
+}
+
 export function runScoreSegmentAction(input: {
   prospecting: ProspectingState | null | undefined
 }) {
@@ -797,6 +840,72 @@ function domainFromWebsite(website: string): string {
   } catch {
     return ''
   }
+}
+
+function parseImportedContacts(rawContacts: string): ProspectLead[] {
+  return rawContacts
+    .split(/\r?\n/)
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row, index) => parseImportedContactRow(row, index))
+    .filter((lead): lead is ProspectLead => Boolean(lead))
+}
+
+function parseImportedContactRow(row: string, index: number): ProspectLead | null {
+  const email = row.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || ''
+  if (!email) {
+    return null
+  }
+
+  const websiteMatch = row.match(/https?:\/\/[^\s,]+/i)?.[0] || ''
+  const cleanPieces = row
+    .replace(/[<>]/g, ' ')
+    .split(',')
+    .map((piece) => piece.trim())
+    .filter(Boolean)
+    .filter((piece) => piece !== email && piece !== websiteMatch)
+  const domain = email.split('@')[1] || ''
+  const inferredCompany = domain ? domain.split('.')[0] : ''
+  const name = cleanPieces[0] && !cleanPieces[0].includes('@') ? cleanPieces[0] : humanizeNameFromEmail(email)
+  const role = cleanPieces[1] && !cleanPieces[1].includes('@') ? cleanPieces[1] : 'Contact'
+  const company = cleanPieces[2] || humanizeCompany(inferredCompany) || `Imported Contact ${index + 1}`
+  const website = websiteMatch || (domain ? `https://${domain}` : '')
+
+  return {
+    id: '',
+    name,
+    role,
+    company,
+    website,
+    email,
+    linkedinUrl: '',
+    xUrl: '',
+    reason: 'Imported from email list.',
+    source: 'imported-email-list',
+    score: 72,
+    tier: 'warm',
+  }
+}
+
+function humanizeNameFromEmail(email: string): string {
+  const local = email.split('@')[0] || 'Imported contact'
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map(capitalize)
+    .join(' ')
+}
+
+function humanizeCompany(value: string): string {
+  return value
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map(capitalize)
+    .join(' ')
+}
+
+function capitalize(value: string): string {
+  return value ? `${value[0].toUpperCase()}${value.slice(1).toLowerCase()}` : ''
 }
 
 function slugify(value: string): string {

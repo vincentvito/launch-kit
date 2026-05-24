@@ -26,7 +26,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Follow-up sequence action failed.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.error('Follow-up sequence action failed.', error)
+    return NextResponse.json({ error: 'Follow-up sequence action failed.' }, { status: 500 })
   }
 }
