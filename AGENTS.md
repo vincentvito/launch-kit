@@ -52,6 +52,7 @@ npm run dev
 That means:
 - **No external services required to boot.** SQLite is the default DB; the file is created on first migrate by the `dev` script.
 - **No login required to view the app.** Landing, changelog, and dashboard render. Login only fails gracefully if Google OAuth isn't configured.
+- **Optional waiting list mode.** Set `WAITING_LIST_ENABLED=true` to show the waitlist page at `/` instead of the full landing page. Unset or `false` shows the normal landing page. Signups are stored in `waitlist_entry` via `POST /api/waitlist`.
 - **`postinstall` runs `prisma generate`** so the generated client is always present after install.
 - **`predev`/`prebuild` is folded into `dev`/`build`** as `prisma migrate deploy && next ...` — keeps the SQLite file in sync with the schema.
 

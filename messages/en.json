@@ -21,7 +21,53 @@
     "signOut": "Sign out",
     "loading": "Loading..."
   },
+  "WaitingList": {
+    "meta": {
+      "title": "Launch Kit — Join the waitlist",
+      "description": "Get early access to Launch Kit. One product URL, a complete multi-channel launch narrative."
+    },
+    "nav": {
+      "brand": "Launch Kit",
+      "sub": "Editorial launch engine for builders"
+    },
+    "hero": {
+      "badge": "Coming soon",
+      "title": "Launch day copy,",
+      "titleHighlight": "before launch day",
+      "description": "We are putting the finishing touches on Launch Kit. Join the waitlist for early access when we open the doors."
+    },
+    "form": {
+      "placeholder": "you@company.com",
+      "submit": "Join the waitlist",
+      "helper": "No spam. One email when early access opens.",
+      "invalidEmail": "Enter a valid email address.",
+      "success": "You are on the list. We will email you when early access opens.",
+      "error": "Something went wrong. Please try again."
+    },
+    "highlights": {
+      "one": {
+        "title": "One URL in",
+        "body": "Paste your product link and get a structured launch brief."
+      },
+      "two": {
+        "title": "Every channel out",
+        "body": "Platform-tailored posts for HN, Reddit, LinkedIn, and more."
+      },
+      "three": {
+        "title": "Press-ready assets",
+        "body": "Media kit and press pack included with every kit."
+      }
+    },
+    "footer": {
+      "copyright": "Launch Kit. All rights reserved.",
+      "tagline": "Early access opens soon."
+    }
+  },
   "Landing": {
+    "meta": {
+      "title": "Launch Kit — Editorial launch engine",
+      "description": "Turn one product URL into a complete multi-channel launch kit."
+    },
     "nav": {
       "brand": "Launch Kit",
       "sub": "Editorial launch engine for builders",

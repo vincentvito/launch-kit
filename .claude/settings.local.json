@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const m=require\\('./messages/en.json'\\); console.log\\(JSON.stringify\\(m.WaitingList,null,1\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(npx tsc *)",
+      "Bash(sed -n '3p;4p' app/changelog/page.tsx)",
+      "Bash(sed -n '98,103p' app/changelog/page.tsx)"
+    ]
+  }
+}

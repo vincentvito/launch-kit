@@ -45,6 +45,7 @@ That's it. Open <http://localhost:3000>. SQLite is created automatically on firs
 
 See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
 
+- `WAITING_LIST_ENABLED` — set to `true` in production to show a waitlist page at `/` instead of the full landing page. Leave unset locally so the landing page renders by default.
 - `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Replace with a `postgres://` URL when graduating to Postgres.
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.

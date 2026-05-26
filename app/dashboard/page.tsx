@@ -34,7 +34,6 @@ import {
   Wand2,
 } from 'lucide-react'
 import { signOut, useSession } from '@/lib/auth-client'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { createDemoSnapshot } from '@/lib/launch-kit/demo'
@@ -195,7 +194,6 @@ export default function DashboardPage() {
   const searchParams = useSearchParams()
   const { data: session, isPending } = useSession()
 
-  const [currentLocale, setCurrentLocale] = useState('en')
   const [sourceUrl, setSourceUrl] = useState('')
   const [brief, setBrief] = useState<ExtractedBrief | null>(null)
   const [kit, setKit] = useState<LaunchKit | null>(null)
@@ -237,12 +235,6 @@ export default function DashboardPage() {
   const [generatingAssetKey, setGeneratingAssetKey] = useState('')
 
   useEffect(() => {
-    const locale = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('locale='))
-      ?.split('=')[1] || 'en'
-    setCurrentLocale(locale)
-
     setGuestProjects(readGuestProjects())
   }, [])
 
@@ -1365,7 +1357,6 @@ export default function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <LanguageSwitcher currentLocale={currentLocale} />
             {session ? (
               <>
                 <div className="hidden items-center gap-2 rounded-full border border-violet-100 bg-violet-50/60 px-2 py-1.5 sm:flex">

@@ -1,7 +1,6 @@
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { ArrowLeft } from 'lucide-react'
 
 const changelog = [
@@ -28,7 +27,6 @@ const changelog = [
 
 export default async function ChangelogPage() {
   const t = await getTranslations('Changelog')
-  const locale = await getLocale()
 
   const typeColors = {
     added: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -58,7 +56,6 @@ export default async function ChangelogPage() {
               studio
             </span>
           </Link>
-          <LanguageSwitcher currentLocale={locale} />
         </div>
       </nav>
 
@@ -97,7 +94,7 @@ export default async function ChangelogPage() {
                   </span>
                 </div>
                 <time className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(release.date).toLocaleDateString(locale, {
+                  {new Date(release.date).toLocaleDateString('en', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

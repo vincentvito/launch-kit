@@ -113,3 +113,11 @@ model UserLaunchProfile {
 
   @@map("user_launch_profile")
 }
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist_entry")
+}

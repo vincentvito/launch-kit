@@ -21,7 +21,53 @@
     "signOut": "Cerrar sesion",
     "loading": "Cargando..."
   },
+  "WaitingList": {
+    "meta": {
+      "title": "Launch Kit — Unete a la lista de espera",
+      "description": "Consigue acceso anticipado a Launch Kit. Una URL de producto, una narrativa de lanzamiento multicanal completa."
+    },
+    "nav": {
+      "brand": "Launch Kit",
+      "sub": "Motor editorial de lanzamientos para builders"
+    },
+    "hero": {
+      "badge": "Proximamente",
+      "title": "Copy de launch day,",
+      "titleHighlight": "antes del launch day",
+      "description": "Estamos dando los ultimos retoques a Launch Kit. Unete a la lista de espera para acceso anticipado cuando abramos."
+    },
+    "form": {
+      "placeholder": "tu@empresa.com",
+      "submit": "Unirme a la lista",
+      "helper": "Sin spam. Un email cuando abra el acceso anticipado.",
+      "invalidEmail": "Ingresa un email valido.",
+      "success": "Ya estas en la lista. Te escribiremos cuando abra el acceso anticipado.",
+      "error": "Algo salio mal. Intentalo de nuevo."
+    },
+    "highlights": {
+      "one": {
+        "title": "Una URL entra",
+        "body": "Pega el enlace de tu producto y obtiene un brief de lanzamiento estructurado."
+      },
+      "two": {
+        "title": "Todos los canales salen",
+        "body": "Posts adaptados por plataforma para HN, Reddit, LinkedIn y mas."
+      },
+      "three": {
+        "title": "Assets listos para prensa",
+        "body": "Media kit y press pack incluidos en cada kit."
+      }
+    },
+    "footer": {
+      "copyright": "Launch Kit. Todos los derechos reservados.",
+      "tagline": "El acceso anticipado abre pronto."
+    }
+  },
   "Landing": {
+    "meta": {
+      "title": "Launch Kit — Motor editorial de lanzamientos",
+      "description": "Convierte una URL de producto en un kit de lanzamiento multicanal completo."
+    },
     "nav": {
       "brand": "Launch Kit",
       "sub": "Motor editorial de lanzamientos para builders",
