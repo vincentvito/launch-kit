@@ -1,99 +1,185 @@
-import { getTranslations } from 'next-intl/server'
-import { Playfair_Display, Space_Grotesk } from 'next/font/google'
-import { Sparkles } from 'lucide-react'
+import { JetBrains_Mono, Manrope } from 'next/font/google'
+import { Sparkle } from '@/components/waiting-list/icons'
 import WaitingListSignupForm from '@/components/waiting-list/waiting-list-signup-form'
+import styles from '@/components/waiting-list/waiting-list.module.css'
 
-const editorialSerif = Playfair_Display({
+const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['500', '700', '800'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
 })
 
-const interfaceSans = Space_Grotesk({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500'],
+  variable: '--font-jetbrains',
 })
 
-export default async function WaitingListPage() {
-  const t = await getTranslations('WaitingList')
+// Decorative founder-pain confessions for the right-side marquee feed.
+const PAIN_POSTS = [
+  { name: 'joaquin', handle: '@joaquin_ships', text: 'spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.', c: 268, tag: 'rewriting hell' },
+  { name: 'maya k.', handle: '@maya_builds', text: 'shipped the feature in 2 hours. wrote 4 onboarding emails in 8. make it make sense.', c: 252, tag: 'onboarding' },
+  { name: 'rohit', handle: '@rohit_dev', text: '3am setting up trial expiry emails. again. for the third product this quarter.', c: 280, tag: 'lifecycle' },
+  { name: 'elena', handle: '@elena_ships', text: 'support inbox: 47 unread. launch is tomorrow. cool cool cool cool.', c: 30, tag: 'support' },
+  { name: 'tom', handle: '@tom_indie', text: "my analytics is 5 tabs. still no clue what's actually happening.", c: 200, tag: 'analytics' },
+  { name: 'priya', handle: '@priya_codes', text: "writing 'professional' LinkedIn copy drains the will to live out of me.", c: 320, tag: 'linkedin' },
+  { name: 'sam', handle: '@sam_solo', text: 'another welcome series from scratch. love that for me. love it.', c: 60, tag: 'emails' },
+  { name: 'theo', handle: '@theo_makes', text: 'PH tomorrow. HN draft? not written. press kit? lmao. wish me luck.', c: 110, tag: 'launch day' },
+  { name: 'marko', handle: '@marko_ms', text: 'my leads CSV has been sitting in google sheets for 4 months. cool system.', c: 8, tag: 'outreach' },
+  { name: 'ines', handle: '@ines_devs', text: 'i love coding. i love shipping. i HATE writing launch copy.', c: 340, tag: 'copy' },
+  { name: 'dana', handle: '@dana_builds', text: '8 tabs open just to send one trial expiry reminder. why is this my life.', c: 90, tag: 'tooling' },
+  { name: 'luca', handle: '@luca_solo', text: 'shipped at 2am. still answering tickets at 4am. send coffee + sleep.', c: 220, tag: 'post-launch' },
+  { name: 'ana', handle: '@ana_writes', text: 'rewrote the same product story 9 times for 9 channels today. 9.', c: 160, tag: 'rewriting hell' },
+  { name: 'kenji', handle: '@kenji_ships', text: "what do you mean reddit doesn't want my polished landing-page copy", c: 40, tag: 'reddit' },
+  { name: 'soph', handle: '@sophie_dev', text: 'press kit, seo plan, outreach list. one human. one weekend. send help.', c: 290, tag: 'alone' },
+  { name: 'ravi', handle: '@ravi_solo', text: 'showHN draft attempt #4. still sounds like a corporate brochure.', c: 250, tag: 'voice' },
+]
 
+const PAIN_ROWS = [
+  { speed: 75, dir: 1, items: PAIN_POSTS.slice(0, 8) },
+  { speed: 95, dir: -1, items: PAIN_POSTS.slice(4, 12) },
+  { speed: 65, dir: 1, items: PAIN_POSTS.slice(8, 16) },
+  { speed: 110, dir: -1, items: [...PAIN_POSTS.slice(12), ...PAIN_POSTS.slice(0, 4)] },
+]
+
+const TICKER = [
+  '@joaquin · 3s ago joined',
+  'shipping starts · 06.20.26',
+  '@maya · 14s ago joined',
+  '@rohit · 31s ago joined',
+  'founder-to-founder · no fluff',
+  '@elena · 48s ago joined',
+  '@tom · 1m ago joined',
+  'ship it. we handle the chaos.',
+]
+
+// Decorative starfield. Generated on the server only (this is a server
+// component, so it never re-renders on the client → no hydration mismatch).
+const STARS = Array.from({ length: 70 }, () => ({
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  s: Math.random() * 1.6 + 0.4,
+  d: Math.random() * 4,
+  o: Math.random() * 0.6 + 0.2,
+}))
+
+export default function WaitingListPage() {
   return (
-    <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-28 -right-20 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-300/60 via-fuchsia-200/45 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-24 h-[360px] w-[360px] rounded-full bg-gradient-to-tr from-purple-300/40 via-violet-200/25 to-transparent blur-3xl" />
+    <div className={`${styles.page} ${manrope.variable} ${jetbrainsMono.variable}`}>
+      {/* Backdrop */}
+      <div className={styles.backdrop}>
+        <div className={`${styles.glow} ${styles.glow1}`} />
+        <div className={`${styles.glow} ${styles.glow2}`} />
+        <div className={styles.gridBg} />
+        <div className={styles.stars}>
+          {STARS.map((s, i) => (
+            <span
+              key={i}
+              style={{
+                left: `${s.x}%`,
+                top: `${s.y}%`,
+                width: `${s.s}px`,
+                height: `${s.s}px`,
+                opacity: s.o,
+                animationDelay: `${-s.d}s`,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className={`${editorialSerif.className} text-lg font-semibold tracking-tight`}>
-                {t('nav.brand')}
-              </p>
-              <p className="text-[11px] text-zinc-500">{t('nav.sub')}</p>
-            </div>
+      {/* Top bar */}
+      <header className={styles.topbar}>
+        <div className={styles.logo}>
+          <div className={styles.logoMark} aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="28" height="28">
+              <circle cx="16" cy="16" r="15" fill="#7B5CFF" />
+              <path d="M11 21c1.5-6 4.5-9 10.5-10.5-1.5 6-4.5 9-10.5 10.5z" fill="#0B1020" />
+              <circle cx="13.5" cy="13" r="1.6" fill="#0B1020" />
+              <circle cx="18" cy="11" r="1.6" fill="#0B1020" />
+              <rect x="11.5" y="11.4" width="8.5" height="1.2" rx="0.6" fill="#0B1020" />
+            </svg>
           </div>
+          <span className={styles.logoWord}>
+            ship<span className={styles.accent}>daddy</span>
+          </span>
         </div>
+        <nav className={styles.topnav}>
+          <span className={styles.pill}>
+            <span className={styles.dot} /> pre-launch · waitlist open
+          </span>
+          <span className={styles.lang}>EN</span>
+        </nav>
       </header>
 
-      <main className="relative z-10 mx-auto flex max-w-3xl flex-col px-4 pb-20 pt-16 sm:px-6 sm:pt-20">
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-            {t('hero.badge')}
+      {/* Main */}
+      <main className={styles.main}>
+        <section className={styles.left}>
+          <div className={styles.eyebrow}>
+            <Sparkle size={12} />
+            <span>your post-launch cofounder</span>
+            <Sparkle size={12} />
           </div>
 
-          <h1
-            className={`${editorialSerif.className} mt-5 text-4xl leading-[1.05] tracking-tight text-zinc-900 sm:text-5xl`}
-          >
-            {t('hero.title')}
-            <span className="mt-2 block bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-500 bg-clip-text text-transparent">
-              {t('hero.titleHighlight')}
-            </span>
+          <h1 className={styles.headline}>
+            <span className={styles.hlLine}>ship it.</span>
+            <span className={`${styles.hlLine} ${styles.hlAccent}`}>we got you.</span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-zinc-600 sm:text-lg">
-            {t('hero.description')}
+          <p className={styles.lede}>
+            Automate onboarding, emails, notifications, analytics, support and launch ops after your app
+            goes live. <span className={styles.ledeEm}>You ship it. We handle the chaos.</span>
           </p>
-        </div>
 
-        <div className="mx-auto mt-10 w-full max-w-xl rounded-[1.75rem] border border-violet-100 bg-white p-4 shadow-[0_30px_70px_-50px_rgba(100,40,180,0.5)] sm:p-5">
-          <WaitingListSignupForm
-            placeholder={t('form.placeholder')}
-            submitLabel={t('form.submit')}
-            helper={t('form.helper')}
-            invalidEmail={t('form.invalidEmail')}
-            successMessage={t('form.success')}
-            errorMessage={t('form.error')}
-          />
-        </div>
+          <WaitingListSignupForm />
+        </section>
 
-        <ul className="mx-auto mt-10 grid max-w-xl gap-3 sm:grid-cols-3">
-          <HighlightCard title={t('highlights.one.title')} body={t('highlights.one.body')} />
-          <HighlightCard title={t('highlights.two.title')} body={t('highlights.two.body')} />
-          <HighlightCard title={t('highlights.three.title')} body={t('highlights.three.body')} />
-        </ul>
+        {/* Right side: founder-pain marquee feed */}
+        <section className={styles.right}>
+          <div className={styles.painFeed}>
+            {PAIN_ROWS.map((row, i) => (
+              <div className={styles.painRow} key={i}>
+                <div
+                  className={`${styles.painTrack} ${row.dir === -1 ? styles.dirRev : ''}`}
+                  style={{ animationDuration: `${row.speed}s` }}
+                >
+                  {[...row.items, ...row.items].map((p, j) => (
+                    <div className={styles.post} key={j}>
+                      <div className={styles.postHead}>
+                        <span className={styles.postAvatar} style={{ background: `oklch(0.62 0.16 ${p.c})` }}>
+                          {p.name[0].toUpperCase()}
+                        </span>
+                        <div className={styles.postMeta}>
+                          <div className={styles.postName}>{p.name}</div>
+                          <div className={styles.postHandle}>{p.handle}</div>
+                        </div>
+                        <span className={styles.postTag}>#{p.tag}</span>
+                      </div>
+                      <div className={styles.postBody}>{p.text}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className={`${styles.painFeedFade} ${styles.painFeedFadeTop}`} />
+            <div className={`${styles.painFeedFade} ${styles.painFeedFadeBottom}`} />
+          </div>
+        </section>
       </main>
 
-      <footer className="relative z-10 border-t border-violet-100 py-8">
-        <div className="mx-auto max-w-3xl px-4 text-center text-sm text-zinc-500 sm:px-6">
-          <p>
-            &copy; {new Date().getFullYear()} {t('footer.copyright')}
-          </p>
-          <p className="mt-1">{t('footer.tagline')}</p>
+      {/* Bottom ticker */}
+      <footer className={styles.tickerBar} aria-hidden="true">
+        <div className={styles.ticker}>
+          <div className={styles.tickerTrack}>
+            {[...TICKER, ...TICKER].map((s, i) => (
+              <span key={i} className={styles.tickerItem}>
+                <Sparkle size={8} />
+                <span>{s}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </footer>
     </div>
-  )
-}
-
-function HighlightCard({ title, body }: { title: string; body: string }) {
-  return (
-    <li className="rounded-2xl border border-violet-100 bg-white/90 p-4 text-center shadow-sm">
-      <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{body}</p>
-    </li>
   )
 }

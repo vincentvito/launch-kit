@@ -1,110 +1,183 @@
 'use client'
 
 import { type FormEvent, useState } from 'react'
-import { ArrowRight, Mail } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowRight, CheckIcon, MailIcon } from '@/components/waiting-list/icons'
+import styles from '@/components/waiting-list/waiting-list.module.css'
 
-type WaitingListSignupFormProps = {
-  placeholder: string
-  submitLabel: string
-  helper: string
-  invalidEmail: string
-  successMessage: string
-  errorMessage: string
+type ConfettiPiece = { x: number; r: number; d: number; s: number; c: string }
+
+// Built in the submit handler (an event, not render) so the randomness never
+// runs during render or in an effect — keeps React's purity rules happy.
+function makeConfetti(): ConfettiPiece[] {
+  return Array.from({ length: 36 }, () => ({
+    x: Math.random() * 100,
+    r: Math.random() * 360,
+    d: Math.random() * 0.6,
+    s: Math.random() * 8 + 6,
+    c: Math.random() > 0.5 ? '#7B5CFF' : '#CFC2FF',
+  }))
 }
 
-export default function WaitingListSignupForm({
-  placeholder,
-  submitLabel,
-  helper,
-  invalidEmail,
-  successMessage,
-  errorMessage,
-}: WaitingListSignupFormProps) {
+// Decorative crew avatars for the social-proof row.
+const CREW = [
+  { i: 'JT', h: 268 },
+  { i: 'AM', h: 252 },
+  { i: 'RB', h: 280 },
+  { i: 'SK', h: 245 },
+  { i: 'DV', h: 260 },
+]
+
+type Status = 'idle' | 'loading' | 'success' | 'error'
+
+const INVALID_EMAIL = "that doesn't look like an email. try again, captain."
+const SERVER_ERROR = 'something broke on our end. give it another shot.'
+
+export default function WaitingListSignupForm() {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<Status>('idle')
+  const [errorText, setErrorText] = useState(INVALID_EMAIL)
+  const [position, setPosition] = useState(1247)
+  const [shake, setShake] = useState(false)
+  const [burst, setBurst] = useState(0)
+  const [confetti, setConfetti] = useState<ConfettiPiece[]>([])
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const trimmed = email.trim()
 
-    const trimmed = email.trim().toLowerCase()
-    if (!isValidEmail(trimmed)) {
+    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+      setErrorText(INVALID_EMAIL)
       setStatus('error')
-      setMessage(invalidEmail)
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
       return
     }
 
     setStatus('loading')
-    setMessage('')
-
     try {
-      const response = await fetch('/api/waitlist', {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: trimmed }),
       })
-
-      if (!response.ok) {
+      if (!res.ok) {
+        setErrorText(SERVER_ERROR)
         setStatus('error')
-        setMessage(errorMessage)
+        setShake(true)
+        setTimeout(() => setShake(false), 500)
         return
       }
-
+      setPosition((p) => p + 1)
+      setBurst((b) => b + 1)
+      setConfetti(makeConfetti())
       setStatus('success')
-      setMessage(successMessage)
-      setEmail('')
     } catch {
+      setErrorText(SERVER_ERROR)
       setStatus('error')
-      setMessage(errorMessage)
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
     }
   }
 
-  const helperText =
-    status === 'success' ? message : status === 'error' ? message || errorMessage : helper
+  const reset = () => {
+    setStatus('idle')
+    setEmail('')
+  }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="relative block w-full">
-          <span className="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-violet-400">
-            <Mail className="h-4 w-4" />
-          </span>
-          <input
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            disabled={status === 'loading' || status === 'success'}
-            onChange={(event) => {
-              setEmail(event.target.value)
-              if (status === 'error') {
-                setStatus('idle')
-                setMessage('')
-              }
-            }}
-            placeholder={placeholder}
-            className="h-12 w-full rounded-xl border border-violet-200 bg-white px-10 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40 disabled:cursor-not-allowed disabled:opacity-70"
-          />
-        </label>
-        <Button
-          type="submit"
-          disabled={status === 'loading' || status === 'success'}
-          className="h-12 shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-white shadow-lg shadow-violet-500/35 hover:from-violet-700 hover:to-fuchsia-600 disabled:opacity-70"
-        >
-          {submitLabel}
-          <ArrowRight className="ml-1.5 h-4 w-4" />
-        </Button>
+    <>
+      {status !== 'success' ? (
+        <form className={`${styles.form} ${shake ? styles.shake : ''}`} onSubmit={submit}>
+          <div className={styles.inputWrap}>
+            <span className={styles.inputIcon}>
+              <MailIcon size={18} />
+            </span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (status === 'error') setStatus('idle')
+              }}
+              placeholder="founder@yourstartup.com"
+              autoComplete="email"
+              aria-label="email"
+            />
+          </div>
+          <button type="submit" className={styles.cta} disabled={status === 'loading'}>
+            {status === 'loading' ? (
+              <span className={styles.ctaLoading}>
+                <span className={styles.spinner} /> launching
+              </span>
+            ) : (
+              <>
+                <span>request liftoff</span>
+                <ArrowRight size={18} />
+              </>
+            )}
+          </button>
+        </form>
+      ) : (
+        <div className={styles.success} key={burst}>
+          <div className={styles.successRow}>
+            <div className={styles.check}>
+              <CheckIcon size={20} />
+            </div>
+            <div>
+              <div className={styles.successTitle}>you&apos;re on the rocket.</div>
+              <div className={styles.successSub}>
+                welcome aboard, {email.split('@')[0]}. check your inbox.
+              </div>
+            </div>
+          </div>
+          <button className={styles.linkBtn} onClick={reset}>
+            add another email →
+          </button>
+        </div>
+      )}
+
+      <div className={styles.micro}>
+        {status === 'error' ? (
+          <span className={styles.err}>{errorText}</span>
+        ) : (
+          <span>no spam. no funnels. just shipping updates.</span>
+        )}
       </div>
-      <p
-        className={`text-xs ${status === 'success' ? 'text-violet-700' : status === 'error' ? 'text-red-600' : 'text-zinc-500'}`}
-      >
-        {helperText}
-      </p>
-    </form>
+
+      <div className={styles.proof}>
+        <div className={styles.avatars}>
+          {CREW.map((c, i) => (
+            <span key={i} className={styles.avatar} style={{ background: `oklch(0.62 0.18 ${c.h})` }}>
+              {c.i}
+            </span>
+          ))}
+        </div>
+        <div className={styles.proofText}>
+          <strong>{position.toLocaleString()}</strong> builders already on board
+        </div>
+      </div>
+
+      {status === 'success' && <Confetti key={`c${burst}`} pieces={confetti} />}
+    </>
   )
 }
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+function Confetti({ pieces }: { pieces: ConfettiPiece[] }) {
+  return (
+    <div className={styles.confetti}>
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          style={{
+            left: `${p.x}%`,
+            width: `${p.s}px`,
+            height: `${p.s * 0.45}px`,
+            background: p.c,
+            transform: `rotate(${p.r}deg)`,
+            animationDelay: `${p.d}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
 }

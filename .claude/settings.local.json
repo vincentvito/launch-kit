@@ -5,7 +5,12 @@
       "Bash(node -e ' *)",
       "Bash(npx tsc *)",
       "Bash(sed -n '3p;4p' app/changelog/page.tsx)",
-      "Bash(sed -n '98,103p' app/changelog/page.tsx)"
+      "Bash(sed -n '98,103p' app/changelog/page.tsx)",
+      "Bash(node -e \"const m=require\\('./messages/en.json'\\); console.log\\(JSON.stringify\\(m.WaitingList.meta\\)\\)\")",
+      "Bash(node -e \"const m=require\\('./messages/es.json'\\); console.log\\(JSON.stringify\\(m.WaitingList.meta\\)\\)\")",
+      "Bash(npx eslint *)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /tmp/wl_home.html -w \"%{http_code}\" http://localhost:3940/)"
     ]
   }
 }
