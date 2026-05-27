@@ -152,13 +152,6 @@
   70% { box-shadow: 0 0 0 8px rgba(34, 211, 165, 0); }
   100% { box-shadow: 0 0 0 0 rgba(34, 211, 165, 0); }
 }
-.lang {
-  font-family: var(--font-jetbrains), monospace;
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
 /* ---------- Main ---------- */
 .main {
   position: relative;
@@ -214,6 +207,11 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 6s linear infinite;
+  /* background-clip:text only paints inside the box; the tight line-height
+     clips the italic "g" descender. Pad the box and pull it back with a
+     negative margin so descenders show without shifting the layout. */
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
 }
 @keyframes shimmer {
   0% { background-position: 0% 50%; }
@@ -277,6 +275,19 @@
 }
 .inputWrap input::placeholder {
   color: var(--muted);
+}
+/* Chrome/Safari force a light bg + dark text on autofilled inputs. Clipping
+   the forced background to the text shape keeps the field transparent (so the
+   glass form shows through), while text-fill-color restores our light text. */
+.inputWrap input:-webkit-autofill,
+.inputWrap input:-webkit-autofill:hover,
+.inputWrap input:-webkit-autofill:focus,
+.inputWrap input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: var(--fg);
+  caret-color: var(--fg);
+  transition: background-color 9999s ease-in-out 0s;
 }
 .cta {
   display: inline-flex;
@@ -648,7 +659,6 @@
     flex-wrap: wrap;
   }
   .topnav { gap: 10px; }
-  .lang { display: none; }
   .pill {
     padding: 6px 11px;
     font-size: 10.5px;

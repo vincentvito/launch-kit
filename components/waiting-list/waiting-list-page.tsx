@@ -108,7 +108,6 @@ export default function WaitingListPage() {
           <span className={styles.pill}>
             <span className={styles.dot} /> pre-launch · waitlist open
           </span>
-          <span className={styles.lang}>EN</span>
         </nav>
       </header>
 
