@@ -15,24 +15,26 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains',
 })
 
-// Decorative founder-pain confessions for the right-side marquee feed.
+// Founder-pain confessions for the right-side marquee feed. No names or
+// handles — these are anonymous, relatable launch pains, not fabricated
+// testimonials. `c` only sets the tag accent hue.
 const PAIN_POSTS = [
-  { name: 'joaquin', handle: '@joaquin_ships', text: 'spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.', c: 268, tag: 'rewriting hell' },
-  { name: 'maya k.', handle: '@maya_builds', text: 'shipped the feature in 2 hours. wrote 4 onboarding emails in 8. make it make sense.', c: 252, tag: 'onboarding' },
-  { name: 'rohit', handle: '@rohit_dev', text: '3am setting up trial expiry emails. again. for the third product this quarter.', c: 280, tag: 'lifecycle' },
-  { name: 'elena', handle: '@elena_ships', text: 'support inbox: 47 unread. launch is tomorrow. cool cool cool cool.', c: 30, tag: 'support' },
-  { name: 'tom', handle: '@tom_indie', text: "my analytics is 5 tabs. still no clue what's actually happening.", c: 200, tag: 'analytics' },
-  { name: 'priya', handle: '@priya_codes', text: "writing 'professional' LinkedIn copy drains the will to live out of me.", c: 320, tag: 'linkedin' },
-  { name: 'sam', handle: '@sam_solo', text: 'another welcome series from scratch. love that for me. love it.', c: 60, tag: 'emails' },
-  { name: 'theo', handle: '@theo_makes', text: 'PH tomorrow. HN draft? not written. press kit? lmao. wish me luck.', c: 110, tag: 'launch day' },
-  { name: 'marko', handle: '@marko_ms', text: 'my leads CSV has been sitting in google sheets for 4 months. cool system.', c: 8, tag: 'outreach' },
-  { name: 'ines', handle: '@ines_devs', text: 'i love coding. i love shipping. i HATE writing launch copy.', c: 340, tag: 'copy' },
-  { name: 'dana', handle: '@dana_builds', text: '8 tabs open just to send one trial expiry reminder. why is this my life.', c: 90, tag: 'tooling' },
-  { name: 'luca', handle: '@luca_solo', text: 'shipped at 2am. still answering tickets at 4am. send coffee + sleep.', c: 220, tag: 'post-launch' },
-  { name: 'ana', handle: '@ana_writes', text: 'rewrote the same product story 9 times for 9 channels today. 9.', c: 160, tag: 'rewriting hell' },
-  { name: 'kenji', handle: '@kenji_ships', text: "what do you mean reddit doesn't want my polished landing-page copy", c: 40, tag: 'reddit' },
-  { name: 'soph', handle: '@sophie_dev', text: 'press kit, seo plan, outreach list. one human. one weekend. send help.', c: 290, tag: 'alone' },
-  { name: 'ravi', handle: '@ravi_solo', text: 'showHN draft attempt #4. still sounds like a corporate brochure.', c: 250, tag: 'voice' },
+  { text: 'spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.', c: 268, tag: 'rewriting hell' },
+  { text: 'one generic post reused everywhere. the voice dies the second i copy-paste it.', c: 252, tag: 'voice' },
+  { text: 'launch copy, media assets, seo plan, outreach list — all in different tools. why.', c: 280, tag: 'tool sprawl' },
+  { text: 'PH tomorrow. HN draft? not written. press kit? lmao. wish me luck.', c: 30, tag: 'launch day' },
+  { text: "writing 'professional' LinkedIn copy drains the will to live out of me.", c: 200, tag: 'linkedin' },
+  { text: "what do you mean reddit doesn't want my polished landing-page copy.", c: 320, tag: 'reddit' },
+  { text: 'showHN draft attempt #4. still sounds like a corporate brochure.', c: 60, tag: 'hacker news' },
+  { text: 'rewrote the same product story 9 times for 9 channels today. 9.', c: 110, tag: 'rewriting hell' },
+  { text: 'press kit, seo plan, outreach list. one human. one weekend. send help.', c: 8, tag: 'alone' },
+  { text: 'i love coding. i love shipping. i HATE writing launch copy.', c: 340, tag: 'copy' },
+  { text: 'my leads CSV has been sitting in google sheets for 4 months. cool system.', c: 90, tag: 'outreach' },
+  { text: 'indie hackers wants the build-in-public story. linkedin wants polish. same product.', c: 220, tag: 'indie hackers' },
+  { text: 'tiktok hook? youtube script? i write code, not viral retention beats.', c: 160, tag: 'video' },
+  { text: 'every community has its own unwritten rules and i learn them the hard way each launch.', c: 40, tag: 'social contract' },
+  { text: 'a press-ready media kit by tomorrow. from nothing. sure. great. fine.', c: 290, tag: 'media kit' },
+  { text: 'one URL, one story, ten platforms. there has to be a better way to do this.', c: 250, tag: 'one brief' },
 ]
 
 const PAIN_ROWS = [
@@ -43,14 +45,14 @@ const PAIN_ROWS = [
 ]
 
 const TICKER = [
-  '@joaquin · 3s ago joined',
-  'shipping starts · 06.20.26',
-  '@maya · 14s ago joined',
-  '@rohit · 31s ago joined',
+  'one product URL · a complete launch narrative',
+  '8 launch channels · one structured brief',
+  'Product Hunt · Hacker News · Reddit · Indie Hackers',
+  'LinkedIn · TikTok · YouTube · Email',
+  'press-ready media kit · included',
+  'SEO posts · outreach · all in one dashboard',
   'founder-to-founder · no fluff',
-  '@elena · 48s ago joined',
-  '@tom · 1m ago joined',
-  'ship it. we handle the chaos.',
+  'ship it. we got you.',
 ]
 
 // Decorative starfield. Generated on the server only (this is a server
@@ -145,13 +147,7 @@ export default function WaitingListPage() {
                   {[...row.items, ...row.items].map((p, j) => (
                     <div className={styles.post} key={j}>
                       <div className={styles.postHead}>
-                        <span className={styles.postAvatar} style={{ background: `oklch(0.62 0.16 ${p.c})` }}>
-                          {p.name[0].toUpperCase()}
-                        </span>
-                        <div className={styles.postMeta}>
-                          <div className={styles.postName}>{p.name}</div>
-                          <div className={styles.postHandle}>{p.handle}</div>
-                        </div>
+                        <span className={styles.postDot} style={{ background: `oklch(0.62 0.16 ${p.c})` }} />
                         <span className={styles.postTag}>#{p.tag}</span>
                       </div>
                       <div className={styles.postBody}>{p.text}</div>

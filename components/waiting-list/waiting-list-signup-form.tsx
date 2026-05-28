@@ -18,13 +18,13 @@ function makeConfetti(): ConfettiPiece[] {
   }))
 }
 
-// Decorative crew avatars for the social-proof row.
-const CREW = [
-  { i: 'JT', h: 268 },
-  { i: 'AM', h: 252 },
-  { i: 'RB', h: 280 },
-  { i: 'SK', h: 245 },
-  { i: 'DV', h: 260 },
+// Real product scope, shown instead of fabricated user counts. Grounded in
+// the Launch Kit landing copy: "8 launch channels ... from one structured
+// brief" and the 4 GROWTH_BLOCK_LABELS in lib/launch-kit/types.ts.
+const STATS = [
+  { n: '8', label: 'launch channels' },
+  { n: '1', label: 'URL → full kit' },
+  { n: '4', label: 'growth workflows' },
 ]
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
@@ -36,7 +36,6 @@ export default function WaitingListSignupForm() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [errorText, setErrorText] = useState(INVALID_EMAIL)
-  const [position, setPosition] = useState(1247)
   const [shake, setShake] = useState(false)
   const [burst, setBurst] = useState(0)
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([])
@@ -67,7 +66,6 @@ export default function WaitingListSignupForm() {
         setTimeout(() => setShake(false), 500)
         return
       }
-      setPosition((p) => p + 1)
       setBurst((b) => b + 1)
       setConfetti(makeConfetti())
       setStatus('success')
@@ -144,17 +142,13 @@ export default function WaitingListSignupForm() {
         )}
       </div>
 
-      <div className={styles.proof}>
-        <div className={styles.avatars}>
-          {CREW.map((c, i) => (
-            <span key={i} className={styles.avatar} style={{ background: `oklch(0.62 0.18 ${c.h})` }}>
-              {c.i}
-            </span>
-          ))}
-        </div>
-        <div className={styles.proofText}>
-          <strong>{position.toLocaleString()}</strong> builders already on board
-        </div>
+      <div className={styles.stats}>
+        {STATS.map((s) => (
+          <div className={styles.stat} key={s.label}>
+            <strong>{s.n}</strong>
+            <span>{s.label}</span>
+          </div>
+        ))}
       </div>
 
       {status === 'success' && <Confetti key={`c${burst}`} pieces={confetti} />}
