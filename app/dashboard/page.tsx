@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, Suspense, useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Playfair_Display, Space_Grotesk } from 'next/font/google'
@@ -188,7 +188,17 @@ const BACKLINK_STATUS_OPTIONS: BacklinkProspectStatus[] = [
   'rejected',
 ]
 
+// useSearchParams() forces this tree to bail out of static prerender, so it
+// must sit inside a Suspense boundary or `next build` fails on /dashboard.
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
+  )
+}
+
+function DashboardContent() {
   const t = useTranslations('LaunchKit')
   const router = useRouter()
   const searchParams = useSearchParams()
