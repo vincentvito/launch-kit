@@ -1,11 +1,5 @@
 import "dotenv/config";
-import { defineConfig } from "prisma/config";
-
-// Default DATABASE_URL to a local SQLite file so `npm run dev` works on a
-// fresh clone even if the developer hasn't copied .env.example to .env yet.
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = "file:./dev.db";
-}
+import { defineConfig, env } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -13,6 +7,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    // Migrations run against the direct connection (port 5432) so Prisma's
+    // advisory lock works. The pooled DATABASE_URL (pgBouncer, 6543) would hang.
+    url: env("DIRECT_URL") ?? env("DATABASE_URL"),
   },
 });

@@ -1,6 +1,6 @@
 'use client'
 
-import { type FormEvent, useReducer } from 'react'
+import { type FormEvent, useReducer, useState } from 'react'
 import { ArrowRight, CheckIcon, MailIcon } from '@/components/waiting-list/icons'
 import styles from '@/components/waiting-list/waiting-list.module.css'
 
@@ -40,6 +40,7 @@ type SignupState = {
 type SignupAction =
   | { type: 'email'; email: string }
   | { type: 'invalid' | 'server-error' }
+  | { type: 'error-text'; text: string }
   | { type: 'loading' }
   | { type: 'success'; confetti: ConfettiPiece[] }
   | { type: 'stop-shake' }
@@ -74,6 +75,10 @@ function signupReducer(state: SignupState, action: SignupAction): SignupState {
     return { ...state, errorText: SERVER_ERROR, status: 'error', shake: true }
   }
 
+  if (action.type === 'error-text') {
+    return { ...state, errorText: action.text, status: 'error', shake: true }
+  }
+
   if (action.type === 'loading') {
     return { ...state, status: 'loading' }
   }
@@ -99,10 +104,15 @@ export default function WaitingListSignupForm() {
     signupReducer,
     initialSignupState,
   )
+  // When the form first mounted — sent to the server so it can reject
+  // submissions that arrive faster than a human could type (bot timing trap).
+  const [mountedAt] = useState(() => Date.now())
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = email.trim()
+    // Hidden honeypot field; humans leave it empty, bots tend to fill it.
+    const honeypot = (new FormData(e.currentTarget).get('company') as string) ?? ''
 
     if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
       dispatch({ type: 'invalid' })
@@ -115,10 +125,23 @@ export default function WaitingListSignupForm() {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({
+          email: trimmed,
+          company: honeypot,
+          elapsedMs: Date.now() - mountedAt,
+        }),
       })
       if (!res.ok) {
-        dispatch({ type: 'server-error' })
+        // Surface the server's message for validation errors (400); fall back
+        // to the generic copy for anything else.
+        let text = SERVER_ERROR
+        try {
+          const data = (await res.json()) as { error?: string }
+          if (res.status === 400 && data?.error) text = data.error
+        } catch {
+          // keep the generic fallback
+        }
+        dispatch({ type: 'error-text', text })
         setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
         return
       }
@@ -137,6 +160,16 @@ export default function WaitingListSignupForm() {
     <>
       {status !== 'success' ? (
         <form className={`${styles.form} ${shake ? styles.shake : ''}`} onSubmit={submit}>
+          {/* Honeypot: hidden from humans, a magnet for bots. Not display:none
+              (some bots skip those) — pushed offscreen and out of tab order. */}
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+          />
           <div className={styles.inputWrap}>
             <span className={styles.inputIcon}>
               <MailIcon size={18} />
