@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { BookOpenText, ChevronRight, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Wand2 } from 'lucide-react'
@@ -63,20 +63,35 @@ type DashboardPageClientProps = {
   initialWantsResultsView: boolean
 }
 
-export default function DashboardPageClient({
-  initialUrlParam,
-  initialWantsDemo,
-  initialWantsResultsView,
-}: DashboardPageClientProps) {
-  const t = useTranslations('LaunchKit')
-  const router = useRouter()
-  const { data: session, isPending } = useSession()
+function createInitialDemoSnapshot(enabled: boolean) {
+  if (!enabled || typeof window === 'undefined') {
+    return null
+  }
 
-  const [sourceUrl, setSourceUrl] = useState('')
-  const [brief, setBrief] = useState<ExtractedBrief | null>(null)
-  const [kit, setKit] = useState<LaunchKit | null>(null)
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [projectName, setProjectName] = useState('')
+  return createDemoSnapshot(window.location.origin)
+}
+
+// react-doctor-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer
+export default function DashboardPageClient({ initialUrlParam, initialWantsDemo, initialWantsResultsView }: DashboardPageClientProps) {
+  const t = useTranslations('LaunchKit')
+  const { push } = useRouter()
+  const { data: session, isPending } = useSession()
+  const initialDemoSnapshot = useMemo(
+    () => createInitialDemoSnapshot(!initialUrlParam && initialWantsDemo),
+    [initialUrlParam, initialWantsDemo],
+  )
+
+  const [sourceUrl, setSourceUrl] = useState(initialUrlParam || initialDemoSnapshot?.sourceUrl || '')
+  const [brief, setBrief] = useState<ExtractedBrief | null>(() =>
+    initialDemoSnapshot ? normalizeBrief(initialDemoSnapshot.brief) : null,
+  )
+  const [kit, setKit] = useState<LaunchKit | null>(() =>
+    initialDemoSnapshot
+      ? normalizeKit(initialDemoSnapshot.kit, initialDemoSnapshot.brief.language)
+      : null,
+  )
+  const projectIdRef = useRef<string | null>(initialDemoSnapshot?.id || null)
+  const [projectName, setProjectName] = useState(initialDemoSnapshot?.name || '')
 
   const [isIngesting, setIsIngesting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -88,17 +103,17 @@ export default function DashboardPageClient({
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null)
 
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
 
   const [serverProjects, setServerProjects] = useState<ProjectSummary[]>([])
-  const [guestProjects, setGuestProjects] = useState<LaunchProjectSnapshot[]>([])
-  const [queryHydrated, setQueryHydrated] = useState(false)
+  const [guestProjects, setGuestProjects] = useState<LaunchProjectSnapshot[]>(readGuestProjects)
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([])
   const [isActionRunning, setIsActionRunning] = useState(false)
   const [activeTrafficChannel, setActiveTrafficChannel] = useState<TrafficChannelId>('product_hunt')
   const [activeResultSection, setActiveResultSection] = useState<ResultBrowserSection>('channels')
   const [activeAssetKind, setActiveAssetKind] = useState<LaunchAssetKind>('screenshots')
-  const [activeStep, setActiveStep] = useState<DashboardStep>(1)
+  const [activeStep, setActiveStep] = useState<DashboardStep>(
+    initialDemoSnapshot ? (initialWantsResultsView ? 3 : 2) : 1,
+  )
   const [activeOnboardingCard, setActiveOnboardingCard] = useState<OnboardingCardIndex>(0)
   const [isUtilityDrawerOpen, setIsUtilityDrawerOpen] = useState(false)
   const [emailImportText, setEmailImportText] = useState('')
@@ -111,10 +126,13 @@ export default function DashboardPageClient({
   const [backlinkMinValue, setBacklinkMinValue] = useState('')
   const [backlinkListName, setBacklinkListName] = useState('')
   const [generatingAssetKey, setGeneratingAssetKey] = useState('')
+  const [success, setSuccess] = useState(() => {
+    if (initialUrlParam) {
+      return t('messages.urlPrefilled')
+    }
 
-  useEffect(() => {
-    setGuestProjects(readGuestProjects())
-  }, [])
+    return initialDemoSnapshot && !initialWantsResultsView ? t('messages.demoLoaded') : ''
+  })
 
   useEffect(() => {
     if (!session) {
@@ -124,72 +142,6 @@ export default function DashboardPageClient({
 
     void loadServerProjects()
   }, [session])
-
-  useEffect(() => {
-    if (queryHydrated) {
-      return
-    }
-
-    if (!initialUrlParam && !initialWantsDemo) {
-      setQueryHydrated(true)
-      return
-    }
-
-    if (initialUrlParam) {
-      setSourceUrl(initialUrlParam)
-      setBrief(null)
-      setKit(null)
-      setProjectId(null)
-      setProjectName('')
-      setActiveStep(1)
-      setError('')
-      setSuccess(t('messages.urlPrefilled'))
-      setQueryHydrated(true)
-      return
-    }
-
-    const demoSnapshot = createDemoSnapshot(window.location.origin)
-    setSourceUrl(demoSnapshot.sourceUrl)
-    setBrief(normalizeBrief(demoSnapshot.brief))
-    setKit(normalizeKit(demoSnapshot.kit, demoSnapshot.brief.language))
-    setProjectId(demoSnapshot.id)
-    setProjectName(demoSnapshot.name)
-    setActiveStep(initialWantsResultsView ? 3 : 2)
-    setActiveTrafficChannel('product_hunt')
-    setActiveResultSection('channels')
-    setActiveAssetKind('screenshots')
-    setError('')
-    setSuccess(initialWantsResultsView ? '' : t('messages.demoLoaded'))
-    setQueryHydrated(true)
-  }, [initialUrlParam, initialWantsDemo, initialWantsResultsView, queryHydrated, t])
-
-  useEffect(() => {
-    if (!brief) {
-      return
-    }
-
-    if (!projectName.trim()) {
-      setProjectName(brief.productName || t('fields.untitledProject'))
-    }
-  }, [brief, projectName, t])
-
-  useEffect(() => {
-    if (!kit) {
-      return
-    }
-
-    const leadIds = new Set(kit.prospecting.leads.map((lead) => lead.id))
-    setSelectedLeadIds((current) => current.filter((id) => leadIds.has(id)))
-  }, [kit])
-
-  useEffect(() => {
-    if (!kit) {
-      return
-    }
-
-    const prospectIds = new Set(kit.seoGrowth.backlinkProspects.map((prospect) => prospect.id))
-    setSelectedBacklinkProspectIds((current) => current.filter((id) => prospectIds.has(id)))
-  }, [kit])
 
   useEffect(() => {
     if (!isIngesting || extractionFeedbackSteps.length <= 1) {
@@ -215,6 +167,21 @@ export default function DashboardPageClient({
     return () => window.clearInterval(interval)
   }, [generationFeedbackSteps.length, isGenerating])
 
+  const updateKit = (nextKit: LaunchKit | null) => {
+    setKit(nextKit)
+
+    if (!nextKit) {
+      setSelectedLeadIds([])
+      setSelectedBacklinkProspectIds([])
+      return
+    }
+
+    const leadIds = new Set(nextKit.prospecting.leads.map((lead) => lead.id))
+    const prospectIds = new Set(nextKit.seoGrowth.backlinkProspects.map((prospect) => prospect.id))
+    setSelectedLeadIds((current) => current.filter((id) => leadIds.has(id)))
+    setSelectedBacklinkProspectIds((current) => current.filter((id) => prospectIds.has(id)))
+  }
+
   const savedProjects = useMemo<SavedProjectItem[]>(() => {
     const server: SavedProjectItem[] = serverProjects.map((project) => ({
       ...project,
@@ -236,13 +203,13 @@ export default function DashboardPageClient({
     )
   }, [serverProjects, guestProjects])
 
-  const currentMarkdown = useMemo(() => {
+  const buildCurrentMarkdown = () => {
     if (!brief || !kit) {
       return ''
     }
 
     return buildMarkdown({
-      id: projectId || `local-${Date.now()}`,
+      id: projectIdRef.current || `local-${Date.now()}`,
       name: projectName.trim() || brief.productName || t('fields.untitledProject'),
       sourceUrl: brief.sourceUrl,
       language: brief.language,
@@ -251,7 +218,7 @@ export default function DashboardPageClient({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }, getExportLabels(t))
-  }, [brief, kit, projectId, projectName, t])
+  }
 
   const filteredBacklinkProspects = useMemo(() => {
     if (!kit) {
@@ -417,8 +384,8 @@ export default function DashboardPageClient({
       }
 
       setBrief(normalizeBrief(json.brief))
-      setKit(null)
-      setProjectId(null)
+      updateKit(null)
+      projectIdRef.current = null
       setProjectName(json.brief.productName || t('fields.untitledProject'))
       setActiveOnboardingCard(0)
       setActiveResultSection('channels')
@@ -504,7 +471,7 @@ export default function DashboardPageClient({
         throw new Error(json.error || t('errors.generateFailed'))
       }
 
-      setKit(normalizeKit(json.launchKit, brief.language))
+      updateKit(normalizeKit(json.launchKit, brief.language))
       setActiveStep(3)
       if (input.selectedGrowthBlocks && input.selectedGrowthBlocks.length > 0) {
         setSuccess(t('messages.growthBlockRegenerated'))
@@ -553,7 +520,7 @@ export default function DashboardPageClient({
       const asset = nextKit.assetLibrary.generatedAssets.find(
         (item) => item.templateId === templateId && item.format === format,
       )
-      setKit(nextKit)
+      updateKit(nextKit)
 
       if (asset?.status === 'failed') {
         setError(asset.error || t('errors.assetGenerateFailed'))
@@ -583,7 +550,7 @@ export default function DashboardPageClient({
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            projectId,
+            projectId: projectIdRef.current,
             sourceUrl: brief.sourceUrl,
             name: projectName,
             language: brief.language,
@@ -601,12 +568,12 @@ export default function DashboardPageClient({
           throw new Error(saveJson.error || t('errors.saveFailed'))
         }
 
-        setProjectId(saveJson.project.id)
+        projectIdRef.current = saveJson.project.id
         setProjectName(saveJson.project.name)
         await loadServerProjects()
       } else {
         const snapshot: LaunchProjectSnapshot = {
-          id: projectId || `guest-${Date.now()}`,
+          id: projectIdRef.current || `guest-${Date.now()}`,
           name: projectName.trim() || brief.productName || t('fields.untitledProject'),
           sourceUrl: brief.sourceUrl,
           language: brief.language,
@@ -620,7 +587,7 @@ export default function DashboardPageClient({
         const next = [snapshot, ...current.filter((item) => item.id !== snapshot.id)]
         writeGuestProjects(next)
         setGuestProjects(next)
-        setProjectId(snapshot.id)
+        projectIdRef.current = snapshot.id
       }
 
       setSuccess(session ? t('messages.savedCloud') : t('messages.savedLocal'))
@@ -665,8 +632,8 @@ export default function DashboardPageClient({
     const nextBrief = normalizeBrief(snapshot.brief)
     const nextKit = normalizeKit(snapshot.kit, snapshot.language)
     setBrief(nextBrief)
-    setKit(nextKit)
-    setProjectId(snapshot.id)
+    updateKit(nextKit)
+    projectIdRef.current = snapshot.id
     setProjectName(snapshot.name)
     setSelectedLeadIds([])
     setSelectedBacklinkProspectIds([])
@@ -682,6 +649,7 @@ export default function DashboardPageClient({
       return
     }
 
+    const projectId = projectIdRef.current
     if (session && projectId && !projectId.startsWith('guest-')) {
       const response = await fetch(`/api/launch-kit/projects/${projectId}/markdown`)
       if (response.ok) {
@@ -691,7 +659,7 @@ export default function DashboardPageClient({
       }
     }
 
-    const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' })
+    const blob = new Blob([buildCurrentMarkdown()], { type: 'text/markdown;charset=utf-8' })
     downloadBlob(blob, `${slugify(projectName || brief.productName || 'launch-kit')}.md`)
   }
 
@@ -700,6 +668,7 @@ export default function DashboardPageClient({
       return
     }
 
+    const projectId = projectIdRef.current
     if (session && projectId && !projectId.startsWith('guest-')) {
       window.open(`/api/launch-kit/projects/${projectId}/press-pack`, '_blank', 'noopener,noreferrer')
       return
@@ -802,7 +771,7 @@ export default function DashboardPageClient({
     await signOut()
     setSuccess('')
     setError('')
-    router.push('/auth/login')
+    push('/auth/login')
   }
 
   const setBriefField = <K extends keyof ExtractedBrief>(field: K, value: ExtractedBrief[K]) => {
@@ -1212,15 +1181,15 @@ export default function DashboardPageClient({
   return (
     <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-[#fbfaff] text-zinc-900`}>
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-24 -right-16 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-300/55 via-fuchsia-200/35 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-24 h-[340px] w-[340px] rounded-full bg-gradient-to-tr from-purple-300/35 via-violet-200/20 to-transparent blur-3xl" />
+        <div className="absolute -top-24 -right-16 size-[420px] rounded-full bg-gradient-to-br from-violet-300/55 via-fuchsia-200/35 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-24 size-[340px] rounded-full bg-gradient-to-tr from-purple-300/35 via-violet-200/20 to-transparent blur-3xl" />
       </div>
 
       <header className="sticky top-0 z-30 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="group flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="h-4 w-4 text-white" />
+            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
+              <Sparkles className="size-4 text-white" />
             </div>
             <div>
               <p className={`${editorialSerif.className} text-lg font-semibold leading-none tracking-tight text-zinc-900`}>
@@ -1234,7 +1203,7 @@ export default function DashboardPageClient({
             {session ? (
               <>
                 <div className="hidden items-center gap-2 rounded-full border border-violet-100 bg-violet-50/60 px-2 py-1.5 sm:flex">
-                  <Avatar className="h-7 w-7 ring-2 ring-violet-400/20">
+                  <Avatar className="size-7 ring-2 ring-violet-400/20">
                     <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
                     <AvatarFallback className="bg-gradient-to-br from-violet-600 to-fuchsia-500 text-[10px] text-white">
                       {initials}
@@ -1294,12 +1263,12 @@ export default function DashboardPageClient({
                 >
                   {isUtilityDrawerOpen ? (
                     <>
-                      <PanelRightClose className="mr-1.5 h-4 w-4" />
+                      <PanelRightClose className="mr-1.5 size-4" />
                       {t('utility.closeButton')}
                     </>
                   ) : (
                     <>
-                      <PanelRightOpen className="mr-1.5 h-4 w-4" />
+                      <PanelRightOpen className="mr-1.5 size-4" />
                       {t('utility.openButton')}
                     </>
                   )}
@@ -1401,7 +1370,7 @@ export default function DashboardPageClient({
             <button type="button" onClick={() => openStep(1)} className="w-full text-left">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Wand2 className="h-4 w-4 text-violet-600" />
+                  <Wand2 className="size-4 text-violet-600" />
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
                     {t('steps.step1Label')} • {t('steps.step1Title')}
                   </p>
@@ -1417,6 +1386,7 @@ export default function DashboardPageClient({
                   <input
                     value={sourceUrl}
                     onChange={(event) => setSourceUrl(event.target.value)}
+                    aria-label={t('fields.urlPlaceholder')}
                     placeholder={t('fields.urlPlaceholder')}
                     className="h-11 w-full rounded-xl border border-transparent bg-transparent px-3 text-sm text-zinc-700 outline-none placeholder:text-zinc-400"
                   />
@@ -1433,7 +1403,7 @@ export default function DashboardPageClient({
                     disabled={isIngesting}
                     className="h-11 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-white shadow-lg shadow-violet-500/35 hover:from-violet-700 hover:to-fuchsia-600"
                   >
-                    <Wand2 className="mr-2 h-4 w-4" />
+                    <Wand2 className="mr-2 size-4" />
                     {isIngesting ? t('actions.extracting') : t('actions.extractBrief')}
                   </Button>
                 </div>
@@ -1454,7 +1424,7 @@ export default function DashboardPageClient({
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <PenSquare className="h-4 w-4 text-violet-600" />
+                  <PenSquare className="size-4 text-violet-600" />
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
                     {t('steps.step2Label')} • {t('steps.step2Title')}
                   </p>
@@ -1578,7 +1548,7 @@ export default function DashboardPageClient({
                       onClick={() => setIsUtilityDrawerOpen(true)}
                       className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
                     >
-                      <PanelRightOpen className="mr-2 h-4 w-4" />
+                      <PanelRightOpen className="mr-2 size-4" />
                       {t('actions.openBrandGuidelines')}
                     </Button>
                     <div className="flex flex-wrap justify-end gap-2">
@@ -1615,7 +1585,7 @@ export default function DashboardPageClient({
                             disabled={isGenerating}
                             className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
                           >
-                            <Wand2 className="mr-2 h-4 w-4" />
+                            <Wand2 className="mr-2 size-4" />
                             {isGenerating ? t('actions.generating') : t('actions.generateLaunchContent')}
                           </Button>
                         </>
@@ -1649,7 +1619,7 @@ export default function DashboardPageClient({
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <BookOpenText className="h-4 w-4 text-violet-600" />
+                    <BookOpenText className="size-4 text-violet-600" />
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
                       {t('steps.step3Label')} • {t('steps.step3Title')}
                     </p>
@@ -1701,7 +1671,7 @@ export default function DashboardPageClient({
                           onClick={() => setIsUtilityDrawerOpen(true)}
                           className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
                         >
-                          <PanelRightOpen className="mr-1.5 h-4 w-4" />
+                          <PanelRightOpen className="mr-1.5 size-4" />
                           {t('actions.openBrandGuidelines')}
                         </Button>
                       ) : null}
@@ -1842,7 +1812,7 @@ export default function DashboardPageClient({
             onClick={() => setIsUtilityDrawerOpen(false)}
             aria-label={t('utility.closeDrawerAria')}
           />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-2xl overflow-y-auto border-l border-violet-200 bg-white p-5 shadow-2xl shadow-violet-500/10">
+          <aside className="absolute right-0 top-0 size-full max-w-2xl overflow-y-auto border-l border-violet-200 bg-white p-5 shadow-2xl shadow-violet-500/10">
             <div className="mb-4 flex items-center justify-between gap-2">
               <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
                 {t('utility.title')}
@@ -1853,7 +1823,7 @@ export default function DashboardPageClient({
                 onClick={() => setIsUtilityDrawerOpen(false)}
                 className="border-violet-200 text-violet-700 hover:bg-violet-50"
               >
-                <PanelRightClose className="mr-1.5 h-4 w-4" />
+                <PanelRightClose className="mr-1.5 size-4" />
                 {t('utility.closeButton')}
               </Button>
             </div>
@@ -2066,6 +2036,7 @@ export default function DashboardPageClient({
                   {savedProjects.length > 0 ? (
                     savedProjects.map((project) => (
                       <button
+                        type="button"
                         key={`${project.storage}:${project.id}`}
                         onClick={() => {
                           void onLoadProject(project)
@@ -2100,23 +2071,23 @@ export default function DashboardPageClient({
                 </h3>
                 <ol className="mt-3 space-y-2 text-sm text-zinc-600">
                   <li className="flex items-start gap-2">
-                    <ChevronRight className="mt-0.5 h-4 w-4 text-violet-500" />
+                    <ChevronRight className="mt-0.5 size-4 text-violet-500" />
                     <span>{t('workflow.item1')}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <ChevronRight className="mt-0.5 h-4 w-4 text-violet-500" />
+                    <ChevronRight className="mt-0.5 size-4 text-violet-500" />
                     <span>{t('workflow.item2')}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <ChevronRight className="mt-0.5 h-4 w-4 text-violet-500" />
+                    <ChevronRight className="mt-0.5 size-4 text-violet-500" />
                     <span>{t('workflow.item3')}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <ChevronRight className="mt-0.5 h-4 w-4 text-violet-500" />
+                    <ChevronRight className="mt-0.5 size-4 text-violet-500" />
                     <span>{t('workflow.item4')}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <ChevronRight className="mt-0.5 h-4 w-4 text-violet-500" />
+                    <ChevronRight className="mt-0.5 size-4 text-violet-500" />
                     <span>{t('workflow.item5')}</span>
                   </li>
                 </ol>
@@ -2135,4 +2106,3 @@ export default function DashboardPageClient({
     </div>
   )
 }
-

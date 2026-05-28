@@ -1,15 +1,16 @@
 'use client'
 
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useReducer } from 'react'
 import { ArrowRight, CheckIcon, MailIcon } from '@/components/waiting-list/icons'
 import styles from '@/components/waiting-list/waiting-list.module.css'
 
-type ConfettiPiece = { x: number; r: number; d: number; s: number; c: string }
+type ConfettiPiece = { id: string; x: number; r: number; d: number; s: number; c: string }
 
 // Built in the submit handler (an event, not render) so the randomness never
 // runs during render or in an effect — keeps React's purity rules happy.
 function makeConfetti(): ConfettiPiece[] {
-  return Array.from({ length: 36 }, () => ({
+  return Array.from({ length: 36 }, (_, index) => ({
+    id: `confetti-${Date.now()}-${index}`,
     x: Math.random() * 100,
     r: Math.random() * 360,
     d: Math.random() * 0.6,
@@ -28,31 +29,88 @@ const STATS = [
 ]
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
+type SignupState = {
+  email: string
+  status: Status
+  errorText: string
+  shake: boolean
+  burst: number
+  confetti: ConfettiPiece[]
+}
+type SignupAction =
+  | { type: 'email'; email: string }
+  | { type: 'invalid' | 'server-error' }
+  | { type: 'loading' }
+  | { type: 'success'; confetti: ConfettiPiece[] }
+  | { type: 'stop-shake' }
+  | { type: 'reset' }
 
 const INVALID_EMAIL = "that doesn't look like an email. try again, captain."
 const SERVER_ERROR = 'something broke on our end. give it another shot.'
 
+const initialSignupState: SignupState = {
+  email: '',
+  status: 'idle',
+  errorText: INVALID_EMAIL,
+  shake: false,
+  burst: 0,
+  confetti: [],
+}
+
+function signupReducer(state: SignupState, action: SignupAction): SignupState {
+  if (action.type === 'email') {
+    return {
+      ...state,
+      email: action.email,
+      status: state.status === 'error' ? 'idle' : state.status,
+    }
+  }
+
+  if (action.type === 'invalid') {
+    return { ...state, errorText: INVALID_EMAIL, status: 'error', shake: true }
+  }
+
+  if (action.type === 'server-error') {
+    return { ...state, errorText: SERVER_ERROR, status: 'error', shake: true }
+  }
+
+  if (action.type === 'loading') {
+    return { ...state, status: 'loading' }
+  }
+
+  if (action.type === 'success') {
+    return {
+      ...state,
+      burst: state.burst + 1,
+      confetti: action.confetti,
+      status: 'success',
+    }
+  }
+
+  if (action.type === 'stop-shake') {
+    return { ...state, shake: false }
+  }
+
+  return initialSignupState
+}
+
 export default function WaitingListSignupForm() {
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<Status>('idle')
-  const [errorText, setErrorText] = useState(INVALID_EMAIL)
-  const [shake, setShake] = useState(false)
-  const [burst, setBurst] = useState(0)
-  const [confetti, setConfetti] = useState<ConfettiPiece[]>([])
+  const [{ email, status, errorText, shake, burst, confetti }, dispatch] = useReducer(
+    signupReducer,
+    initialSignupState,
+  )
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = email.trim()
 
     if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
-      setErrorText(INVALID_EMAIL)
-      setStatus('error')
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
+      dispatch({ type: 'invalid' })
+      setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
       return
     }
 
-    setStatus('loading')
+    dispatch({ type: 'loading' })
     try {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
@@ -60,26 +118,19 @@ export default function WaitingListSignupForm() {
         body: JSON.stringify({ email: trimmed }),
       })
       if (!res.ok) {
-        setErrorText(SERVER_ERROR)
-        setStatus('error')
-        setShake(true)
-        setTimeout(() => setShake(false), 500)
+        dispatch({ type: 'server-error' })
+        setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
         return
       }
-      setBurst((b) => b + 1)
-      setConfetti(makeConfetti())
-      setStatus('success')
+      dispatch({ type: 'success', confetti: makeConfetti() })
     } catch {
-      setErrorText(SERVER_ERROR)
-      setStatus('error')
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
+      dispatch({ type: 'server-error' })
+      setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
     }
   }
 
   const reset = () => {
-    setStatus('idle')
-    setEmail('')
+    dispatch({ type: 'reset' })
   }
 
   return (
@@ -94,8 +145,7 @@ export default function WaitingListSignupForm() {
               type="email"
               value={email}
               onChange={(e) => {
-                setEmail(e.target.value)
-                if (status === 'error') setStatus('idle')
+                dispatch({ type: 'email', email: e.target.value })
               }}
               placeholder="founder@yourstartup.com"
               autoComplete="email"
@@ -128,7 +178,7 @@ export default function WaitingListSignupForm() {
               </div>
             </div>
           </div>
-          <button className={styles.linkBtn} onClick={reset}>
+          <button type="button" className={styles.linkBtn} onClick={reset}>
             add another email →
           </button>
         </div>
@@ -159,9 +209,9 @@ export default function WaitingListSignupForm() {
 function Confetti({ pieces }: { pieces: ConfettiPiece[] }) {
   return (
     <div className={styles.confetti}>
-      {pieces.map((p, i) => (
+      {pieces.map((p) => (
         <span
-          key={i}
+          key={p.id}
           style={{
             left: `${p.x}%`,
             width: `${p.s}px`,

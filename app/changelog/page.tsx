@@ -1,7 +1,13 @@
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'Changelog | ClickStudio Starter',
+  description: 'All notable changes to the ClickStudio starter project.',
+}
 
 const changelog = [
   {
@@ -43,16 +49,16 @@ export default async function ChangelogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-zinc-900">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-zinc-950 dark:to-zinc-900">
       {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/80">
+      <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-black px-1 text-white dark:bg-white dark:text-black">click</span>
+              <span className="rounded bg-zinc-950 px-1 text-white dark:bg-white dark:text-black">click</span>
               studio
             </span>
           </Link>
@@ -62,7 +68,7 @@ export default async function ChangelogPage() {
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         <Button variant="ghost" size="sm" asChild className="mb-8">
           <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 size-4" />
             {t('backHome')}
           </Link>
         </Button>
@@ -82,7 +88,7 @@ export default async function ChangelogPage() {
               key={release.version}
               className="relative border-l-2 border-primary/30 pl-8"
             >
-              <div className="absolute -left-3 top-0 h-6 w-6 rounded-full border-4 border-white bg-primary dark:border-zinc-900" />
+              <div className="absolute -left-3 top-0 size-6 rounded-full border-4 border-white bg-primary dark:border-zinc-900" />
 
               <header className="mb-6">
                 <div className="flex items-center gap-3">
@@ -103,20 +109,20 @@ export default async function ChangelogPage() {
               </header>
 
               <div className="space-y-6">
-                {release.changes.map((change, changeIndex) => (
-                  <div key={changeIndex}>
+                {release.changes.map((change) => (
+                  <div key={change.type}>
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase ${typeColors[change.type]}`}
                     >
                       {typeLabels[change.type]}
                     </span>
                     <ul className="mt-3 space-y-2">
-                      {change.items.map((item, itemIndex) => (
+                      {change.items.map((item) => (
                         <li
-                          key={itemIndex}
+                          key={item}
                           className="flex items-start gap-2 text-gray-700 dark:text-gray-300"
                         >
-                          <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400 dark:bg-gray-600" />
+                          <span className="mt-2 size-1.5 flex-shrink-0 rounded-full bg-gray-400 dark:bg-gray-600" />
                           {item}
                         </li>
                       ))}

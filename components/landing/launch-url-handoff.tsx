@@ -21,7 +21,7 @@ export default function LaunchUrlHandoff({
   helper,
   invalidUrl,
 }: LaunchUrlHandoffProps) {
-  const router = useRouter()
+  const { push } = useRouter()
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
 
@@ -30,7 +30,7 @@ export default function LaunchUrlHandoff({
 
     const trimmed = url.trim()
     if (!trimmed) {
-      router.push('/dashboard')
+      push('/dashboard')
       return
     }
 
@@ -41,7 +41,7 @@ export default function LaunchUrlHandoff({
     }
 
     setError('')
-    router.push(`/dashboard?url=${encodeURIComponent(normalized)}`)
+    push(`/dashboard?url=${encodeURIComponent(normalized)}`)
   }
 
   return (
@@ -50,10 +50,11 @@ export default function LaunchUrlHandoff({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="relative block w-full">
             <span className="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-violet-400">
-              <Link2 className="h-4 w-4" />
+              <Link2 className="size-4" />
             </span>
             <input
               value={url}
+              aria-label={placeholder}
               onChange={(event) => {
                 setUrl(event.target.value)
                 if (error) {
@@ -69,7 +70,7 @@ export default function LaunchUrlHandoff({
             className="h-12 shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-white shadow-lg shadow-violet-500/35 hover:from-violet-700 hover:to-fuchsia-600"
           >
             {primaryLabel}
-            <ArrowRight className="ml-1.5 h-4 w-4" />
+            <ArrowRight className="ml-1.5 size-4" />
           </Button>
         </div>
 
@@ -81,7 +82,7 @@ export default function LaunchUrlHandoff({
             className="h-8 justify-start px-0 text-violet-700 hover:bg-transparent hover:text-violet-800"
           >
             <Link href="/dashboard?demo=1&view=results">
-              <PlayCircle className="mr-1.5 h-4 w-4" />
+              <PlayCircle className="mr-1.5 size-4" />
               {secondaryLabel}
             </Link>
           </Button>

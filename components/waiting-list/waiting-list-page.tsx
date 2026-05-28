@@ -38,10 +38,10 @@ const PAIN_POSTS = [
 ]
 
 const PAIN_ROWS = [
-  { speed: 75, dir: 1, items: PAIN_POSTS.slice(0, 8) },
-  { speed: 95, dir: -1, items: PAIN_POSTS.slice(4, 12) },
-  { speed: 65, dir: 1, items: PAIN_POSTS.slice(8, 16) },
-  { speed: 110, dir: -1, items: [...PAIN_POSTS.slice(12), ...PAIN_POSTS.slice(0, 4)] },
+  { id: 'early-launch-pains', speed: 75, dir: 1, items: PAIN_POSTS.slice(0, 8) },
+  { id: 'platform-voice-pains', speed: 95, dir: -1, items: PAIN_POSTS.slice(4, 12) },
+  { id: 'solo-founder-pains', speed: 65, dir: 1, items: PAIN_POSTS.slice(8, 16) },
+  { id: 'media-social-pains', speed: 110, dir: -1, items: [...PAIN_POSTS.slice(12), ...PAIN_POSTS.slice(0, 4)] },
 ]
 
 const TICKER = [
@@ -57,7 +57,8 @@ const TICKER = [
 
 // Decorative starfield. Generated on the server only (this is a server
 // component, so it never re-renders on the client → no hydration mismatch).
-const STARS = Array.from({ length: 70 }, () => ({
+const STARS = Array.from({ length: 70 }, (_, index) => ({
+  id: `star-${index}`,
   x: Math.random() * 100,
   y: Math.random() * 100,
   s: Math.random() * 1.6 + 0.4,
@@ -74,9 +75,9 @@ export default function WaitingListPage() {
         <div className={`${styles.glow} ${styles.glow2}`} />
         <div className={styles.gridBg} />
         <div className={styles.stars}>
-          {STARS.map((s, i) => (
+          {STARS.map((s) => (
             <span
-              key={i}
+              key={s.id}
               style={{
                 left: `${s.x}%`,
                 top: `${s.y}%`,
@@ -138,14 +139,17 @@ export default function WaitingListPage() {
         {/* Right side: founder-pain marquee feed */}
         <section className={styles.right}>
           <div className={styles.painFeed}>
-            {PAIN_ROWS.map((row, i) => (
-              <div className={styles.painRow} key={i}>
+            {PAIN_ROWS.map((row) => (
+              <div className={styles.painRow} key={row.id}>
                 <div
                   className={`${styles.painTrack} ${row.dir === -1 ? styles.dirRev : ''}`}
                   style={{ animationDuration: `${row.speed}s` }}
                 >
-                  {[...row.items, ...row.items].map((p, j) => (
-                    <div className={styles.post} key={j}>
+                  {[
+                    ...row.items.map((post) => ({ post, copy: 'first' })),
+                    ...row.items.map((post) => ({ post, copy: 'second' })),
+                  ].map(({ post: p, copy }) => (
+                    <div className={styles.post} key={`${row.id}-${copy}-${p.tag}-${p.text}`}>
                       <div className={styles.postHead}>
                         <span className={styles.postDot} style={{ background: `oklch(0.62 0.16 ${p.c})` }} />
                         <span className={styles.postTag}>#{p.tag}</span>
@@ -166,10 +170,13 @@ export default function WaitingListPage() {
       <footer className={styles.tickerBar} aria-hidden="true">
         <div className={styles.ticker}>
           <div className={styles.tickerTrack}>
-            {[...TICKER, ...TICKER].map((s, i) => (
-              <span key={i} className={styles.tickerItem}>
+            {[
+              ...TICKER.map((text) => ({ text, copy: 'first' })),
+              ...TICKER.map((text) => ({ text, copy: 'second' })),
+            ].map(({ text, copy }) => (
+              <span key={`${copy}-${text}`} className={styles.tickerItem}>
                 <Sparkle size={8} />
-                <span>{s}</span>
+                <span>{text}</span>
               </span>
             ))}
           </div>

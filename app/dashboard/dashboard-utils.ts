@@ -11,10 +11,10 @@ import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 import { GUEST_PROJECTS_KEY, type TrafficChannelId } from './dashboard-config'
 
 export function splitLines(input: string): string[] {
-  return input
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
+  return input.split(/\r?\n/).flatMap((line) => {
+    const trimmed = line.trim()
+    return trimmed ? [trimmed] : []
+  })
 }
 
 export function splitEditableLines(input: string): string[] {

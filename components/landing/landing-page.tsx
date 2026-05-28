@@ -71,6 +71,7 @@ const launchSurfaceLogos = [
   },
 ] as const
 
+// react-doctor-disable-next-line react-doctor/no-giant-component
 export default async function LandingPage() {
   const t = await getTranslations('Landing')
   const previewBlocks = getDemoPreviewBlocks()
@@ -84,15 +85,15 @@ export default async function LandingPage() {
   return (
     <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-28 -right-20 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-300/60 via-fuchsia-200/45 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-24 h-[360px] w-[360px] rounded-full bg-gradient-to-tr from-purple-300/40 via-violet-200/25 to-transparent blur-3xl" />
+        <div className="absolute -top-28 -right-20 size-[420px] rounded-full bg-gradient-to-br from-violet-300/60 via-fuchsia-200/45 to-transparent blur-3xl" />
+        <div className="absolute top-1/3 -left-24 size-[360px] rounded-full bg-gradient-to-tr from-purple-300/40 via-violet-200/25 to-transparent blur-3xl" />
       </div>
 
       <header className="sticky top-0 z-40 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="h-4 w-4 text-white" />
+            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
+              <Sparkles className="size-4 text-white" />
             </div>
             <div>
               <p className={`${editorialSerif.className} text-lg font-semibold tracking-tight`}>
@@ -133,7 +134,7 @@ export default async function LandingPage() {
         <section id="transformation" className="mx-auto max-w-7xl px-4 pb-20 pt-14 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pt-20">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-              <Newspaper className="h-3.5 w-3.5" />
+              <Newspaper className="size-3.5" />
               {t('hero.badge')}
             </div>
 
@@ -141,7 +142,7 @@ export default async function LandingPage() {
               className={`${editorialSerif.className} mt-5 text-4xl leading-[1.02] tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl`}
             >
               {t('hero.title')}
-              <span className="mt-2 block bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-500 bg-clip-text text-transparent">
+              <span className="mt-2 block text-violet-700">
                 {t('hero.titleHighlight')}
               </span>
             </h1>
@@ -211,7 +212,7 @@ export default async function LandingPage() {
 
             <div>
               <div
-                className="hidden animate-fade-up motion-reduce:animate-none rounded-[1.5rem] border border-violet-100 bg-white px-5 py-5 shadow-sm lg:block"
+                className="hidden animate-fade-up motion-reduce:animate-none rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-sm lg:block"
                 style={{ animationDelay: '220ms' }}
               >
                 <div className="mb-4 flex items-end justify-between">
@@ -353,7 +354,7 @@ export default async function LandingPage() {
             <ul className="mt-6 space-y-2 text-sm text-zinc-700">
               {DEMO_KIT.mediaKit.keyVisualsChecklist.map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                  <Check className="mt-0.5 size-4 shrink-0 text-violet-600" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -368,7 +369,7 @@ export default async function LandingPage() {
               className="mt-5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
             >
               <Link href="/dashboard?demo=1&view=results">
-                <Wand2 className="mr-1.5 h-4 w-4" />
+                <Wand2 className="mr-1.5 size-4" />
                 {t('media.cta')}
               </Link>
             </Button>
@@ -378,7 +379,7 @@ export default async function LandingPage() {
 
       <footer className="border-t border-violet-100 py-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <p>&copy; {new Date().getFullYear()} {t('footer.copyright')}</p>
+          <p>&copy; 2026 {t('footer.copyright')}</p>
           <p>{t('footer.tagline')}</p>
         </div>
       </footer>

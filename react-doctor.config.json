@@ -1,0 +1,38 @@
+{
+  "ignore": {
+    "rules": [
+      "deslop/unused-file"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "package.json"
+        ],
+        "rules": [
+          "deslop/unused-dependency"
+        ]
+      },
+      {
+        "files": [
+          "app/dashboard/dashboard-query-client.tsx"
+        ],
+        "rules": [
+          "react-doctor/nextjs-no-use-search-params-without-suspense",
+          "react-doctor/react-compiler-destructure-method"
+        ]
+      },
+      {
+        "files": [
+          "lib/launch-kit/**"
+        ],
+        "rules": [
+          "react-doctor/js-combine-iterations",
+          "react-doctor/js-flatmap-filter",
+          "react-doctor/async-await-in-loop",
+          "react-doctor/js-hoist-regexp",
+          "react-doctor/js-set-map-lookups"
+        ]
+      }
+    ]
+  }
+}

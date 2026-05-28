@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import {
   BarChart3,
@@ -54,6 +55,7 @@ import {
   isPlaybookChannel,
 } from './dashboard-utils'
 
+// react-doctor-disable-next-line react-doctor/no-giant-component
 export function ResultAssetBrowser({
   brief,
   kit,
@@ -243,9 +245,9 @@ export function ResultAssetBrowser({
                           </span>
                         </span>
                         {isOpen ? (
-                          <ChevronUp className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                          <ChevronUp className="mt-0.5 size-4 shrink-0 text-violet-600" />
                         ) : (
-                          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                          <ChevronDown className="mt-0.5 size-4 shrink-0 text-violet-600" />
                         )}
                       </button>
 
@@ -488,7 +490,7 @@ export function ResultAssetBrowser({
 
 function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
   if (channelId === 'trustmrr' || channelId === 'acquire_com' || channelId === 'flippa') {
-    return <BarChart3 className="h-4 w-4" />
+    return <BarChart3 className="size-4" />
   }
 
   if (
@@ -498,7 +500,7 @@ function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
     channelId === 'geo_llm_visibility' ||
     channelId === 'comparison_alternatives'
   ) {
-    return <Search className="h-4 w-4" />
+    return <Search className="size-4" />
   }
 
   if (
@@ -507,7 +509,7 @@ function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
     channelId === 'email_automation' ||
     channelId === 'newsletter_partnerships'
   ) {
-    return <Mail className="h-4 w-4" />
+    return <Mail className="size-4" />
   }
 
   if (
@@ -516,30 +518,30 @@ function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
     channelId === 'partner_pages' ||
     channelId === 'directory_outreach'
   ) {
-    return <Link2 className="h-4 w-4" />
+    return <Link2 className="size-4" />
   }
 
   if (channelId === 'media_kit' || channelId === 'pr_pitch' || channelId === 'podcast_pitch') {
-    return <FileSpreadsheet className="h-4 w-4" />
+    return <FileSpreadsheet className="size-4" />
   }
 
-  return <Layers3 className="h-4 w-4" />
+  return <Layers3 className="size-4" />
 }
 
 function AssetKindIcon({ assetKind }: { assetKind: LaunchAssetKind }) {
   if (assetKind === 'screenshots') {
-    return <Monitor className="h-4 w-4" />
+    return <Monitor className="size-4" />
   }
 
   if (assetKind === 'image_ads') {
-    return <ImageIcon className="h-4 w-4" />
+    return <ImageIcon className="size-4" />
   }
 
   if (assetKind === 'video_ads') {
-    return <Video className="h-4 w-4" />
+    return <Video className="size-4" />
   }
 
-  return <MessageSquareText className="h-4 w-4" />
+  return <MessageSquareText className="size-4" />
 }
 
 function AssetLibraryPanel({
@@ -651,7 +653,7 @@ function AssetLibraryPanel({
                   disabled={!brief || Boolean(generatingAssetKey)}
                   className="rounded-xl bg-violet-600 text-white hover:bg-violet-700"
                 >
-                  <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+                  <Wand2 className="mr-1.5 size-3.5" />
                   {isGeneratingAsset ? t('results.assets.actions.generating') : t('results.assets.actions.generate')}
                 </Button>
                 <Button
@@ -661,7 +663,7 @@ function AssetLibraryPanel({
                   disabled={!generatedAsset?.prompt}
                   className="border-violet-200 text-violet-700 hover:bg-violet-50"
                 >
-                  <Copy className="mr-1.5 h-3.5 w-3.5" />
+                  <Copy className="mr-1.5 size-3.5" />
                   {copiedKey === `${assetKey}:prompt`
                     ? t('results.assets.actions.copied')
                     : t('results.assets.actions.copyPrompt')}
@@ -673,7 +675,7 @@ function AssetLibraryPanel({
                     onClick={() => void copyValue(`${assetKey}:text`, generatedAsset.outputText)}
                     className="border-violet-200 text-violet-700 hover:bg-violet-50"
                   >
-                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    <Copy className="mr-1.5 size-3.5" />
                     {copiedKey === `${assetKey}:text`
                       ? t('results.assets.actions.copied')
                       : t('results.assets.actions.copyText')}
@@ -687,7 +689,7 @@ function AssetLibraryPanel({
                     className="border-violet-200 text-violet-700 hover:bg-violet-50"
                   >
                     <a href={generatedAsset.outputUrl} target="_blank" rel="noreferrer">
-                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                      <ExternalLink className="mr-1.5 size-3.5" />
                       {t('results.assets.actions.openOutput')}
                     </a>
                   </Button>
@@ -718,7 +720,7 @@ function GeneratedAssetPreview({
 
   if (asset.status === 'failed') {
     return (
-      <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-sm text-rose-700">
+      <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
         {asset.error || t('results.assets.labels.failed')}
       </div>
     )
@@ -727,8 +729,15 @@ function GeneratedAssetPreview({
   if (asset.mediaType === 'image' && asset.outputUrl) {
     return (
       <div className="mt-4 overflow-hidden rounded-xl border border-violet-100 bg-zinc-950">
-        {/* eslint-disable-next-line @next/next/no-img-element -- Generated preview URLs can have arbitrary dimensions. */}
-        <img src={asset.outputUrl} alt={asset.title} className="h-auto w-full object-cover" />
+        <Image
+          src={asset.outputUrl}
+          alt={asset.title}
+          width={1200}
+          height={675}
+          sizes="(min-width: 1280px) 50vw, 100vw"
+          unoptimized
+          className="h-auto w-full object-cover"
+        />
       </div>
     )
   }
@@ -736,7 +745,9 @@ function GeneratedAssetPreview({
   if (asset.mediaType === 'video' && asset.outputUrl) {
     return (
       <div className="mt-4 overflow-hidden rounded-xl border border-violet-100 bg-zinc-950">
-        <video src={asset.outputUrl} controls className="h-auto w-full" />
+        <video src={asset.outputUrl} controls className="h-auto w-full" aria-label={asset.title}>
+          <track kind="captions" label="Captions" srcLang="en" />
+        </video>
       </div>
     )
   }
@@ -753,7 +764,7 @@ function GeneratedAssetPreview({
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-3 text-sm text-violet-700">
+    <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-sm text-violet-700">
       {t('results.assets.labels.generated')}
     </div>
   )
@@ -797,7 +808,7 @@ function SeoAnalysisChannelPanel({
           disabled={isSeoActionRunning}
           className="border-violet-200 text-violet-700 hover:bg-violet-50"
         >
-          <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
+          <BarChart3 className="mr-1.5 size-3.5" />
           {t('growth.seo.actions.analyze')}
         </Button>
       </div>
@@ -926,7 +937,7 @@ function BlogCadenceChannelPanel({
             disabled={isSeoActionRunning}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <BookOpenText className="mr-1.5 h-3.5 w-3.5" />
+            <BookOpenText className="mr-1.5 size-3.5" />
             {t('growth.seo.actions.blog')}
           </Button>
         </div>
@@ -996,7 +1007,7 @@ function GeoVisibilityChannelPanel({
           onClick={onRunSeoAnalysis}
           className="border-violet-200 text-violet-700 hover:bg-violet-50"
         >
-          <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
+          <BarChart3 className="mr-1.5 size-3.5" />
           {t('growth.seo.actions.analyze')}
         </Button>
       </div>
@@ -1065,7 +1076,7 @@ function EmailContactsChannelPanel({
             disabled={isEmailActionRunning}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Search className="mr-1.5 h-3.5 w-3.5" />
+            <Search className="mr-1.5 size-3.5" />
             {t('results.email.scrapeAction')}
           </Button>
           <Button
@@ -1076,7 +1087,7 @@ function EmailContactsChannelPanel({
             disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Mail className="mr-1.5 h-3.5 w-3.5" />
+            <Mail className="mr-1.5 size-3.5" />
             {t('results.email.buildListAction')}
           </Button>
         </div>
@@ -1113,10 +1124,11 @@ function EmailImportChannelPanel({
       <p className="mt-1 text-xs text-zinc-600">{t('results.email.importDescription')}</p>
       <textarea
         value={value}
+        aria-label={t('results.channels.email_import_list.title')}
         onChange={(event) => onChange(event.target.value)}
         placeholder={t('results.email.importPlaceholder')}
         rows={9}
-        className="mt-3 w-full rounded-xl border border-violet-200 bg-violet-50/30 px-3 py-2 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
+        className="mt-3 w-full rounded-xl border border-violet-200 bg-violet-50/30 px-3 py-2 text-sm text-violet-950 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
       />
       <div className="mt-3 flex justify-end">
         <Button
@@ -1125,7 +1137,7 @@ function EmailImportChannelPanel({
           disabled={isEmailActionRunning}
           className="rounded-xl bg-violet-600 text-white shadow-md shadow-violet-500/25 hover:bg-violet-700"
         >
-          <ListPlus className="mr-2 h-4 w-4" />
+          <ListPlus className="mr-2 size-4" />
           {t('results.email.importAction')}
         </Button>
       </div>
@@ -1196,7 +1208,7 @@ function EmailAutomationChannelPanel({
               disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
               className="border-violet-200 text-violet-700 hover:bg-violet-50"
             >
-              <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+              <Wand2 className="mr-1.5 size-3.5" />
               {t('results.email.personalizeAction')}
             </Button>
             <Button
@@ -1207,7 +1219,7 @@ function EmailAutomationChannelPanel({
               disabled={isEmailActionRunning || kit.prospecting.leads.length === 0}
               className="border-violet-200 text-violet-700 hover:bg-violet-50"
             >
-              <Send className="mr-1.5 h-3.5 w-3.5" />
+              <Send className="mr-1.5 size-3.5" />
               {t('results.email.sendAction')}
             </Button>
           </div>
@@ -1298,9 +1310,10 @@ function LeadTable({
               <td className="px-3 py-2 align-top">
                 <input
                   type="checkbox"
+                  aria-label={`${t('growth.prospecting.headers.select')} ${lead.name || lead.company}`}
                   checked={selectedLeadIds.includes(lead.id)}
                   onChange={() => onToggleLead(lead.id)}
-                  className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600"
+                  className="mt-1 size-4 rounded border-violet-300 text-violet-600"
                 />
               </td>
               <td className="px-3 py-2 align-top">
@@ -1400,7 +1413,7 @@ function BacklinkChannelPanel({
             disabled={isSeoActionRunning}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Link2 className="mr-1.5 h-3.5 w-3.5" />
+            <Link2 className="mr-1.5 size-3.5" />
             {t('growth.seo.actions.backlinks')}
           </Button>
           <Button
@@ -1411,7 +1424,7 @@ function BacklinkChannelPanel({
             disabled={isSeoActionRunning || !hasBacklinkProspects}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Mail className="mr-1.5 h-3.5 w-3.5" />
+            <Mail className="mr-1.5 size-3.5" />
             {t('growth.seo.actions.personalizeEmails')}
           </Button>
           <Button
@@ -1422,7 +1435,7 @@ function BacklinkChannelPanel({
             disabled={isSeoActionRunning || !hasBacklinkProspects}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Send className="mr-1.5 h-3.5 w-3.5" />
+            <Send className="mr-1.5 size-3.5" />
             {t('growth.seo.actions.sendEmails')}
           </Button>
           <Button
@@ -1433,7 +1446,7 @@ function BacklinkChannelPanel({
             disabled={isSeoActionRunning || !hasBacklinkProspects}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />
+            <FileSpreadsheet className="mr-1.5 size-3.5" />
             {t('growth.seo.actions.exportBacklinks')}
           </Button>
         </div>
@@ -1445,6 +1458,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.filters.search')}>
               <input
                 value={search}
+                aria-label={t('growth.seo.backlinks.filters.search')}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder={t('growth.seo.backlinks.filters.searchPlaceholder')}
                 className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
@@ -1453,6 +1467,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.filters.list')}>
               <select
                 value={listFilter}
+                aria-label={t('growth.seo.backlinks.filters.list')}
                 onChange={(event) => onListFilterChange(event.target.value)}
                 className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
               >
@@ -1467,6 +1482,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.filters.maxCost')}>
               <input
                 value={maxCost}
+                aria-label={t('growth.seo.backlinks.filters.maxCost')}
                 onChange={(event) => onMaxCostChange(event.target.value)}
                 inputMode="numeric"
                 className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
@@ -1475,6 +1491,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.filters.minTraffic')}>
               <input
                 value={minTraffic}
+                aria-label={t('growth.seo.backlinks.filters.minTraffic')}
                 onChange={(event) => onMinTrafficChange(event.target.value)}
                 inputMode="numeric"
                 className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
@@ -1483,6 +1500,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.filters.minValue')}>
               <input
                 value={minValue}
+                aria-label={t('growth.seo.backlinks.filters.minValue')}
                 onChange={(event) => onMinValueChange(event.target.value)}
                 inputMode="numeric"
                 className="w-full rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
@@ -1494,6 +1512,7 @@ function BacklinkChannelPanel({
             <FilterField label={t('growth.seo.backlinks.listName')}>
               <input
                 value={listName}
+                aria-label={t('growth.seo.backlinks.listName')}
                 onChange={(event) => onListNameChange(event.target.value)}
                 placeholder={t('growth.seo.backlinks.listPlaceholder')}
                 className="w-full min-w-[220px] rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-violet-400"
@@ -1507,7 +1526,7 @@ function BacklinkChannelPanel({
               disabled={isSeoActionRunning || selectedProspectIds.length === 0}
               className="border-violet-200 text-violet-700 hover:bg-violet-50"
             >
-              <ListPlus className="mr-1.5 h-3.5 w-3.5" />
+              <ListPlus className="mr-1.5 size-3.5" />
               {t('growth.seo.backlinks.addToList', { count: selectedProspectIds.length })}
             </Button>
             <p className="pb-1 text-xs text-zinc-500">
@@ -1538,9 +1557,10 @@ function BacklinkChannelPanel({
                   <td className="px-3 py-2 align-top">
                     <input
                       type="checkbox"
+                      aria-label={`${t('growth.seo.backlinks.headers.select')} ${prospect.title}`}
                       checked={selectedProspectIds.includes(prospect.id)}
                       onChange={() => onToggleProspect(prospect.id)}
-                      className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600"
+                      className="mt-1 size-4 rounded border-violet-300 text-violet-600"
                     />
                   </td>
                   <td className="px-3 py-2 align-top">
@@ -1644,7 +1664,7 @@ function MediaKitChannelPanel({
             onClick={onExportMarkdown}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />
+            <FileSpreadsheet className="mr-1.5 size-3.5" />
             {labels.exportMarkdown}
           </Button>
           <Button
@@ -1653,7 +1673,7 @@ function MediaKitChannelPanel({
             onClick={onOpenPressPack}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+            <ExternalLink className="mr-1.5 size-3.5" />
             {labels.openPressPack}
           </Button>
         </div>
@@ -1713,7 +1733,7 @@ function TrafficPlaybookPanel({
             className="shrink-0 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             <Link href={websiteUrl} target="_blank" rel="noreferrer">
-              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+              <ExternalLink className="mr-1.5 size-3.5" />
               {t('results.marketplaces.openWebsite')}
             </Link>
           </Button>
@@ -1805,7 +1825,7 @@ function PlatformBlockPanel({
             onClick={onCopy}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Copy className="mr-1.5 h-3.5 w-3.5" />
+            <Copy className="mr-1.5 size-3.5" />
             {labels.copy}
           </Button>
           <Button
@@ -1815,7 +1835,7 @@ function PlatformBlockPanel({
             disabled={isGenerating}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+            <Wand2 className="mr-1.5 size-3.5" />
             {labels.regenerate}
           </Button>
         </div>
@@ -1886,7 +1906,7 @@ function SubredditRecommendationList({
               className="inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:text-violet-900"
             >
               {recommendation.name}
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="size-3" />
             </a>
             <p className="mt-1 text-xs leading-relaxed text-zinc-600">
               <span className="font-semibold text-zinc-700">{labels.reason}:</span> {recommendation.reason}
@@ -1945,7 +1965,7 @@ function GrowthBlockPanel({
             onClick={onCopy}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Copy className="mr-1.5 h-3.5 w-3.5" />
+            <Copy className="mr-1.5 size-3.5" />
             {labels.copy}
           </Button>
           <Button
@@ -1955,7 +1975,7 @@ function GrowthBlockPanel({
             disabled={isGenerating}
             className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+            <Wand2 className="mr-1.5 size-3.5" />
             {labels.regenerate}
           </Button>
         </div>

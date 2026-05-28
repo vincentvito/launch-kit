@@ -6,7 +6,7 @@ export function StepStatusPill({ status, labels }: { status: StepStatus; labels:
   if (status === 'locked') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-600">
-        <Lock className="h-3 w-3" />
+        <Lock className="size-3" />
         {labels.locked}
       </span>
     )
@@ -22,7 +22,7 @@ export function StepStatusPill({ status, labels }: { status: StepStatus; labels:
 
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
-      <CheckCircle2 className="h-3 w-3" />
+      <CheckCircle2 className="size-3" />
       {labels.complete}
     </span>
   )
@@ -45,6 +45,7 @@ export function Field({ label, value, onChange, onBlur, multiline = false }: Fie
       {multiline ? (
         <textarea
           value={value}
+          aria-label={label}
           onChange={(event) => onChange(event.target.value)}
           onBlur={(event) => onBlur?.(event.target.value)}
           rows={4}
@@ -53,6 +54,7 @@ export function Field({ label, value, onChange, onBlur, multiline = false }: Fie
       ) : (
         <input
           value={value}
+          aria-label={label}
           onChange={(event) => onChange(event.target.value)}
           onBlur={(event) => onBlur?.(event.target.value)}
           className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-zinc-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40"
@@ -106,7 +108,7 @@ export function FilterField({ label, children }: { label: string; children: Reac
   return (
     <label className="block text-xs">
       <span className="mb-1 flex items-center gap-1 font-semibold text-violet-700">
-        <Filter className="h-3 w-3" />
+        <Filter className="size-3" />
         {label}
       </span>
       {children}

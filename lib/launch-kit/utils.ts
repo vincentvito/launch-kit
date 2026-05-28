@@ -1,14 +1,19 @@
 import { PLATFORM_IDS, type MediaKitContact, type PlatformBlockId } from '@/lib/launch-kit/types'
 
 export function toNonEmptyLines(input: string): string[] {
-  return input
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
+  return input.split(/\r?\n/).flatMap((line) => {
+    const trimmed = line.trim()
+    return trimmed ? [trimmed] : []
+  })
 }
 
 export function dedupe(values: string[]): string[] {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+  const trimmedValues = values.flatMap((value) => {
+    const trimmed = value.trim()
+    return trimmed ? [trimmed] : []
+  })
+
+  return [...new Set(trimmedValues)]
 }
 
 export function safeJsonParse<T>(value: string, fallback: T): T {

@@ -5,13 +5,13 @@ import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 
 export default function LanguageSwitcher({ currentLocale }: { currentLocale: string }) {
-  const router = useRouter()
+  const { refresh } = useRouter()
   const [isPending, startTransition] = useTransition()
 
   const switchLocale = (locale: string) => {
     document.cookie = `locale=${locale};path=/;max-age=31536000`
     startTransition(() => {
-      router.refresh()
+      refresh()
     })
   }
 
