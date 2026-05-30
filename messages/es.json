@@ -24,7 +24,7 @@
   "WaitingList": {
     "meta": {
       "title": "shipdaddy — join the launch crew",
-      "description": "Your post-launch cofounder. Automate onboarding, emails, notifications, analytics, support and launch ops after your app goes live. You ship it. We handle the chaos."
+      "description": "Convierte una URL de producto en un launch kit enfocado, y desbloquea SEO, outreach, demos y assets creativos con Premium."
     },
     "nav": {
       "brand": "Launch Kit",
@@ -37,12 +37,50 @@
       "description": "Estamos dando los ultimos retoques a Launch Kit. Unete a la lista de espera para acceso anticipado cuando abramos."
     },
     "form": {
-      "placeholder": "tu@empresa.com",
-      "submit": "Unirme a la lista",
-      "helper": "Sin spam. Un email cuando abra el acceso anticipado.",
-      "invalidEmail": "Ingresa un email valido.",
+      "placeholder": "founder@tustartup.com",
+      "submit": "Ver muestra",
+      "helper": "Ingresa un email para desbloquear la muestra generada de ShipDaddy.",
+      "invalidEmail": "Ese email no parece valido. Intentalo de nuevo.",
       "success": "Ya estas en la lista. Te escribiremos cuando abra el acceso anticipado.",
-      "error": "Algo salio mal. Intentalo de nuevo."
+      "error": "Algo salio mal. Intentalo de nuevo.",
+      "stats": {
+        "launchChannels": {
+          "n": "6",
+          "label": "outputs principales"
+        },
+        "seo": {
+          "n": "Premium",
+          "label": "growth desbloqueado"
+        },
+        "outreach": {
+          "n": "1",
+          "label": "brief enfocado"
+        }
+      }
+    },
+    "sample": {
+      "unlocked": "Muestra desbloqueada",
+      "generatedFor": "Launch kit generado para ShipDaddy",
+      "subtitle": "Esta es la promesa exacta: dale a ShipDaddy una URL de producto y revisa primero el launch kit gratis. Premium desbloquea SEO, backlinks, outreach, Product Demo y assets creativos desde el mismo brief.",
+      "inputUrl": "URL de entrada",
+      "contentYouGet": "Contenido que recibes",
+      "contentSummary": "Launch kit gratis primero. Sistema de growth premium cuando estes listo.",
+      "channels": "Canales generados",
+      "generatedCopy": "Copy generado",
+      "mediaAssets": "Assets visuales",
+      "seoPlan": "SEO",
+      "subreddits": "Subreddits",
+      "outreach": "Outreach",
+      "mediaKit": "Media kit",
+      "cta": "CTA",
+      "notes": "Por que funciona",
+      "savedFor": "Preview guardada para",
+      "generatedSystem": "Contenido de launch generado",
+      "xPosts": "Posts para X",
+      "redditPost": "Post para Reddit",
+      "prospects": "Prospects premium",
+      "productDemo": "Product Demo",
+      "fullResults": "Resultados generados completos"
     },
     "highlights": {
       "one": {
@@ -66,22 +104,23 @@
   "Landing": {
     "meta": {
       "title": "Launch Kit — Motor editorial de lanzamientos",
-      "description": "Convierte una URL de producto en un kit de lanzamiento multicanal completo."
+      "description": "Convierte una URL de producto en un launch kit util, y desbloquea SEO, backlinks, outreach y assets creativos con Premium."
     },
     "nav": {
       "brand": "Launch Kit",
       "sub": "Motor editorial de lanzamientos para builders",
       "proof": "Transformacion",
       "voices": "Voces",
-      "media": "Media Kit",
+      "media": "Growth",
+      "pricing": "Precios",
       "signIn": "Iniciar sesion",
       "getStarted": "Dashboard"
     },
     "hero": {
       "badge": "Mostrar, no contar",
       "title": "De una URL de producto a",
-      "titleHighlight": "una narrativa completa de lanzamiento",
-      "description": "Launch Kit extrae tu brief y lo reescribe para el contrato social de cada plataforma. Puedes ver la transformacion antes de escribir nada.",
+      "titleHighlight": "un launch kit util",
+      "description": "Launch Kit extrae tu brief, escribe el copy principal de launch, sugiere angulos para Reddit y empaqueta un media kit ligero. Premium agrega el trabajo de growth: SEO, backlinks, outreach y assets creativos.",
       "urlPlaceholder": "Pega la URL de tu producto (por ejemplo, https://tuproducto.com)",
       "ctaPrimary": "Probar con tu URL",
       "ctaSecondary": "Ver kit de ejemplo completo",
@@ -96,10 +135,12 @@
       "socialContract": "Una voz distinta por plataforma",
       "swipeHint": "Desliza",
       "voice": {
+        "productHunt": "PH: Claro + orientado a beneficio",
         "hackerNews": "HN: Humilde + tecnico",
         "reddit": "Reddit: Conversacional + transparente",
         "linkedin": "LinkedIn: Profesional + humano",
-        "tiktok": "TikTok: Hook inicial + ritmo visual"
+        "tiktok": "TikTok: Hook inicial + ritmo visual",
+        "email": "Email: Directo + escaneable"
       },
       "brief": {
         "productName": "Nombre del Producto",
@@ -143,29 +184,88 @@
     },
     "generated": {
       "label": "Que se genera",
-      "title": "Todo lo necesario para launch day",
-      "description": "Un solo brief confirmado alimenta todos los canales clave para lanzar una vez y distribuir con confianza.",
+      "title": "El kit gratis se mantiene enfocado",
+      "description": "Un brief confirmado alimenta los assets principales que los founders publican primero.",
       "items": {
         "productHunt": "Headline de listing y comentario del maker",
         "hn": "Borrador Show HN con tono humilde",
-        "reddit": "Texto listo para subreddit y CTA",
+        "reddit": "Post listo para Reddit y recomendaciones de subreddits",
+        "x": "Post de launch para X y angulos de thread",
         "indie": "Narrativa de lanzamiento build-in-public",
         "linkedin": "Post profesional con senales de prueba",
-        "video": "Scripts hook/historia/cierre para video corto",
-        "email": "Borrador de email de anuncio",
-        "press": "Media kit y pagina de press pack imprimible"
+        "video": "Variantes short-form disponibles en Premium",
+        "email": "Email de anuncio de launch",
+        "press": "Media kit basico y exports de press pack"
       }
     },
     "media": {
-      "label": "Media Kit Creator",
-      "title": "Assets de prensa incluidos por defecto",
-      "description": "El mismo brief tambien genera activos utiles para periodistas y una pagina de press pack lista para imprimir.",
-      "pressPackNote": "Exporta Markdown para tus flujos de distribucion y abre el press pack en el navegador para Guardar como PDF.",
-      "cta": "Abrir ruta del press pack de ejemplo"
+      "label": "Growth premium",
+      "title": "Premium convierte launch en growth",
+      "description": "El mismo brief puede desbloquear acciones SEO, planning de backlinks, prospecting, secuencias de outreach, Product Demo y assets creativos reutilizables.",
+      "pressPackNote": "Revisa el trabajo generado, copia lo que necesites y publica desde el dashboard cuando el canal este listo.",
+      "cta": "Abrir dashboard de crecimiento de ejemplo",
+      "items": {
+        "seoActions": "Mejoras SEO, keywords e ideas para paginas comparativas",
+        "productDemo": "Script de Product Demo y beats de walkthrough desde la URL del producto",
+        "prospectLists": "Listas de prospects premium y drafts de outreach revisables",
+        "outreachVariants": "Borradores personalizados para LinkedIn, X y email",
+        "socialContent": "Posts sociales reutilizables y angulos de short-form content",
+        "reviewQueue": "Una cola unica para copiar, editar y publicar"
+      }
     },
     "footer": {
       "copyright": "Launch Kit. Todos los derechos reservados.",
-      "tagline": "Convierte una URL de producto en un kit de lanzamiento multicanal completo."
+      "tagline": "Gratis: una URL a launch kit. Premium: SEO, backlinks, outreach y assets creativos."
+    }
+  },
+  "Pricing": {
+    "meta": {
+      "title": "Precios | Launch Kit",
+      "description": "Precios simples para Launch Kit: copy de launch gratis, sistemas de growth premium."
+    },
+    "nav": {
+      "label": "Precios",
+      "back": "Volver al inicio",
+      "dashboard": "Abrir dashboard"
+    },
+    "hero": {
+      "eyebrow": "Packaging simple",
+      "title": "Empieza con el launch kit. Sube de plan para el growth engine.",
+      "description": "El tier gratis prueba el flujo URL-a-brief y da copy de launch util. Premium se reserva para el trabajo que compone: SEO, backlinks, outreach, Product Demo y assets creativos."
+    },
+    "plans": {
+      "free": {
+        "name": "Gratis",
+        "price": "$0",
+        "cadence": "por launch kit",
+        "description": "Usa una URL para generar el launch kit enfocado.",
+        "cta": "Empezar gratis",
+        "items": [
+          "Ingesta de URL y brief editable",
+          "Copy para Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers y email",
+          "Recomendaciones de subreddits",
+          "Media kit basico con one-liner, boilerplate, bio y borrador de press release",
+          "Copiar bloques, export Markdown y export press pack"
+        ]
+      },
+      "premium": {
+        "name": "Drive More Traffic",
+        "price": "$29",
+        "cadence": "por mes",
+        "description": "Convierte el mismo brief en un sistema repetible de growth.",
+        "cta": "Subir de plan cuando este listo",
+        "items": [
+          "Analisis SEO, keyword research, cadencia de blog, GEO y paginas comparativas",
+          "Prospects de backlinks, scoring, listas, guest posts, partner pages y directory outreach",
+          "Prospect scraping, listas de email, outreach personalizado y follow-up sequences",
+          "Scripts de Product Demo y walkthrough beats",
+          "Screenshots, image ads, video ads y text ads generados"
+        ]
+      }
+    },
+    "note": {
+      "title": "Intencionalmente pequeno",
+      "description": "Los flujos de marketplaces, partnerships de newsletters, podcast pitching y envio automatico de emails quedan diferidos para que la app siga siendo facil de entender y confiar."
     }
   },
   "Changelog": {
@@ -183,7 +283,7 @@
     "viewGithub": "Ver historial completo en GitHub"
   },
   "LaunchKit": {
-    "tagline": "Una URL, todos tus canales de lanzamiento",
+    "tagline": "Launch kit gratis, growth engine premium",
     "signOut": "Cerrar sesion",
     "signIn": "Iniciar sesion",
     "workflowHeader": {
@@ -239,6 +339,26 @@
       "copyBlock": "Copiar",
       "regenerateBlock": "Regenerar"
     },
+    "plans": {
+      "badges": {
+        "free": "Gratis",
+        "premium": "Premium"
+      },
+      "paywall": {
+        "cta": "Ver precios",
+        "channelDescription": "{feature} es parte de Premium. Genera primero el launch kit gratis y sube de plan cuando quieras trabajo de growth desde el mismo brief.",
+        "assetDescription": "{feature} es un asset creativo Premium. Sube de plan cuando quieras convertir tu brief en ads y demos reutilizables.",
+        "utilitySeoDescription": "Keyword research y planning SEO quedan bloqueados en el tier gratis para mantener el editor enfocado en copy de launch.",
+        "bullets": {
+          "seo": "Planning SEO, clusters de keywords, cadencia de blog, GEO y paginas comparativas.",
+          "outreach": "Prospect scraping, listas de email y outreach personalizado para LinkedIn, X y email.",
+          "assets": "Oportunidades de backlinks, guest posts, partner pages y directory outreach.",
+          "creative": "Screenshots generados, image ads, video ads y text ads desde tu brief confirmado.",
+          "demo": "Scripts de Product Demo y beats de walkthrough para contenido short-form.",
+          "exports": "Mantiene el workflow gratis de copy/export y agrega assets premium cuando el launch necesita escala."
+        }
+      }
+    },
     "extractionFeedback": {
       "readingSite": "Leyendo la estructura del sitio",
       "extractingConcept": "Extrayendo el concepto del producto",
@@ -276,6 +396,7 @@
       "positioning": "Posicionamiento",
       "icp": "Perfil de Cliente Ideal",
       "targetUsers": "Usuarios Objetivo (uno por linea)",
+      "voiceGuide": "Guia de Voz",
       "painPoints": "Dolores (uno por linea)",
       "valueProps": "Propuestas de Valor (una por linea)",
       "keyClaims": "Mensajes Clave (uno por linea)",
@@ -293,6 +414,11 @@
       "outlineLabel": "Esquema",
       "clusterLabel": "Cluster",
       "metaLabel": "Meta",
+      "formatLabel": "Formato",
+      "stageLabel": "Etapa",
+      "proofPointLabel": "Punto de prueba",
+      "socialContractLabel": "Contrato social",
+      "qualityChecksLabel": "Checks de calidad",
       "copyCtaPrefix": "CTA",
       "copyNotesPrefix": "Notas",
       "tabsAriaLabel": "Pestanas de salidas generadas",
@@ -345,34 +471,38 @@
     },
     "results": {
       "title": "Canales y Assets",
-      "subtitle": "Explora canales de trafico por fuente: launch platforms, social, SEO y busqueda AI, email, autoridad y partnerships.",
+      "subtitle": "Usa primero el launch kit gratis y desbloquea growth, outreach y assets creativos premium cuando necesites mas distribucion.",
       "sidebar": {
         "channels": "Canales",
         "assets": "Assets"
       },
       "channelGroups": {
         "launch_platforms": {
-          "title": "Launch Platforms",
-          "description": "Consigue atencion en comunidades de lanzamiento."
+          "title": "Launch Kit Gratis",
+          "description": "El copy principal y exports que recibes despues de ingerir la URL."
         },
         "marketplaces": {
           "title": "Marketplaces",
           "description": "Lista donde founders, compradores y operadores comparan startups."
         },
         "social_community": {
-          "title": "Social & Community",
-          "description": "Convierte el lanzamiento en posts nativos."
+          "title": "Variantes Sociales Premium",
+          "description": "Formatos sociales extra para equipos que escalan el launch."
+        },
+        "outbound": {
+          "title": "Outreach Premium",
+          "description": "Encuentra prospects y prepara outreach personalizado."
         },
         "seo_ai_search": {
-          "title": "SEO & AI Search",
+          "title": "SEO & AI Search Premium",
           "description": "Captura trafico duradero desde buscadores y LLMs."
         },
         "email": {
-          "title": "Email",
-          "description": "Encuentra contactos, importa listas y simula envios."
+          "title": "Listas de Email Premium",
+          "description": "Encuentra contactos, importa listas y previsualiza secuencias."
         },
         "authority_backlinks": {
-          "title": "Authority & Backlinks",
+          "title": "Backlinks Premium",
           "description": "Crea trafico referido y confianza de dominio."
         },
         "press_partnerships": {
@@ -388,13 +518,17 @@
         "trustmrr": { "title": "TrustMRR", "description": "Marketplace de startups con revenue verificado" },
         "acquire_com": { "title": "Acquire.com", "description": "Marketplace de adquisicion de startups" },
         "flippa": { "title": "Flippa", "description": "Marketplace de negocios online" },
-        "x": { "title": "X", "description": "Outreach corto" },
+        "x": { "title": "X", "description": "Posts build-in-public" },
         "linkedin": { "title": "LinkedIn", "description": "Post profesional" },
         "threads": { "title": "Threads", "description": "Thread casual de lanzamiento" },
         "reddit": { "title": "Reddit", "description": "Post de comunidad" },
         "instagram": { "title": "Instagram", "description": "Plan visual de lanzamiento" },
         "tiktok": { "title": "TikTok", "description": "Script de video corto" },
         "youtube_shorts": { "title": "YouTube Shorts", "description": "Script de video corto" },
+        "email_announcement": { "title": "Anuncio por Email", "description": "Email de launch" },
+        "linkedin_outreach": { "title": "Outreach en LinkedIn", "description": "Variantes de cold DM" },
+        "x_outreach": { "title": "Outreach en X", "description": "Variantes de cold DM" },
+        "cold_email_outreach": { "title": "Cold Email Outreach", "description": "Variantes de email" },
         "website_seo": { "title": "Website SEO", "description": "Checks tecnicos y de contenido" },
         "keyword_research": { "title": "Keyword Research", "description": "Clusters de busqueda" },
         "blog_cadence": { "title": "Blog Cadence", "description": "Un post cada 4 dias" },
@@ -602,6 +736,7 @@
       "outputs": {
         "title": "Salidas de Growth",
         "subtitle": "Assets de plataforma y outreach con regeneracion por pestana.",
+        "emptyChannelPack": "Todavia no hay tarjetas nativas de canal.",
         "emptyOutreach": "Todavia no hay variantes de outreach.",
         "emptySeo": "Todavia no hay packs SEO."
       },
@@ -716,6 +851,7 @@
         "positioning": "Posicionamiento",
         "icp": "ICP",
         "targetUsers": "Usuarios Objetivo",
+        "voiceGuide": "Guia de Voz",
         "painPoints": "Dolores",
         "valueProps": "Propuestas de Valor",
         "proofPoints": "Pruebas",
@@ -726,6 +862,7 @@
         "keywords": "Keywords",
         "contentAngles": "Angulos de Contenido",
         "platformBlocks": "Bloques de Plataforma",
+        "channelPacks": "Packs Nativos de Canal",
         "mediaKit": "Media Kit",
         "growthAssets": "Assets de Growth",
         "noSubject": "Sin asunto",
@@ -753,6 +890,8 @@
       "briefReady": "Brief extraido. Revisa campos antes de generar.",
       "kitGenerated": "Launch kit generado correctamente.",
       "blockRegenerated": "Bloque regenerado correctamente.",
+      "channelPackRegenerated": "Pack de canal regenerado correctamente.",
+      "channelCardRegenerated": "Tarjeta de canal regenerada correctamente.",
       "growthBlockRegenerated": "Bloque de growth regenerado correctamente.",
       "assetGenerated": "Asset generado correctamente.",
       "savedCloud": "Proyecto guardado en tu cuenta.",
@@ -760,6 +899,7 @@
       "loadedCloud": "Proyecto cargado desde la nube.",
       "loadedLocal": "Proyecto cargado desde almacenamiento local.",
       "blockCopied": "Bloque de {platform} copiado al portapapeles.",
+      "channelCardCopied": "Tarjeta de {channel} copiada al portapapeles.",
       "urlPrefilled": "URL precargada desde la landing. Extrae cuando quieras.",
       "demoLoaded": "Kit de ejemplo cargado. Puedes editar o regenerar cualquier bloque.",
       "leadsExported": "CSV de leads exportado.",

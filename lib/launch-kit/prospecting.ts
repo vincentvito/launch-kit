@@ -696,7 +696,7 @@ function createSerpApiProvider(apiKey: string): DiscoveryProvider {
 
 function buildFollowUpSequences(brief: ExtractedBrief): FollowUpSequence[] {
   const valueProp = brief.valueProps[0] || brief.positioning
-  const proof = brief.proofPoints[0] || 'channel-specific launch drafts generated from one brief'
+  const proof = brief.proofPoints[0] || 'Proof to add before sending: a sourced metric, customer example, testimonial, or concrete product evidence.'
 
   return [
     {

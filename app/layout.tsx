@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ClickStudio Starter",
-  description: "ClickStudio's standard Next.js starter — Auth, i18n, Database, and UI Components, ready to build on.",
+  title: "Launch Kit",
+  description: "Turn one product URL into launch copy, exports, and premium growth assets.",
 };
 
 export default async function RootLayout({

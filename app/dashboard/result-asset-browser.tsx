@@ -15,6 +15,7 @@ import {
   Layers3,
   Link2,
   ListPlus,
+  Lock,
   Mail,
   MessageSquareText,
   Monitor,
@@ -26,6 +27,8 @@ import {
 import { Button } from '@/components/ui/button'
 import {
   type BacklinkProspectStatus,
+  type ChannelCard,
+  type ChannelPackId,
   type ExtractedBrief,
   type GeneratedLaunchAsset,
   type GrowthBlockId,
@@ -41,6 +44,8 @@ import {
   DEFAULT_OPEN_TRAFFIC_GROUPS,
   MARKETPLACE_CHANNEL_URLS,
   TRAFFIC_CHANNEL_GROUPS,
+  isPremiumAssetKind,
+  isPremiumTrafficChannel,
   type ResultBrowserSection,
   type TrafficChannelGroupId,
   type TrafficChannelId,
@@ -50,6 +55,7 @@ import { FilterField, MediaField } from './dashboard-ui'
 import {
   formatCost,
   formatTraffic,
+  getChannelPackIdForTrafficChannel,
   getGrowthBlockIdForTrafficChannel,
   getPlatformBlockIdForTrafficChannel,
   isPlaybookChannel,
@@ -66,6 +72,9 @@ export function ResultAssetBrowser({
   onAssetKindChange,
   onGenerateAsset,
   generatingAssetKey,
+  onCopyChannelCard,
+  onUpdateChannelCard,
+  onRegenerateChannelCard,
   onCopyPlatformBlock,
   onRegeneratePlatformBlock,
   onCopyGrowthBlock,
@@ -120,6 +129,13 @@ export function ResultAssetBrowser({
   onAssetKindChange: (assetKind: LaunchAssetKind) => void
   onGenerateAsset: (templateId: string, format: LaunchAssetFormat) => void
   generatingAssetKey: string
+  onCopyChannelCard: (channelId: ChannelPackId, cardId: string) => void
+  onUpdateChannelCard: (
+    channelId: ChannelPackId,
+    cardId: string,
+    changes: Pick<ChannelCard, 'title' | 'body' | 'cta'>,
+  ) => void
+  onRegenerateChannelCard: (channelId: ChannelPackId, cardId: string) => void
   onCopyPlatformBlock: (blockId: PlatformBlockId) => void
   onRegeneratePlatformBlock: (blockId: PlatformBlockId) => void
   onCopyGrowthBlock: (blockId: GrowthBlockId) => void
@@ -188,6 +204,11 @@ export function ResultAssetBrowser({
       notes: string
       subject: string
       outline: string
+      format: string
+      stage: string
+      proofPoint: string
+      socialContract: string
+      emptyChannelPack: string
       redditEngagement: string
       redditSelfPromotion: string
       redditReason: string
@@ -201,9 +222,12 @@ export function ResultAssetBrowser({
   const [openGroups, setOpenGroups] = useState<Record<TrafficChannelGroupId, boolean>>(
     DEFAULT_OPEN_TRAFFIC_GROUPS,
   )
+  const channelPackId = getChannelPackIdForTrafficChannel(activeChannel)
   const platformBlockId = getPlatformBlockIdForTrafficChannel(activeChannel)
   const growthBlockId = getGrowthBlockIdForTrafficChannel(activeChannel)
   const activeChannelTitle = t(`results.channels.${activeChannel}.title`)
+  const activeChannelIsPremium = isPremiumTrafficChannel(activeChannel)
+  const activeAssetIsPremium = isPremiumAssetKind(activeAssetKind)
 
   const toggleGroup = (groupId: TrafficChannelGroupId) => {
     setOpenGroups((current) => ({ ...current, [groupId]: !current[groupId] }))
@@ -255,6 +279,7 @@ export function ResultAssetBrowser({
                         <div className="space-y-1.5 border-t border-violet-100 p-2">
                           {group.channels.map((channelId) => {
                             const isActive = activeSection === 'channels' && activeChannel === channelId
+                            const isPremium = isPremiumTrafficChannel(channelId)
 
                             return (
                               <button
@@ -277,6 +302,15 @@ export function ResultAssetBrowser({
                                     {t(`results.channels.${channelId}.description`)}
                                   </span>
                                 </span>
+                                {isPremium ? (
+                                  <span
+                                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                                      isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                                    }`}
+                                  >
+                                    {t('plans.badges.premium')}
+                                  </span>
+                                ) : null}
                               </button>
                             )
                           })}
@@ -295,6 +329,7 @@ export function ResultAssetBrowser({
               <div className="space-y-1.5">
                 {ASSET_NAV_ITEMS.map((assetKind) => {
                   const isActive = activeSection === 'assets' && activeAssetKind === assetKind
+                  const isPremium = isPremiumAssetKind(assetKind)
 
                   return (
                     <button
@@ -317,6 +352,15 @@ export function ResultAssetBrowser({
                           {t(`results.assets.kinds.${assetKind}.description`)}
                         </span>
                       </span>
+                      {isPremium ? (
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                            isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {t('plans.badges.premium')}
+                        </span>
+                      ) : null}
                     </button>
                   )
                 })}
@@ -326,9 +370,32 @@ export function ResultAssetBrowser({
         </aside>
 
         <div className="min-w-0 rounded-xl border border-violet-100 bg-violet-50/30 p-3">
-          {activeSection === 'channels' ? (
+          {activeSection === 'channels' && activeChannelIsPremium ? (
+            <PremiumGatePanel
+              title={activeChannelTitle}
+              description={t('plans.paywall.channelDescription', { feature: activeChannelTitle })}
+              bullets={[
+                t('plans.paywall.bullets.seo'),
+                t('plans.paywall.bullets.outreach'),
+                t('plans.paywall.bullets.assets'),
+              ]}
+              t={t}
+            />
+          ) : activeSection === 'channels' ? (
             <>
-              {platformBlockId ? (
+              {channelPackId ? (
+                <ChannelPackPanel
+                  pack={kit.channelPacks[channelPackId]}
+                  onCopyCard={(cardId) => onCopyChannelCard(channelPackId, cardId)}
+                  onUpdateCard={(cardId, changes) => onUpdateChannelCard(channelPackId, cardId, changes)}
+                  onRegenerateCard={(cardId) => onRegenerateChannelCard(channelPackId, cardId)}
+                  isGenerating={isGenerating}
+                  feedbackText={feedbackText}
+                  labels={labels.output}
+                />
+              ) : null}
+
+              {!channelPackId && platformBlockId ? (
                 <PlatformBlockPanel
                   displayLabel={activeChannelTitle}
                   block={kit.platformBlocks[platformBlockId]}
@@ -472,6 +539,19 @@ export function ResultAssetBrowser({
                 />
               ) : null}
             </>
+          ) : activeAssetIsPremium ? (
+            <PremiumGatePanel
+              title={t(`results.assets.kinds.${activeAssetKind}.title`)}
+              description={t('plans.paywall.assetDescription', {
+                feature: t(`results.assets.kinds.${activeAssetKind}.title`),
+              })}
+              bullets={[
+                t('plans.paywall.bullets.creative'),
+                t('plans.paywall.bullets.demo'),
+                t('plans.paywall.bullets.exports'),
+              ]}
+              t={t}
+            />
           ) : (
             <AssetLibraryPanel
               brief={brief}
@@ -507,6 +587,10 @@ function TrafficChannelIcon({ channelId }: { channelId: TrafficChannelId }) {
     channelId === 'email_scrape_contacts' ||
     channelId === 'email_import_list' ||
     channelId === 'email_automation' ||
+    channelId === 'email_announcement' ||
+    channelId === 'linkedin_outreach' ||
+    channelId === 'x_outreach' ||
+    channelId === 'cold_email_outreach' ||
     channelId === 'newsletter_partnerships'
   ) {
     return <Mail className="size-4" />
@@ -542,6 +626,54 @@ function AssetKindIcon({ assetKind }: { assetKind: LaunchAssetKind }) {
   }
 
   return <MessageSquareText className="size-4" />
+}
+
+function PremiumGatePanel({
+  title,
+  description,
+  bullets,
+  t,
+}: {
+  title: string
+  description: string
+  bullets: string[]
+  t: (key: string, values?: Record<string, string | number>) => string
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+      <div className="border-b border-amber-100 bg-[linear-gradient(135deg,#fffbeb_0%,#fff_55%,#f5f3ff_100%)] p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="mt-1 rounded-xl border border-amber-200 bg-white p-2 text-amber-700 shadow-sm">
+              <Lock className="size-4" />
+            </span>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                {t('plans.badges.premium')}
+              </p>
+              <h3 className={`${editorialSerif.className} mt-1 text-2xl leading-tight text-zinc-900`}>
+                {title}
+              </h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">{description}</p>
+            </div>
+          </div>
+          <Button
+            asChild
+            className="shrink-0 rounded-xl bg-zinc-900 text-white shadow-md shadow-zinc-900/20 hover:bg-zinc-800"
+          >
+            <Link href="/pricing">{t('plans.paywall.cta')}</Link>
+          </Button>
+        </div>
+      </div>
+      <div className="grid gap-3 p-4 md:grid-cols-3">
+        {bullets.map((bullet) => (
+          <div key={bullet} className="rounded-xl border border-violet-100 bg-violet-50/45 p-3">
+            <p className="text-sm leading-relaxed text-zinc-700">{bullet}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function AssetLibraryPanel({
@@ -1774,6 +1906,202 @@ function TrafficPlaybookPanel({
   )
 }
 
+function ChannelPackPanel({
+  pack,
+  onCopyCard,
+  onUpdateCard,
+  onRegenerateCard,
+  isGenerating,
+  feedbackText,
+  labels,
+}: {
+  pack: LaunchKit['channelPacks'][ChannelPackId]
+  onCopyCard: (cardId: string) => void
+  onUpdateCard: (
+    cardId: string,
+    changes: Pick<ChannelCard, 'title' | 'body' | 'cta'>,
+  ) => void
+  onRegenerateCard: (cardId: string) => void
+  isGenerating: boolean
+  feedbackText: string
+  labels: {
+    copy: string
+    regenerate: string
+    title: string
+    body: string
+    cta: string
+    notes: string
+    format: string
+    stage: string
+    proofPoint: string
+    socialContract: string
+    emptyChannelPack: string
+    redditEngagement: string
+    redditSelfPromotion: string
+    redditReason: string
+    redditPostingGuidance: string
+  }
+}) {
+  const redditRecommendations = pack.id === 'reddit' ? pack.redditRecommendations : undefined
+  const hasRedditRecommendations = Boolean(
+    redditRecommendations &&
+      (redditRecommendations.engagementSubreddits.length > 0 ||
+        redditRecommendations.selfPromotionSubreddits.length > 0),
+  )
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-violet-100 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+              {pack.label}
+            </h3>
+            {pack.notes ? (
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">{pack.notes}</p>
+            ) : null}
+          </div>
+          {feedbackText ? (
+            <p aria-live="polite" className="text-sm font-medium text-violet-700">
+              {feedbackText}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      {pack.cards.length > 0 ? (
+        <div className="grid gap-3 xl:grid-cols-2">
+          {pack.cards.map((card) => (
+            <article key={card.id} className="rounded-xl border border-violet-100 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                    {card.format}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    {labels.stage}: {card.stage.replaceAll('_', ' ')}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onCopyCard(card.id)}
+                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                  >
+                    <Copy className="mr-1.5 size-3.5" />
+                    {labels.copy}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onRegenerateCard(card.id)}
+                    disabled={isGenerating}
+                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                  >
+                    <Wand2 className="mr-1.5 size-3.5" />
+                    {labels.regenerate}
+                  </Button>
+                </div>
+              </div>
+
+              <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.title}
+                <input
+                  value={card.title}
+                  onChange={(event) =>
+                    onUpdateCard(card.id, {
+                      title: event.target.value,
+                      body: card.body,
+                      cta: card.cta,
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-violet-100 bg-violet-50/30 px-3 py-2 text-sm normal-case tracking-normal text-zinc-900 outline-none transition focus:border-violet-400 focus:bg-white"
+                />
+              </label>
+
+              <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.body}
+                <textarea
+                  value={card.body}
+                  rows={8}
+                  onChange={(event) =>
+                    onUpdateCard(card.id, {
+                      title: card.title,
+                      body: event.target.value,
+                      cta: card.cta,
+                    })
+                  }
+                  className="mt-1 w-full resize-y rounded-lg border border-violet-100 bg-violet-50/30 px-3 py-2 text-sm leading-relaxed normal-case tracking-normal text-zinc-800 outline-none transition focus:border-violet-400 focus:bg-white"
+                />
+              </label>
+
+              <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.cta}
+                <input
+                  value={card.cta}
+                  onChange={(event) =>
+                    onUpdateCard(card.id, {
+                      title: card.title,
+                      body: card.body,
+                      cta: event.target.value,
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-violet-100 bg-violet-50/30 px-3 py-2 text-sm normal-case tracking-normal text-violet-700 outline-none transition focus:border-violet-400 focus:bg-white"
+                />
+              </label>
+
+              {card.proofPoint ? (
+                <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/70 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                    {labels.proofPoint}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-zinc-700">{card.proofPoint}</p>
+                </div>
+              ) : null}
+
+              {card.socialContractNote ? (
+                <div className="mt-3 rounded-lg border border-violet-100 bg-violet-50/45 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                    {labels.socialContract}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-zinc-600">{card.socialContractNote}</p>
+                </div>
+              ) : null}
+
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-violet-100 bg-white p-4 text-sm text-zinc-600">
+          {labels.emptyChannelPack}
+        </p>
+      )}
+
+      {hasRedditRecommendations && redditRecommendations ? (
+        <div className="grid gap-5 rounded-xl border border-violet-100 bg-white p-4 md:grid-cols-2">
+          <SubredditRecommendationList
+            title={labels.redditEngagement}
+            recommendations={redditRecommendations.engagementSubreddits}
+            labels={{
+              reason: labels.redditReason,
+              postingGuidance: labels.redditPostingGuidance,
+            }}
+          />
+          <SubredditRecommendationList
+            title={labels.redditSelfPromotion}
+            recommendations={redditRecommendations.selfPromotionSubreddits}
+            labels={{
+              reason: labels.redditReason,
+              postingGuidance: labels.redditPostingGuidance,
+            }}
+          />
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function PlatformBlockPanel({
   displayLabel,
   block,
@@ -2102,4 +2430,3 @@ function SeoBulletList({ title, items }: { title: string; items: string[] }) {
     </div>
   )
 }
-

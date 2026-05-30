@@ -234,7 +234,8 @@ async function generateVideoAsset(
       duration: template.durationSeconds || 8,
       resolution: '720p',
       generate_audio: true,
-      negative_prompt: 'blurry visuals, distorted UI, unreadable text, fake logos, watermark',
+      negative_prompt:
+        'blurry visuals, distorted UI, unreadable text, fake logos, fake metrics, watermark, generic stock footage',
     },
     waitSeconds: 5,
     pollTimeoutMs: 900000,
@@ -268,12 +269,7 @@ async function generateTextAsset(
 
   if (hasReplicateToken()) {
     const modelOutput = await runReplicateStructured<TextAssetOutput>({
-      instructions: [
-        'You are Launch Kit, an expert paid-social copywriter.',
-        'Write native text ads grounded in the product brief.',
-        'Avoid hype, fake scarcity, unsupported claims, and generic AI wording.',
-        'Return valid JSON only.',
-      ].join('\n'),
+      instructions: buildTextAdInstructions(template),
       prompt,
       jsonSchema: TEXT_ASSET_SCHEMA,
       schemaName: 'launch_text_asset',
@@ -377,8 +373,8 @@ async function generateScreenshotTitle(
 
   const output = await runReplicateStructured<TitleOutput>({
     instructions: [
-      'You write short editorial titles for polished product screenshots.',
-      'Return a concrete title under 8 words.',
+      'You write short editorial titles for one polished product screenshot asset.',
+      'Return a concrete title under 8 words that reflects the product value and target audience.',
       'Do not use quotation marks, emojis, or terminal punctuation.',
       'Return valid JSON only.',
     ].join('\n'),
@@ -484,14 +480,28 @@ function buildScreenshotTitlePrompt(
 ): string {
   return JSON.stringify(
     {
-      task: 'Create a short title for a polished launch screenshot.',
-      productName: brief.productName,
-      positioning: brief.positioning,
-      audience: brief.icp || brief.targetUsers[0],
-      valueProps: brief.valueProps,
+      task: `Create one short title for a ${format} launch screenshot asset.`,
+      objective:
+        'Name the most compelling product outcome visible in the screenshot without making unsupported claims.',
+      targetAsset: {
+        templateId: template.id,
+        title: template.title,
+        angle: template.angle,
+        format,
+      },
+      businessContext: {
+        productName: brief.productName,
+        positioning: brief.positioning,
+        audience: brief.icp || brief.targetUsers[0],
+        voiceGuide: brief.voiceGuide,
+        valueProps: brief.valueProps.slice(0, 4),
+      },
       proofPoints: brief.proofPoints,
-      templateAngle: template.angle,
-      format,
+      qualityBar: [
+        'Specific enough to feel written for this product.',
+        'Short enough to overlay cleanly on a screenshot.',
+        'No vague hype words, invented metrics, or broad category claims.',
+      ],
     },
     null,
     2,
@@ -503,17 +513,27 @@ function buildImageAdPrompt(
   template: LaunchAssetTemplate,
   format: LaunchAssetFormat,
 ): string {
+  const audience = brief.icp || brief.targetUsers.join(', ') || 'the highest-intent audience'
+  const pain = brief.painPoints[0] || 'a clear workflow problem the product solves'
+  const value = brief.valueProps[0] || brief.positioning || 'the practical outcome the product creates'
+  const proof = brief.proofPoints.slice(0, 3).join('; ') || 'use visual credibility cues without inventing metrics'
+
   return [
-    `Create an evergreen paid image ad for ${brief.productName}.`,
-    `Format/aspect ratio: ${format}.`,
-    `Template angle: ${template.angle}`,
-    `Audience: ${brief.icp || brief.targetUsers.join(', ') || 'startup operators'}.`,
-    `Positioning: ${brief.positioning}.`,
-    `Core value props: ${brief.valueProps.slice(0, 4).join('; ') || brief.positioning}.`,
-    `Proof cues: ${brief.proofPoints.slice(0, 3).join('; ') || 'use credible, non-specific visual trust cues without inventing metrics'}.`,
-    `CTA: ${brief.cta || 'Learn more'}.`,
-    'Visual direction: premium SaaS/product advertising, clean composition, rich but not one-note palette, realistic product-marketing scene, clear focal point, accessible contrast.',
-    'Typography direction: minimal readable headline area, no dense paragraphs, no fake UI text, no distorted letters, no invented logos.',
+    `Create one ${format} paid social image asset for ${brief.productName}.`,
+    `Placement: ${describeAssetPlacement(format)}.`,
+    `Asset concept: ${template.title} - ${template.angle}.`,
+    `Business context: ${brief.positioning}.`,
+    `Target audience: ${audience}.`,
+    `Audience problem to make visible: ${pain}.`,
+    `Product outcome to make obvious: ${value}.`,
+    `Voice and tone: ${brief.voiceGuide || 'human, specific, and source-grounded'}.`,
+    `Primary CTA: ${brief.cta || 'Learn more'}.`,
+    `Proof cues: ${proof}.`,
+    `Message hierarchy: 1) familiar problem, 2) product-led shift, 3) credible proof cue, 4) short CTA.`,
+    `Visual direction: ${buildImageVisualDirection(template)}.`,
+    'Copy direction: one short human headline only; no dense paragraphs, fake urgency, unsupported metrics, or generic AI phrasing.',
+    'Typography direction: readable headline space, accessible contrast, no distorted letters, no tiny fake UI labels, no invented logos.',
+    'Quality bar: polished product-marketing creative that feels specific to this product, not a stock template.',
   ].join('\n')
 }
 
@@ -522,42 +542,83 @@ function buildVideoAdPrompt(
   template: LaunchAssetTemplate,
   format: '16:9' | '9:16',
 ): string {
+  const audience = brief.icp || brief.targetUsers.join(', ') || 'the highest-intent audience'
+  const pain = brief.painPoints[0] || 'a clear workflow problem the product solves'
+  const value = brief.valueProps[0] || brief.positioning || 'the practical outcome the product creates'
+  const proof = brief.proofPoints.slice(0, 2).join('; ') || 'show calm credibility without invented numbers'
+
   return [
-    `Create an ${template.durationSeconds || 8}-second evergreen video ad for ${brief.productName}.`,
-    `Aspect ratio: ${format}.`,
-    `Template angle: ${template.angle}`,
-    `Audience: ${brief.icp || brief.targetUsers.join(', ') || 'startup operators'}.`,
-    `Problem: ${brief.painPoints[0] || 'a slow, fragmented workflow'}.`,
-    `Outcome: ${brief.valueProps[0] || brief.positioning}.`,
-    `Proof cues: ${brief.proofPoints.slice(0, 2).join('; ') || 'show calm credibility without invented numbers'}.`,
-    `CTA: ${brief.cta || 'Learn more'}.`,
-    'Creative direction: polished product-marketing motion, clear opening hook, concise middle beat, memorable close, native paid-social pacing, no fake logos, no unreadable overlays.',
-    'Audio direction: subtle modern sound design, no spoken claims that are not in the brief.',
+    `Create one ${template.durationSeconds || 8}-second ${format} paid social video asset for ${brief.productName}.`,
+    `Placement: ${describeAssetPlacement(format)}.`,
+    `Asset concept: ${template.title} - ${template.angle}.`,
+    `Business context: ${brief.positioning}.`,
+    `Target audience: ${audience}.`,
+    `Opening problem: ${pain}.`,
+    `Product outcome: ${value}.`,
+    `Voice and tone: ${brief.voiceGuide || 'human, specific, and source-grounded'}.`,
+    `Primary CTA: ${brief.cta || 'Learn more'}.`,
+    `Proof cues: ${proof}.`,
+    `Beat plan: 0-2s hook, 2-5s problem/product contrast, 5-7s proof or product moment, final second CTA.`,
+    `Creative direction: ${buildVideoVisualDirection(template)}.`,
+    'Script direction: make the hook sound like a real person, show the product outcome before the CTA, and keep every claim supported by the brief.',
+    'Audio direction: subtle modern sound design; no spoken metrics, testimonials, or claims that are not in the brief.',
+    'Quality bar: polished product-marketing motion with readable overlays, clear focal point, and no generic stock-ad feel.',
+  ].join('\n')
+}
+
+type TextAdSpec = {
+  channel: string
+  formatName: string
+  objective: string
+  bodyRequirements: string[]
+  tone: string
+}
+
+function buildTextAdInstructions(template: LaunchAssetTemplate): string {
+  const spec = getTextAdSpec(template)
+
+  return [
+    `You are Launch Kit, an expert ${spec.channel} paid-social copywriter.`,
+    `Write exactly one ${spec.channel} ${spec.formatName} grounded in the product brief and voice guide.`,
+    'Make the copy sound human, specific, and native to the requested placement rather than AI-generated.',
+    'Avoid hype, fake scarcity, unsupported claims, unnecessary hashtags, and generic AI wording.',
+    'Use proof only when it appears in the brief. If proof is missing, write without making proof claims.',
+    'Return valid JSON only.',
   ].join('\n')
 }
 
 function buildTextAdPrompt(brief: ExtractedBrief, template: LaunchAssetTemplate): string {
+  const spec = getTextAdSpec(template)
+
   return JSON.stringify(
     {
-      task: 'Write one native text ad using this template.',
+      task: `Write one ${spec.channel} ${spec.formatName} for ${brief.productName}.`,
+      targetChannel: spec.channel,
+      objective: spec.objective,
       template: {
         id: template.id,
         title: template.title,
         angle: template.angle,
       },
-      product: {
+      businessContext: {
         name: brief.productName,
         positioning: brief.positioning,
         audience: brief.icp || brief.targetUsers.join(', '),
+        voiceGuide: brief.voiceGuide,
         painPoints: brief.painPoints,
         valueProps: brief.valueProps,
         proofPoints: brief.proofPoints,
         cta: brief.cta,
       },
-      constraints: [
+      outputRequirements: {
+        title: 'Short internal asset title matching the template.',
+        body: spec.bodyRequirements,
+      },
+      tone: spec.tone,
+      qualityBar: [
         'Use only claims supported by the brief.',
-        'For X, keep the post concise and punchy.',
-        'For Threads, make it conversational and reply-friendly.',
+        'Follow the voice guide while adapting to the requested placement.',
+        'Avoid generic AI phrases, inflated promises, fake urgency, and unsupported proof.',
         'No hashtags unless truly useful.',
       ],
     },
@@ -566,8 +627,122 @@ function buildTextAdPrompt(brief: ExtractedBrief, template: LaunchAssetTemplate)
   )
 }
 
+function getTextAdSpec(template: LaunchAssetTemplate): TextAdSpec {
+  if (template.id === 'text_ad_x_thread') {
+    return {
+      channel: 'X',
+      formatName: 'short thread',
+      objective:
+        'Move from a sharp problem observation to the product outcome in a thread people can read quickly and reply to.',
+      bodyRequirements: [
+        'Write 4-6 numbered posts.',
+        'Keep each post concise enough to fit comfortably in a single X post.',
+        'End with a soft CTA or useful question, not engagement bait.',
+      ],
+      tone: 'Concise, specific, lightly opinionated, and public timeline native.',
+    }
+  }
+
+  if (template.id === 'text_ad_x_short') {
+    return {
+      channel: 'X',
+      formatName: 'short post',
+      objective:
+        'Create one sharp public timeline post that makes the product problem and outcome memorable.',
+      bodyRequirements: [
+        'Write one post, not a thread.',
+        'Keep it punchy and easy to scan.',
+        'Include one concrete pain, outcome, or proof cue from the brief.',
+      ],
+      tone: 'Concise, specific, direct, and easy to reply to.',
+    }
+  }
+
+  if (template.id === 'text_ad_threads_thread') {
+    return {
+      channel: 'Threads',
+      formatName: 'compact sequence',
+      objective:
+        'Tell a casual short sequence that moves from relatable pain to practical product next step.',
+      bodyRequirements: [
+        'Write 3-5 short posts in a conversational sequence.',
+        'Make each post feel like a natural continuation, not a formal thread.',
+        'End with a soft reply-friendly CTA.',
+      ],
+      tone: 'Conversational, relaxed, human, and reply-friendly.',
+    }
+  }
+
+  return {
+    channel: 'Threads',
+    formatName: 'single post',
+    objective:
+      'Write a casual post that makes the product feel useful and easy to respond to.',
+    bodyRequirements: [
+      'Write one conversational post.',
+      'Use simple language and a soft CTA.',
+      'Avoid hard-sell phrasing and polished announcement cadence.',
+    ],
+    tone: 'Casual, specific, human, and lightly conversational.',
+  }
+}
+
+function describeAssetPlacement(format: LaunchAssetFormat): string {
+  const placements: Record<LaunchAssetFormat, string> = {
+    '16:9': 'landscape feed or website hero placement with room for product context',
+    '9:16': 'vertical mobile placement with a fast hook and large readable focal point',
+    '1:1': 'square feed placement with a centered message and strong visual hierarchy',
+    '4:5': 'portrait feed placement optimized for mobile scrolling',
+    '1.91:1': 'wide feed placement with concise copy and a clear product moment',
+    text: 'text-only paid social placement',
+  }
+
+  return placements[format]
+}
+
+function buildImageVisualDirection(template: LaunchAssetTemplate): string {
+  const directions: Record<string, string> = {
+    image_ad_problem_solution:
+      'show a clear before/after contrast between the painful current state and the cleaner product-enabled outcome',
+    image_ad_social_proof:
+      'make credibility the hero through sourced proof cues, trust signals, and restrained product context',
+    image_ad_feature_benefit:
+      'visualize one concrete product capability and the practical benefit it creates for the audience',
+    image_ad_before_after:
+      'compose a transformation scene with old workflow on one side and improved state on the other',
+    image_ad_offer_cta:
+      'center the next step with a clear CTA area, product promise, and minimal supporting proof',
+  }
+
+  return (
+    directions[template.id] ||
+    'use premium product advertising composition with a clear focal point, realistic product context, and a rich but balanced palette'
+  )
+}
+
+function buildVideoVisualDirection(template: LaunchAssetTemplate): string {
+  const directions: Record<string, string> = {
+    video_ad_hook_problem_fix:
+      'open on the specific problem, show the friction, then reveal the product fix with a clean final CTA',
+    video_ad_product_walkthrough:
+      'move through the core product workflow as a concise visual story with one obvious outcome',
+    video_ad_founder_story:
+      'feel founder-led, with a human problem setup, product reveal, and grounded reason the product exists',
+    video_ad_social_proof:
+      'sequence proof cues and product outcomes calmly, avoiding flashy claims or unsupported numbers',
+    video_ad_objection_handler:
+      'state the likely hesitation, answer it visually, then show why the next step feels low-risk',
+  }
+
+  return (
+    directions[template.id] ||
+    'use polished product-marketing motion with a clear hook, concise middle beat, and memorable close'
+  )
+}
+
 function fallbackTextAsset(brief: ExtractedBrief, template: LaunchAssetTemplate): TextAssetOutput {
   const product = brief.productName || 'Product'
+  const audience = brief.targetUsers[0] || brief.icp || 'the people it is built for'
   const pain = brief.painPoints[0] || 'the workflow that slows your team down'
   const value = brief.valueProps[0] || brief.positioning || 'move faster with a clearer workflow'
   const cta = brief.cta || 'Learn more'
@@ -576,9 +751,9 @@ function fallbackTextAsset(brief: ExtractedBrief, template: LaunchAssetTemplate)
     return {
       title: template.title,
       body: [
-        `1/ ${pain} is usually where launch momentum disappears.`,
-        `2/ ${product} helps by giving teams one clearer way to ${value.toLowerCase()}.`,
-        `3/ If you are preparing a launch, start with one source brief and adapt the story per channel.`,
+        `1/ ${pain} is usually where momentum disappears.`,
+        `2/ ${product} gives ${audience} one clearer way to ${value.toLowerCase()}.`,
+        `3/ The useful shift: less guessing, more obvious next step.`,
         `${cta}`,
       ].join('\n\n'),
     }
@@ -588,8 +763,8 @@ function fallbackTextAsset(brief: ExtractedBrief, template: LaunchAssetTemplate)
     return {
       title: template.title,
       body: [
-        `Launch prep gets messy fast when every channel needs a different version of the same story.`,
-        `${product} helps teams ${value.toLowerCase()} from one source brief.`,
+        `${pain} tends to turn a simple next step into a messy one.`,
+        `${product} helps ${audience} ${value.toLowerCase()} with less friction.`,
         `Useful if ${pain.toLowerCase()} keeps slowing down the work.`,
         `${cta}`,
       ].join('\n\n'),
@@ -599,13 +774,13 @@ function fallbackTextAsset(brief: ExtractedBrief, template: LaunchAssetTemplate)
   if (template.id === 'text_ad_threads_post') {
     return {
       title: template.title,
-      body: `${pain} should not be the thing that delays launch week. ${product} helps teams ${value.toLowerCase()} from one clearer source brief. ${cta}`,
+      body: `${pain} should not be the thing that slows the next step. ${product} helps ${audience} ${value.toLowerCase()}. ${cta}`,
     }
   }
 
   return {
     title: template.title,
-    body: `${pain}? ${product} helps teams ${value.toLowerCase()}. ${cta}`,
+    body: `${pain}? ${product} helps ${audience} ${value.toLowerCase()}. ${cta}`,
   }
 }
 

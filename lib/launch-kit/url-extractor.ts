@@ -29,6 +29,7 @@ type LlmBriefInsights = {
   valueProps?: string[]
   keyClaims?: string[]
   proofPoints?: string[]
+  voiceGuide?: string
   cta?: string
   language?: string
 }
@@ -44,6 +45,12 @@ type LlmKeywordCluster = {
 type LlmKeywordResearch = {
   notes?: string
   clusters?: LlmKeywordCluster[]
+}
+
+type LlmBriefSignalRefinement = {
+  painPoints?: string[]
+  valueProps?: string[]
+  proofPoints?: string[]
 }
 
 const MAX_PAGES = 5
@@ -180,6 +187,7 @@ const BRIEF_INSIGHTS_SCHEMA = {
     valueProps: { type: 'array', items: { type: 'string' } },
     keyClaims: { type: 'array', items: { type: 'string' } },
     proofPoints: { type: 'array', items: { type: 'string' } },
+    voiceGuide: { type: 'string' },
     cta: { type: 'string' },
     language: { type: 'string' },
   },
@@ -192,6 +200,7 @@ const BRIEF_INSIGHTS_SCHEMA = {
     'valueProps',
     'keyClaims',
     'proofPoints',
+    'voiceGuide',
     'cta',
     'language',
   ],
@@ -219,6 +228,17 @@ const KEYWORD_RESEARCH_SCHEMA = {
     },
   },
   required: ['notes', 'clusters'],
+} as const
+
+const BRIEF_SIGNAL_REFINEMENT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    painPoints: { type: 'array', items: { type: 'string' } },
+    valueProps: { type: 'array', items: { type: 'string' } },
+    proofPoints: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['painPoints', 'valueProps', 'proofPoints'],
 } as const
 
 export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBrief> {
@@ -276,6 +296,7 @@ export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBri
   const heuristicPainPoints = inferPainPoints(sourceCorpus)
   const heuristicValueProps = inferValueProps(sourceCorpus)
   const heuristicProofPoints = inferProofPoints(sourceCorpus)
+  const heuristicVoiceGuide = inferVoiceGuide(sourceCorpus, scrapedProductName)
   const heuristicCta =
     pickPrimaryCta(ctaCandidates, sourceCorpus) ||
     inferCtaFromCorpus(sourceCorpus) ||
@@ -300,16 +321,37 @@ export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBri
   const positioning = preferText(llmInsights?.positioning, scrapedPositioning, 280)
   const language = input.languageOverride?.trim() || normalizeLanguageCode(llmInsights?.language) || detectedLanguage
   const targetUsers = preferList(llmInsights?.targetUsers, heuristicTargetUsers, 6)
-  const painPoints = preferList(llmInsights?.painPoints, heuristicPainPoints, 6)
-  const valueProps = preferList(llmInsights?.valueProps, heuristicValueProps, 6)
+  let painPoints = preferList(llmInsights?.painPoints, heuristicPainPoints, 6)
+  let valueProps = preferList(llmInsights?.valueProps, heuristicValueProps, 6)
   const keyClaims = preferList(
     llmInsights?.keyClaims,
     dedupe([...allHeadings.slice(0, 7), ...allBody.slice(0, 8)]),
     10,
   )
-  const proofPoints = preferProofPoints(llmInsights?.proofPoints, heuristicProofPoints, sourceCorpus, 6)
+  let proofPoints = preferProofPoints(llmInsights?.proofPoints, heuristicProofPoints, sourceCorpus, 6)
+  const voiceGuide = preferText(llmInsights?.voiceGuide, heuristicVoiceGuide, 420)
   const icp = preferText(llmInsights?.icp, heuristicIcp, 220)
   const cta = preferCta(llmInsights?.cta, heuristicCta, ctaCandidates, sourceCorpus)
+  const refinedSignals = await refineBriefSignalsWithReplicate({
+    sourceUrl: normalizedUrl,
+    language,
+    productName,
+    positioning,
+    icp,
+    targetUsers,
+    keyClaims,
+    currentPainPoints: painPoints,
+    currentValueProps: valueProps,
+    currentProofPoints: proofPoints,
+    sourceEvidence: sourceCorpus,
+  })
+
+  if (refinedSignals) {
+    painPoints = refinedSignals.painPoints.length > 0 ? refinedSignals.painPoints : painPoints
+    valueProps = refinedSignals.valueProps.length > 0 ? refinedSignals.valueProps : valueProps
+    proofPoints = refinedSignals.proofPoints.length > 0 ? refinedSignals.proofPoints : proofPoints
+  }
+
   const keywordResearch = await synthesizeKeywordResearch({
     sourceUrl: normalizedUrl,
     productName,
@@ -341,6 +383,7 @@ export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBri
     valueProps,
     keyClaims,
     proofPoints,
+    voiceGuide,
     cta,
     language,
     sourceHighlights: highlights,
@@ -586,11 +629,23 @@ function collectTagText(html: string, tags: string[]): string[] {
     const raw = match[2] || ''
     const value = cleanLine(stripHtml(raw))
     if (value) {
-      values.push(value)
+      const formatted = match[1]?.toLowerCase() === 'blockquote' ? quoteBlockquoteEvidence(value) : value
+      if (formatted) {
+        values.push(formatted)
+      }
     }
   }
 
   return values
+}
+
+function quoteBlockquoteEvidence(input: string): string {
+  const value = input.replace(/^[“”"]+|[“”"]+$/g, '').trim()
+  if (!value) {
+    return ''
+  }
+
+  return `"${value}"`
 }
 
 function collectTagAttribute(html: string, tag: string, attribute: string): string[] {
@@ -1047,6 +1102,42 @@ function inferProofPoints(lines: string[]): string[] {
   return rankProofPoints(lines.map(compactSentence))
 }
 
+function inferVoiceGuide(lines: string[], productName: string): string {
+  const joined = lines.join(' ').toLowerCase()
+  const traits = new Set<string>()
+
+  if (/\b(?:api|developer|code|engineering|technical|workflow|automation|infrastructure)\b/.test(joined)) {
+    traits.add('precise')
+    traits.add('operator-minded')
+  }
+
+  if (/\b(?:family|home|gift|memory|photo|portrait|keepsake|personal)\b/.test(joined)) {
+    traits.add('warm')
+    traits.add('reassuring')
+  }
+
+  if (/\b(?:enterprise|security|compliance|teams|platform|scale|reliable)\b/.test(joined)) {
+    traits.add('professional')
+    traits.add('credible')
+  }
+
+  if (/\b(?:simple|easy|minutes|fast|instant|no hassle|without)\b/.test(joined)) {
+    traits.add('plainspoken')
+    traits.add('low-friction')
+  }
+
+  if (/\b(?:creator|creative|design|beautiful|brand|visual)\b/.test(joined)) {
+    traits.add('visual')
+    traits.add('specific')
+  }
+
+  const voiceTraits = Array.from(traits).slice(0, 4)
+  const voice = voiceTraits.length > 0 ? voiceTraits.join(', ') : 'clear, human, and specific'
+  const product = productName || 'the product'
+
+  return `Use a ${voice} brand voice for ${product}. Preserve source-language phrases when they are concrete, vary sentence length, and sound like a real person who understands the audience. Avoid generic AI phrasing, unsupported hype, fake urgency, and claims that are not present in the brief.`
+}
+
 function preferProofPoints(
   candidate: string[] | undefined,
   fallback: string[],
@@ -1088,7 +1179,7 @@ function isLikelyProofPoint(line: string): boolean {
   }
 
   const lower = text.toLowerCase()
-  if (!isMeaningfulLine(text) && !hasExplicitProofSignal(lower)) {
+  if (!isMeaningfulLine(text) && !hasExplicitProofSignal(text)) {
     return false
   }
 
@@ -1100,12 +1191,12 @@ function isLikelyProofPoint(line: string): boolean {
     return false
   }
 
-  if (hasStandaloneYearOnly(text) && !hasExplicitProofSignal(lower)) {
+  if (hasStandaloneYearOnly(text) && !hasExplicitProofSignal(text)) {
     return false
   }
 
   const wordCount = lower.split(/\s+/).length
-  if (wordCount <= 3 && !hasMetricProofSignal(text) && !hasCertificationProofSignal(text)) {
+  if (wordCount <= 3 && !hasCompactProofSignal(text)) {
     return false
   }
 
@@ -1120,8 +1211,16 @@ function scoreProofPoint(line: string): number {
     score += 14
   }
 
-  if (/\b\d+(?:\.\d+)?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line)) {
+  if (/\b\d+(?:\.\d+)?\+?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line)) {
     score += 12
+  }
+
+  if (hasQuotedProofSignal(line)) {
+    score += 10
+  }
+
+  if (hasNumericEvidenceSignal(line)) {
+    score += 10
   }
 
   if (/\b(?:trusted by|used by|adopted by|backed by|featured in|featured on|as seen in|case study|case studies|rated|reviewed|reviews?|testimonial|testimonials|customers?|users?)\b/i.test(line)) {
@@ -1132,15 +1231,19 @@ function scoreProofPoint(line: string): number {
     score += 9
   }
 
+  if (hasRankingProofSignal(line)) {
+    score += 9
+  }
+
+  if (hasTrustPromiseSignal(line)) {
+    score += 9
+  }
+
   if (
     /\b(?:forbes|techcrunch|product hunt|g2|capterra|gartner|yc|y combinator)\b/i.test(line) &&
     /\b(?:featured|rated|review|launched|backed|winner|award|top|#\d)\b/i.test(line)
   ) {
     score += 8
-  }
-
-  if (/[“”"].{12,}[“”"]/.test(line) || /\b(?:said|says|according to)\b/i.test(line)) {
-    score += 6
   }
 
   if (/\b(?:free|pricing|price|plan|monthly|annual|per month|per year|discount|coupon|checkout|cart)\b/i.test(line)) {
@@ -1158,20 +1261,52 @@ function scoreProofPoint(line: string): number {
   return score
 }
 
-function hasExplicitProofSignal(lower: string): boolean {
+function hasExplicitProofSignal(line: string): boolean {
+  const lower = line.toLowerCase()
   return (
     /\b(?:trusted by|used by|adopted by|backed by|featured in|featured on|as seen in|case stud|rated|review|testimonial|customer|users?|downloads?|stars?|soc\s?2|iso\s?27001|hipaa|gdpr|certified|compliant|encrypted)\b/i.test(lower) ||
-    hasMetricProofSignal(lower)
+    hasMetricProofSignal(line) ||
+    hasNumericEvidenceSignal(line) ||
+    hasRankingProofSignal(line) ||
+    hasTrustPromiseSignal(line) ||
+    hasQuotedProofSignal(line)
+  )
+}
+
+function hasCompactProofSignal(line: string): boolean {
+  return (
+    hasMetricProofSignal(line) ||
+    hasCertificationProofSignal(line) ||
+    hasNumericEvidenceSignal(line) ||
+    hasRankingProofSignal(line) ||
+    hasTrustPromiseSignal(line) ||
+    hasQuotedProofSignal(line)
   )
 }
 
 function hasMetricProofSignal(line: string): boolean {
   return (
-    /\b\d+(?:\.\d+)?\s?(?:k|m|million|billion)?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line) ||
+    /\b\d+(?:\.\d+)?\+?\s?(?:k|m|million|billion)?\s?(?:users?|customers?|teams?|companies?|launches?|downloads?|reviews?|stars?)\b/i.test(line) ||
     /\b\d+(?:\.\d+)?\s?\/\s?5\b/i.test(line) ||
     (/\b\d+(?:\.\d+)?\s?%\b/i.test(line) &&
       /\b(?:users?|customers?|teams?|survey|reported|rated|saved|reduced|increased|cut|improved)\b/i.test(line))
   )
+}
+
+function hasNumericEvidenceSignal(line: string): boolean {
+  return /\b\d+(?:\.\d+)?\+?\s?(?:curated\s+)?(?:styles?|templates?|themes?|formats?|prompts?|integrations?|apps?|tools?|workflows?|automations?|languages?|countries?|markets?|models?|reports?|exports?)\b/i.test(line)
+}
+
+function hasRankingProofSignal(line: string): boolean {
+  return /(?:#\s?\d+\b|\b(?:top pick|top rated|ranked|award(?:ed)?|winner|best of|editor'?s choice)\b)/i.test(line)
+}
+
+function hasTrustPromiseSignal(line: string): boolean {
+  return /\b(?:not (?:used )?to train|never (?:used )?to train|used only to|only used to|privacy-first|private by default|secure by default|encrypted|compliant|certified)\b/i.test(line)
+}
+
+function hasQuotedProofSignal(line: string): boolean {
+  return /[“”"].{12,}[“”"]/.test(line) || /\b(?:said|says|according to)\b/i.test(line)
 }
 
 function hasCertificationProofSignal(line: string): boolean {
@@ -1232,6 +1367,89 @@ function inferIcp(lines: string[], targetUsers: string[], painPoints: string[]):
   return `${audience} who ${painToIcpClause(cleanedPain)}.`
 }
 
+async function refineBriefSignalsWithReplicate(input: {
+  sourceUrl: string
+  language: string
+  productName: string
+  positioning: string
+  icp: string
+  targetUsers: string[]
+  keyClaims: string[]
+  currentPainPoints: string[]
+  currentValueProps: string[]
+  currentProofPoints: string[]
+  sourceEvidence: string[]
+}): Promise<{ painPoints: string[]; valueProps: string[]; proofPoints: string[] } | null> {
+  if (!hasReplicateToken()) {
+    return null
+  }
+
+  const output = await runReplicateStructured<LlmBriefSignalRefinement>({
+    instructions: [
+      'You are a ruthless product marketing editor reviewing extracted launch-brief fields before channel-specific content generation.',
+      'Evaluate and improve painPoints, valueProps, and proofPoints as a connected set.',
+      'Use only the provided product brief and source evidence. Do not invent facts, metrics, customers, outcomes, testimonials, funding, security claims, or press.',
+      'Pain points must be concrete audience frustrations, not generic needs or missing-feature restatements.',
+      'Value props must be concrete product benefits or capabilities tied to the pains and source evidence, not vague marketing adjectives.',
+      'Proof points must be source-backed evidence cues from the source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+      'Preserve numeric claims exactly as written in source evidence. Do not round up, combine counts, or turn one count into a larger marketing claim.',
+      'Return proofPoints as [] when no source-backed proof or evidence cue exists. Do not treat pricing, CTAs, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims as proof.',
+      'Prefer fewer stronger bullets over padded lists. Keep the output useful for downstream channel-specific content.',
+      'Respect the requested language.',
+      'Return valid JSON matching schema.',
+    ].join('\n'),
+    prompt: JSON.stringify(
+      {
+        task: 'Improve extracted brief signals before channel-specific launch generation.',
+        sourceUrl: input.sourceUrl,
+        language: input.language,
+        product: {
+          name: input.productName,
+          positioning: input.positioning,
+          icp: input.icp,
+          targetUsers: input.targetUsers.slice(0, 6),
+          keyClaims: input.keyClaims.slice(0, 8),
+        },
+        currentExtraction: {
+          painPoints: input.currentPainPoints,
+          valueProps: input.currentValueProps,
+          proofPoints: input.currentProofPoints,
+        },
+        sourceEvidence: input.sourceEvidence.slice(0, 90),
+        outputRules: {
+          painPoints: '3-6 specific user frustrations written in audience language.',
+          valueProps: '3-6 concrete benefits or capabilities tied to source evidence.',
+          proofPoints: '0-5 source-backed evidence cues only; [] if no proof or evidence cue exists.',
+        },
+      },
+      null,
+      2,
+    ),
+    jsonSchema: BRIEF_SIGNAL_REFINEMENT_SCHEMA as unknown as Record<string, unknown>,
+    schemaName: 'brief_signal_refinement',
+    modelVariant: process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
+    maxOutputTokens: 6000,
+    reasoningEffort: 'medium',
+    verbosity: 'medium',
+  })
+
+  if (!output) {
+    return null
+  }
+
+  return {
+    painPoints: sanitizeRefinedBriefSignalList(output.painPoints, 6),
+    valueProps: sanitizeRefinedBriefSignalList(output.valueProps, 6),
+    proofPoints: sanitizeProofPointList(output.proofPoints || []).slice(0, 5),
+  }
+}
+
+function sanitizeRefinedBriefSignalList(input: unknown, maxItems: number): string[] {
+  return sanitizeInsightList(input, maxItems)
+    .filter((item) => !isMostlyNavWords(item.toLowerCase()))
+    .slice(0, maxItems)
+}
+
 async function synthesizeBriefInsights(input: {
   sourceUrl: string
   productName: string
@@ -1244,14 +1462,14 @@ async function synthesizeBriefInsights(input: {
   if (hasReplicateToken()) {
     const replicateOutput = await runReplicateStructured<LlmBriefInsights>({
       instructions: [
-        'You are a product marketing analyst.',
+        'You are a senior product marketing analyst building the source brief for channel-specific launch assets.',
         'Extract a concise launch brief for the actual product in the source evidence.',
         'Reason from the scraped page like a senior positioning strategist before writing.',
         'This is not necessarily a SaaS product. It may be consumer, ecommerce, media, services, or B2B.',
         'Do not output navigation labels or boilerplate.',
         'Ground output in evidence. Avoid generic filler.',
         'Do not mention launch messaging, founders, startups, designers, or platform copy unless the evidence clearly says that.',
-        'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, cta, language.',
+        'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, voiceGuide, cta, language.',
         'Constraints:',
         '- productName: brand or product name, not a generic SEO category unless no brand exists.',
         '- positioning: one clear sentence, max 220 chars.',
@@ -1260,8 +1478,10 @@ async function synthesizeBriefInsights(input: {
         '- painPoints: array of 3-6 specific frustrations the product solves.',
         '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
         '- keyClaims: array of 4-8 source-grounded product claims.',
-        '- proofPoints: array of up to 5 factual evidence signals from source only: metrics, customer/user counts, ratings, testimonials, case studies, press/awards, funding, or security/compliance certifications.',
-        '- Do not put pricing, feature claims, value props, CTAs, dates, navigation labels, or generic marketing claims in proofPoints. Return [] when explicit proof is not present.',
+        '- proofPoints: array of up to 5 source-backed evidence cues from source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+        '- Numeric claims must match the source evidence exactly. Do not round up, combine counts, or infer larger quantities.',
+        '- Do not put pricing, CTAs, dates, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims in proofPoints. Return [] when no source-backed proof or evidence cue is present.',
+        '- voiceGuide: 2-4 sentences, max 420 chars. Describe tone traits, pacing, formality, phrases to preserve, and phrases/claims to avoid. Keep it usable as downstream channel-specific writing guidance.',
         '- cta: 2-8 words, imperative.',
         '- language: ISO code such as en, es, fr, de, it, pt.',
       ].join('\n'),
@@ -1296,6 +1516,7 @@ async function synthesizeBriefInsights(input: {
         valueProps: sanitizeInsightList(replicateOutput.valueProps, 6),
         keyClaims: sanitizeInsightList(replicateOutput.keyClaims, 8),
         proofPoints: sanitizeInsightList(replicateOutput.proofPoints, 5),
+        voiceGuide: normalizeInsightText(replicateOutput.voiceGuide, 420),
         cta: normalizeCtaText(replicateOutput.cta || '') || undefined,
         language: normalizeLanguageCode(replicateOutput.language),
       }
@@ -1319,7 +1540,7 @@ async function synthesizeBriefInsights(input: {
           {
             type: 'input_text',
             text: [
-              'You are a product marketing analyst.',
+              'You are a senior product marketing analyst building the source brief for channel-specific launch assets.',
               'Extract a concise launch brief for the actual product in the source evidence.',
               'Reason from the scraped page like a senior positioning strategist before writing.',
               'This is not necessarily a SaaS product. It may be consumer, ecommerce, media, services, or B2B.',
@@ -1327,7 +1548,7 @@ async function synthesizeBriefInsights(input: {
               'Ground output in evidence. Avoid generic filler.',
               'Return valid JSON only.',
               'Do not mention launch messaging, founders, startups, designers, or platform copy unless the evidence clearly says that.',
-              'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, cta, language.',
+              'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, voiceGuide, cta, language.',
               'Constraints:',
               '- productName: brand or product name, not a generic SEO category unless no brand exists.',
               '- positioning: one clear sentence, max 220 chars.',
@@ -1336,8 +1557,10 @@ async function synthesizeBriefInsights(input: {
               '- painPoints: array of 3-6 specific frustrations the product solves.',
               '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
               '- keyClaims: array of 4-8 source-grounded product claims.',
-              '- proofPoints: array of up to 5 factual evidence signals from source only: metrics, customer/user counts, ratings, testimonials, case studies, press/awards, funding, or security/compliance certifications.',
-              '- Do not put pricing, feature claims, value props, CTAs, dates, navigation labels, or generic marketing claims in proofPoints. Return [] when explicit proof is not present.',
+              '- proofPoints: array of up to 5 source-backed evidence cues from source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+              '- Numeric claims must match the source evidence exactly. Do not round up, combine counts, or infer larger quantities.',
+              '- Do not put pricing, CTAs, dates, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims in proofPoints. Return [] when no source-backed proof or evidence cue is present.',
+              '- voiceGuide: 2-4 sentences, max 420 chars. Describe tone traits, pacing, formality, phrases to preserve, and phrases/claims to avoid. Keep it usable as downstream channel-specific writing guidance.',
               '- cta: 2-8 words, imperative (e.g., "Start free", "Request a demo").',
               '- language: ISO code such as en, es, fr, de, it, pt.',
             ].join('\n'),
@@ -1398,6 +1621,7 @@ async function synthesizeBriefInsights(input: {
       valueProps: sanitizeInsightList(parsed.valueProps, 6),
       keyClaims: sanitizeInsightList(parsed.keyClaims, 8),
       proofPoints: sanitizeInsightList(parsed.proofPoints, 5),
+      voiceGuide: normalizeInsightText(parsed.voiceGuide, 420),
       cta: normalizeCtaText(parsed.cta || '') || undefined,
       language: normalizeLanguageCode(parsed.language),
     }
@@ -1491,14 +1715,15 @@ async function synthesizeKeywordResearch(input: {
   if (hasReplicateToken()) {
     const replicateOutput = await runReplicateStructured<LlmKeywordResearch>({
       instructions: [
-        'You are an SEO strategist for B2B SaaS launches.',
+        'You are an SEO strategist for product launches across consumer, prosumer, ecommerce, services, and B2B categories.',
         'Generate keyword clusters from source evidence and product brief fields.',
         'Output keys: notes, clusters.',
         'clusters: array of 3-6 items with keys: topic, intent, priority, keywords, contentAngles.',
         'intent allowed values: informational, commercial, transactional, navigational.',
         'priority allowed values: high, medium, low.',
         'keywords: 3-8 phrases per cluster.',
-        'contentAngles: 2-4 concrete post angles per cluster.',
+        'contentAngles: 2-4 concrete SEO article, comparison, template, or landing-page angles per cluster.',
+        'Preserve numeric claims exactly as written in source evidence. Do not round up, combine counts, or infer larger quantities.',
         'No fabricated volume metrics. No generic filler.',
       ].join('\n'),
       prompt: JSON.stringify(
@@ -1551,7 +1776,7 @@ async function synthesizeKeywordResearch(input: {
           {
             type: 'input_text',
             text: [
-              'You are an SEO strategist for B2B SaaS launches.',
+              'You are an SEO strategist for product launches across consumer, prosumer, ecommerce, services, and B2B categories.',
               'Generate keyword clusters from source evidence and product brief fields.',
               'Return valid JSON only.',
               'Output keys: notes, clusters.',
@@ -1559,7 +1784,8 @@ async function synthesizeKeywordResearch(input: {
               'intent allowed values: informational, commercial, transactional, navigational.',
               'priority allowed values: high, medium, low.',
               'keywords: 3-8 phrases per cluster.',
-              'contentAngles: 2-4 concrete post angles per cluster.',
+              'contentAngles: 2-4 concrete SEO article, comparison, template, or landing-page angles per cluster.',
+              'Preserve numeric claims exactly as written in source evidence. Do not round up, combine counts, or infer larger quantities.',
               'No fabricated volume metrics. No generic filler.',
             ].join('\n'),
           },

@@ -1,8 +1,14 @@
 import {
+  CHANNEL_PACK_IDS,
+  CHANNEL_PACK_LABELS,
   DEFAULT_LAUNCH_ASSET_TEMPLATES,
   PLATFORM_IDS,
   PLATFORM_LABELS,
   type AssetLibrary,
+  type ChannelCard,
+  type ChannelCardStage,
+  type ChannelPack,
+  type ChannelPackId,
   type ExtractedBrief,
   type GeneratedLaunchAsset,
   type GeneratedLaunchAssetStatus,
@@ -128,11 +134,30 @@ export function createEmptyPlatformBlocks(): Record<PlatformBlockId, PlatformBlo
   return platformBlocks
 }
 
+export function createEmptyChannelPacks(): Record<ChannelPackId, ChannelPack> {
+  const channelPacks = {} as Record<ChannelPackId, ChannelPack>
+
+  for (const channelId of CHANNEL_PACK_IDS) {
+    channelPacks[channelId] = {
+      id: channelId,
+      label: CHANNEL_PACK_LABELS[channelId],
+      notes: '',
+      cards: [],
+      ...(channelId === 'reddit'
+        ? { redditRecommendations: createEmptyRedditRecommendations() }
+        : {}),
+    }
+  }
+
+  return channelPacks
+}
+
 export function createEmptyKit(language: string): LaunchKit {
   return {
     generatedAt: new Date().toISOString(),
     language,
     platformBlocks: createEmptyPlatformBlocks(),
+    channelPacks: createEmptyChannelPacks(),
     mediaKit: createEmptyMediaKit(),
     assetLibrary: createEmptyAssetLibrary(),
     growthAssets: createEmptyGrowthAssets(),
@@ -161,6 +186,7 @@ export function normalizeBrief(
     valueProps: Array.isArray(brief?.valueProps) ? brief.valueProps.filter(Boolean) : [],
     keyClaims: Array.isArray(brief?.keyClaims) ? brief.keyClaims.filter(Boolean) : [],
     proofPoints: Array.isArray(brief?.proofPoints) ? brief.proofPoints.filter(Boolean) : [],
+    voiceGuide: brief?.voiceGuide || buildDefaultVoiceGuide(brief),
     cta: brief?.cta || '',
     language: brief?.language || fallback.language || 'en',
     sourceHighlights: Array.isArray(brief?.sourceHighlights)
@@ -175,6 +201,13 @@ export function normalizeBrief(
         : [brief?.sourceUrl || fallback.sourceUrl || ''],
     keywordResearch: normalizeKeywordResearch(brief?.keywordResearch),
   }
+}
+
+function buildDefaultVoiceGuide(brief: Partial<ExtractedBrief> | null | undefined): string {
+  const productName = brief?.productName || 'the product'
+  const audience = brief?.targetUsers?.[0] || brief?.icp || 'the target audience'
+
+  return `Use a clear, human, product-specific voice for ${productName}. Keep claims grounded in the source brief, speak directly to ${audience}, avoid generic AI phrasing, and adapt structure and tone to each channel's social contract.`
 }
 
 export function normalizeKeywordResearch(
@@ -223,14 +256,17 @@ export function normalizeKit(
       notes: block.notes || '',
       ...(blockId === 'reddit'
         ? { redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations) }
-        : {}),
+      : {}),
     }
   }
+
+  const channelPacks = normalizeChannelPacks(kit?.channelPacks, platformBlocks)
 
   return {
     generatedAt: kit?.generatedAt || fallback.generatedAt,
     language: kit?.language || language,
     platformBlocks,
+    channelPacks,
     mediaKit: {
       founderCompanyBio: kit?.mediaKit?.founderCompanyBio || '',
       productOneLiner: kit?.mediaKit?.productOneLiner || '',
@@ -291,6 +327,142 @@ export function normalizeKit(
     },
     seoGrowth: normalizeSeoGrowthState(kit?.seoGrowth),
   }
+}
+
+export function normalizeChannelPacks(
+  channelPacks:
+    | Partial<Record<ChannelPackId, Partial<ChannelPack> | null>>
+    | null
+    | undefined,
+  platformBlocks: Record<PlatformBlockId, PlatformBlock> = createEmptyPlatformBlocks(),
+): Record<ChannelPackId, ChannelPack> {
+  const normalized = createEmptyChannelPacks()
+
+  for (const channelId of CHANNEL_PACK_IDS) {
+    const rawPack = channelPacks?.[channelId]
+    const legacyPack = synthesizeChannelPackFromPlatformBlock(channelId, platformBlocks)
+    const rawCards = Array.isArray(rawPack?.cards) ? rawPack.cards : []
+    const cards = rawCards
+      .map((card, index) => normalizeChannelCard(card, channelId, index))
+      .filter((card): card is ChannelCard => Boolean(card))
+
+    normalized[channelId] = {
+      id: channelId,
+      label: rawPack?.label?.trim() || CHANNEL_PACK_LABELS[channelId],
+      notes: rawPack?.notes?.trim() || legacyPack.notes,
+      cards: cards.length > 0 ? cards : legacyPack.cards,
+      ...(channelId === 'reddit'
+        ? {
+            redditRecommendations: normalizeRedditRecommendations(
+              rawPack?.redditRecommendations,
+              legacyPack.redditRecommendations,
+            ),
+          }
+        : {}),
+    }
+  }
+
+  return normalized
+}
+
+function normalizeChannelCard(
+  card: Partial<ChannelCard> | null | undefined,
+  channelId: ChannelPackId,
+  index: number,
+): ChannelCard | null {
+  const title = safeString(card?.title)
+  const body = safeString(card?.body)
+  const cta = safeString(card?.cta)
+
+  if (!title && !body && !cta) {
+    return null
+  }
+
+  return {
+    id: safeString(card?.id) || `${channelId}-card-${index + 1}`,
+    title,
+    body,
+    cta,
+    proofPoint: safeString(card?.proofPoint) || inferProofPointFromText(body),
+    stage: isChannelCardStage(card?.stage) ? card.stage : 'evergreen',
+    format: safeString(card?.format) || 'Native post',
+    socialContractNote: safeString(card?.socialContractNote),
+    qualityChecks: Array.isArray(card?.qualityChecks)
+      ? card.qualityChecks.map((item) => safeString(item)).filter(Boolean).slice(0, 6)
+      : [],
+  }
+}
+
+function synthesizeChannelPackFromPlatformBlock(
+  channelId: ChannelPackId,
+  platformBlocks: Record<PlatformBlockId, PlatformBlock>,
+): ChannelPack {
+  const platformId = getLegacyPlatformBlockIdForChannel(channelId)
+  const emptyPack: ChannelPack = {
+    id: channelId,
+    label: CHANNEL_PACK_LABELS[channelId],
+    notes: '',
+    cards: [],
+    ...(channelId === 'reddit'
+      ? { redditRecommendations: createEmptyRedditRecommendations() }
+      : {}),
+  }
+
+  if (!platformId) {
+    return emptyPack
+  }
+
+  const block = platformBlocks[platformId]
+  if (!block || !(block.title.trim() || block.body.trim() || block.cta.trim())) {
+    return emptyPack
+  }
+
+  return {
+    id: channelId,
+    label: CHANNEL_PACK_LABELS[channelId],
+    notes: block.notes,
+    cards: [
+      {
+        id: `${channelId}-legacy-launch`,
+        title: block.title,
+        body: block.body,
+        cta: block.cta,
+        proofPoint: inferProofPointFromText(block.body) || 'Review source evidence before publishing.',
+        stage: 'launch_day',
+        format: 'Launch post',
+        socialContractNote: block.notes,
+        qualityChecks: ['Review current channel rules and expectations before posting.'],
+      },
+    ],
+    ...(channelId === 'reddit'
+      ? { redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations) }
+      : {}),
+  }
+}
+
+function inferProofPointFromText(value: string): string {
+  const lines = value.split('\n').map((line) => line.trim()).filter(Boolean)
+  const proofLine = lines.find((line) => /^(\*\*)?(proof|proof\/context|proof signal|proof cues?)/i.test(line))
+
+  if (!proofLine) {
+    return ''
+  }
+
+  return proofLine.replace(/^(\*\*)?(proof|proof\/context|proof signal|proof cues?)\s*(\*\*)?\s*:?\s*/i, '').trim()
+}
+
+function getLegacyPlatformBlockIdForChannel(channelId: ChannelPackId): PlatformBlockId | null {
+  if (
+    channelId === 'linkedin' ||
+    channelId === 'reddit' ||
+    channelId === 'indie_hackers' ||
+    channelId === 'tiktok' ||
+    channelId === 'youtube_shorts'
+  ) {
+    return channelId
+  }
+
+  return null
 }
 
 export function normalizeAssetLibrary(
@@ -513,6 +685,15 @@ function isLaunchAssetFormat(value: unknown): value is LaunchAssetFormat {
     value === '4:5' ||
     value === '1.91:1' ||
     value === 'text'
+  )
+}
+
+function isChannelCardStage(value: unknown): value is ChannelCardStage {
+  return (
+    value === 'pre_launch' ||
+    value === 'launch_day' ||
+    value === 'follow_up' ||
+    value === 'evergreen'
   )
 }
 
