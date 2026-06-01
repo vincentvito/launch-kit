@@ -1948,6 +1948,7 @@ function ChannelPackPanel({
       (redditRecommendations.engagementSubreddits.length > 0 ||
         redditRecommendations.selfPromotionSubreddits.length > 0),
   )
+  const hidesPostTitle = pack.id === 'x'
 
   return (
     <div className="space-y-3">
@@ -2005,20 +2006,22 @@ function ChannelPackPanel({
                 </div>
               </div>
 
-              <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                {labels.title}
-                <input
-                  value={card.title}
-                  onChange={(event) =>
-                    onUpdateCard(card.id, {
-                      title: event.target.value,
-                      body: card.body,
-                      cta: card.cta,
-                    })
-                  }
-                  className="mt-1 w-full rounded-lg border border-violet-100 bg-violet-50/30 px-3 py-2 text-sm normal-case tracking-normal text-zinc-900 outline-none transition focus:border-violet-400 focus:bg-white"
-                />
-              </label>
+              {!hidesPostTitle ? (
+                <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                  {labels.title}
+                  <input
+                    value={card.title}
+                    onChange={(event) =>
+                      onUpdateCard(card.id, {
+                        title: event.target.value,
+                        body: card.body,
+                        cta: card.cta,
+                      })
+                    }
+                    className="mt-1 w-full rounded-lg border border-violet-100 bg-violet-50/30 px-3 py-2 text-sm normal-case tracking-normal text-zinc-900 outline-none transition focus:border-violet-400 focus:bg-white"
+                  />
+                </label>
+              ) : null}
 
               <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
                 {labels.body}

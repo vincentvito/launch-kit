@@ -14,8 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function PricingPage() {
+type PricingPageProps = {
+  searchParams?: Promise<{
+    billing?: string
+  }>
+}
+
+export default async function PricingPage({ searchParams }: PricingPageProps) {
   const t = await getTranslations('Pricing')
+  const params = await searchParams
+  const isManualBilling = params?.billing === 'manual'
   const freeItems = t.raw('plans.free.items') as string[]
   const premiumItems = t.raw('plans.premium.items') as string[]
 
@@ -81,11 +89,29 @@ export default async function PricingPage() {
             cadence={t('plans.premium.cadence')}
             description={t('plans.premium.description')}
             cta={t('plans.premium.cta')}
-            href="/dashboard"
+            href="/billing/checkout"
             items={premiumItems}
             tone="premium"
           />
         </div>
+
+        {isManualBilling ? (
+          <aside className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="mt-1 rounded-xl border border-amber-200 bg-white/80 p-2 text-amber-700">
+                <Lock className="size-4" />
+              </span>
+              <div>
+                <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                  {t('manual.title')}
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-700">
+                  {t('manual.description')}
+                </p>
+              </div>
+            </div>
+          </aside>
+        ) : null}
 
         <aside className="mt-6 rounded-2xl border border-violet-100 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">

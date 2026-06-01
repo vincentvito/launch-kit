@@ -1,4 +1,10 @@
 import { NextResponse } from 'next/server'
+import {
+  launchApiRouteErrorResponse,
+  readJsonBody,
+  recordLaunchApiUsage,
+  requireLaunchApiAccess,
+} from '@/lib/launch-kit/api-guard'
 import { normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
 import { exportBacklinkProspectsCsv } from '@/lib/launch-kit/seo'
 import type { SeoGrowthState } from '@/lib/launch-kit/types'
@@ -7,28 +13,34 @@ export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
+    const body = await readJsonBody<{
       projectName?: string
       seoGrowth?: Partial<SeoGrowthState>
-    }
+    }>(request)
 
+    const access = await requireLaunchApiAccess(request, {
+      action: 'export_backlinks',
+      feature: 'premium',
+      rateLimitAction: 'export',
+    })
     const csv = exportBacklinkProspectsCsv(normalizeSeoGrowthState(body.seoGrowth))
     const filename = `${slugify(body.projectName || 'launch-kit-backlinks')}-backlinks.csv`
+    await recordLaunchApiUsage(access, 'export_backlinks')
 
     return new NextResponse(csv, {
       status: 200,
       headers: {
         'content-type': 'text/csv;charset=utf-8',
         'content-disposition': `attachment; filename="${filename}"`,
+        'cache-control': 'private, no-store',
       },
     })
   } catch (error) {
-    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    console.error('Export backlinks action failed.', error)
-    return NextResponse.json({ error: 'Export backlinks action failed.' }, { status: 500 })
+    return launchApiRouteErrorResponse(
+      error,
+      'Export backlinks action failed.',
+      'export_backlinks_action_failed',
+    )
   }
 }
 

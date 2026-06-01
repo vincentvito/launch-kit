@@ -386,7 +386,7 @@ export type BacklinkEmailJob = {
   subject: string
   bodyPreview: string
   createdAt: string
-  completedAt: string
+  completedAt?: string
 }
 
 export type SeoGrowthState = {

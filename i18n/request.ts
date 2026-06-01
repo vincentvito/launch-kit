@@ -1,12 +1,15 @@
 import { getRequestConfig } from 'next-intl/server'
+import { cookies } from 'next/headers'
 
-// The app is English-only for now. To re-enable multilingual support, read the
-// locale from a cookie/header again (see git history) and restore the dynamic import.
-const locale = 'en'
+const locales = ['en', 'es'] as const
+type Locale = (typeof locales)[number]
 
 export default getRequestConfig(async () => {
+  const cookieLocale = (await cookies()).get('locale')?.value
+  const locale: Locale = locales.includes(cookieLocale as Locale) ? (cookieLocale as Locale) : 'en'
+
   return {
     locale,
-    messages: (await import('../messages/en.json')).default
+    messages: (await import(`../messages/${locale}.json`)).default,
   }
 })

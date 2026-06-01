@@ -1,38 +1,30 @@
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Changelog | ClickStudio Starter',
-  description: 'All notable changes to the ClickStudio starter project.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Changelog.meta')
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  }
 }
 
-const changelog = [
-  {
-    version: '0.1.0',
-    date: '2026-05-04',
-    changes: [
-      {
-        type: 'added' as const,
-        items: [
-          'Initial ClickStudio starter template',
-          'Next.js 16 + React 19 + TypeScript + Tailwind v4',
-          'Prisma 7 with SQLite by default (Postgres-ready)',
-          'Better Auth (email/password + optional Google OAuth)',
-          'Internationalization with next-intl (English & Spanish)',
-          'shadcn/ui components and Lucide icons',
-          'Zero-config startup: clone, install, run',
-          'AGENTS.md to keep AI agents on the standard stack',
-        ],
-      },
-    ],
-  },
-]
+type ChangelogRelease = {
+  version: string
+  date: string
+  changes: Array<{
+    type: 'added' | 'changed' | 'fixed' | 'removed'
+    items: string[]
+  }>
+}
 
 export default async function ChangelogPage() {
-  const t = await getTranslations('Changelog')
+  const [locale, t] = await Promise.all([getLocale(), getTranslations('Changelog')])
+  const changelog = t.raw('releases') as ChangelogRelease[]
 
   const typeColors = {
     added: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -55,11 +47,10 @@ export default async function ChangelogPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">C</span>
+              <span className="text-sm font-bold text-primary-foreground">L</span>
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-zinc-950 px-1 text-white dark:bg-white dark:text-black">click</span>
-              studio
+              {t('brand')}
             </span>
           </Link>
         </div>
@@ -83,7 +74,7 @@ export default async function ChangelogPage() {
         </div>
 
         <div className="space-y-12">
-          {changelog.map((release) => (
+          {changelog.map((release, index) => (
             <article
               key={release.version}
               className="relative border-l-2 border-primary/30 pl-8"
@@ -95,12 +86,14 @@ export default async function ChangelogPage() {
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     v{release.version}
                   </h2>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                    {t('latest')}
-                  </span>
+                  {index === 0 ? (
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                      {t('latest')}
+                    </span>
+                  ) : null}
                 </div>
                 <time className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(release.date).toLocaleDateString('en', {
+                  {new Date(release.date).toLocaleDateString(locale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -139,13 +132,7 @@ export default async function ChangelogPage() {
             {t('moreHistory')}
           </p>
           <Button variant="outline" asChild className="mt-4">
-            <a
-              href="https://github.com/clickstudio/clickstudio-starter/blob/main/CHANGELOG.md"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t('viewGithub')}
-            </a>
+            <Link href="/">{t('homeCta')}</Link>
           </Button>
         </div>
       </main>

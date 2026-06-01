@@ -28,6 +28,13 @@ export function cleanText(input: string): string {
   return input.replace(/\s+/g, ' ').trim()
 }
 
+export function escapeCsvCell(value: unknown): string {
+  const raw = String(value ?? '')
+  const sanitized = /^[\s]*[=+\-@]/.test(raw) ? `'${raw}` : raw
+
+  return `"${sanitized.replaceAll('"', '""')}"`
+}
+
 export function isPlatformBlockId(value: string): value is PlatformBlockId {
   return PLATFORM_IDS.includes(value as PlatformBlockId)
 }

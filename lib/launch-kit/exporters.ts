@@ -112,7 +112,7 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
     lines.push('')
 
     for (const card of pack.cards) {
-      lines.push(`#### ${card.title}`)
+      lines.push(`#### ${channelId === 'x' ? card.format : card.title}`)
       lines.push(`- Format: ${card.format}`)
       lines.push(`- Stage: ${card.stage}`)
       if (card.proofPoint) {
@@ -196,7 +196,7 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   lines.push('')
   lines.push(`- Leads: ${project.kit.prospecting.leads.length}`)
   lines.push(`- Personalized outreach items: ${project.kit.prospecting.personalizedOutreach.length}`)
-  lines.push(`- Email jobs (stub): ${project.kit.prospecting.emailJobs.length}`)
+  lines.push(`- Email jobs: ${project.kit.prospecting.emailJobs.length}`)
   lines.push(`- Last scrape at: ${project.kit.prospecting.lastScrapeAt || 'N/A'}`)
   lines.push(`- Last email build at: ${project.kit.prospecting.lastEmailBuildAt || 'N/A'}`)
   lines.push('')

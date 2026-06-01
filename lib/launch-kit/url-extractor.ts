@@ -57,6 +57,8 @@ const MAX_PAGES = 5
 const MAX_BODY_CHUNKS = 50
 const MAX_HEADING_CHUNKS = 24
 const MAX_LINE_LENGTH = 220
+const MAX_FETCH_REDIRECTS = 5
+const MAX_HTML_BYTES = 2 * 1024 * 1024
 
 const CTA_BLOCKLIST = [
   'startups',
@@ -466,35 +468,114 @@ async function crawlSite(startUrl: string): Promise<PageExtraction[]> {
 
 async function fetchAndExtract(url: string): Promise<PageExtraction | null> {
   try {
-    await assertPublicUrl(url)
+    const fetched = await fetchPublicHtml(url)
+    if (!fetched) {
+      return null
+    }
 
-    const response = await fetch(url, {
+    return extractFromHtml(fetched.url, fetched.html)
+  } catch {
+    return null
+  }
+}
+
+export async function fetchPublicHtml(url: string): Promise<{ url: string; html: string } | null> {
+  let currentUrl = url
+
+  for (let redirectCount = 0; redirectCount <= MAX_FETCH_REDIRECTS; redirectCount += 1) {
+    await assertPublicUrl(currentUrl)
+
+    const response = await fetch(currentUrl, {
       headers: {
         'user-agent': 'LaunchKitBot/1.0 (+https://clickstudio.dev)',
         accept: 'text/html,application/xhtml+xml',
       },
       signal: AbortSignal.timeout(15000),
-      redirect: 'follow',
+      redirect: 'manual',
     })
+
+    if (isRedirectStatus(response.status)) {
+      const location = response.headers.get('location')
+      const redirectUrl = location ? resolveUrl(location, currentUrl) : null
+      if (!redirectUrl) {
+        return null
+      }
+
+      await assertPublicUrl(redirectUrl)
+      currentUrl = redirectUrl
+      continue
+    }
 
     if (!response.ok) {
       return null
     }
 
+    const finalUrl = response.url || currentUrl
+    await assertPublicUrl(finalUrl)
+
     const contentType = response.headers.get('content-type') || ''
-    if (!contentType.includes('text/html')) {
+    if (!contentType.toLowerCase().includes('text/html')) {
       return null
     }
 
-    const html = await response.text()
+    const html = await readBoundedResponseText(response, MAX_HTML_BYTES)
     if (!html.trim()) {
       return null
     }
 
-    return extractFromHtml(url, html)
-  } catch {
-    return null
+    return {
+      url: finalUrl,
+      html,
+    }
   }
+
+  return null
+}
+
+function isRedirectStatus(status: number): boolean {
+  return [301, 302, 303, 307, 308].includes(status)
+}
+
+async function readBoundedResponseText(response: Response, maxBytes: number): Promise<string> {
+  const contentLength = response.headers.get('content-length')
+  if (contentLength && Number.parseInt(contentLength, 10) > maxBytes) {
+    throw new Error('Fetched HTML is too large')
+  }
+
+  if (!response.body) {
+    return ''
+  }
+
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let totalBytes = 0
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+
+      totalBytes += value.byteLength
+      if (totalBytes > maxBytes) {
+        throw new Error('Fetched HTML is too large')
+      }
+
+      chunks.push(value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  const buffer = new Uint8Array(totalBytes)
+  let offset = 0
+  for (const chunk of chunks) {
+    buffer.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+
+  return new TextDecoder().decode(buffer)
 }
 
 function extractFromHtml(pageUrl: string, html: string): PageExtraction {

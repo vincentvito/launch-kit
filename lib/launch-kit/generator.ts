@@ -734,16 +734,22 @@ const PLATFORM_PROMPT_PROFILES: Record<PlatformBlockId, PromptProfile> = {
 
 const CHANNEL_PACK_PROMPT_PROFILES: Record<ChannelPackId, PromptProfile> = {
   x: {
-    objective: 'Create public timeline posts that earn replies, saves, or curiosity without sounding like ads.',
-    audience: 'X users scanning fast for sharp product lessons, build context, useful launches, and concrete takes.',
-    format: 'Build-in-public updates, launch posts, lesson posts, short threads, and reply prompts as requested.',
-    tone: 'Concise, specific, lightly opinionated, and easy to reply to.',
+    objective:
+      'Write X posts that sound like a real founder or operator sharing what they built, why they built it, what they learned launching it, or what surprised them while distributing it.',
+    audience:
+      'X readers who respond to honest build stories, sharp lessons, useful mistakes, distribution experiments, and specific founder observations.',
+    format:
+      'No post titles. Write the actual post text only. Use a build story, launch lesson, distribution lesson, mistake, short thread, or reply prompt depending on the requested card.',
+    tone:
+      'Candid, specific, lightly opinionated, human, and a little imperfect. More founder note than marketing copy.',
     contract:
-      'Concise public timeline content, not DMs. Use build-in-public, launch, lesson, short thread, and reply-prompt formats only when requested.',
+      'Public X timeline content only. The title field is an internal dashboard label; never write a title or headline inside the post body. Lead with a lived observation, mistake, lesson, constraint, or specific build/distribution story before mentioning the product.',
     qualityExpectations: [
-      'Keep each post focused on one idea.',
-      'Use concrete nouns and source-backed proof.',
-      'Do not write DMs, LinkedIn cadence, or generic announcement copy.',
+      'Do not start with "We launched", "Introducing", "Excited to share", or a generic product claim.',
+      'Make the post about a real tension: building it, finding users, launching it, positioning it, distributing it, or learning from feedback.',
+      'Use first person when appropriate. Prefer "I built...", "I learned...", or "The hard part was..." over brand voice.',
+      'Mention the product only after the story has earned it.',
+      'No visible title, no headline, no hashtags unless explicitly useful, no polished ad cadence.',
     ],
   },
   linkedin: {
@@ -954,6 +960,18 @@ function buildLaunchKitInstructions(
     )
   }
 
+  if (selectedChannelPackIds.includes('x')) {
+    lines.push(
+      '',
+      'X-specific rules:',
+      '- The title field is an internal dashboard label only. Never write a title or headline inside the body.',
+      '- The body must read like a post someone would actually publish on X, not a launch page excerpt.',
+      '- Pick one angle: honest build story, launch lesson, distribution lesson, mistake, constraint, surprising user insight, or what changed after shipping.',
+      '- Avoid sterile phrases such as "streamline", "unlock", "supercharge", "the bet", "proof signal", and "next step".',
+      '- If proof is missing, do not write "Proof signal" in the body. Put proof needs in proofPoint or qualityChecks only.',
+    )
+  }
+
   if (selectedBlocks.includes('reddit') || selectedChannelPackIds.includes('reddit')) {
     lines.push(
       '',
@@ -1141,7 +1159,25 @@ function buildChannelCardPromptBrief(channelId: ChannelPackId, blueprint: Channe
     audience: profile.audience,
     tone: profile.tone,
     qualityExpectations: profile.qualityExpectations,
+    ...(channelId === 'x' ? { contentAngle: getXChannelCardPromptAngle(blueprint.id) } : {}),
   }
+}
+
+function getXChannelCardPromptAngle(cardId: string): string {
+  const angles: Record<string, string> = {
+    'x-build-in-public':
+      'A candid note about what was harder than expected while building, validating, or explaining it.',
+    'x-launch-post':
+      'A launch-day story that begins with the repeated problem or distribution lesson, then mentions the product.',
+    'x-lesson-post':
+      'A what-I-learned post about launching, positioning, distribution, or user feedback.',
+    'x-short-thread':
+      'A short thread where each numbered post advances one build or launch lesson; no title tweet.',
+    'x-reply-prompts':
+      'Questions that invite founders or operators to reply with launch or distribution pain, not engagement bait.',
+  }
+
+  return angles[cardId] || 'A specific founder story or launch lesson that can stand alone on X.'
 }
 
 function getRequestedChannelBlueprints(
@@ -1677,15 +1713,27 @@ function fallbackChannelCardBody(
   const { product, audience, pain, value, proof, cta } = values
 
   if (channelId === 'x') {
+    if (blueprint.id === 'x-build-in-public') {
+      return `I thought the hard part would be building ${product}.\n\nIt was actually explaining ${pain} in a way ${audience} would care about.\n\nCurrent version is focused on this: ${value}\n\nStill figuring out what proof would make people trust it enough to try.`
+    }
+
+    if (blueprint.id === 'x-launch-post') {
+      return `I built ${product} because I kept seeing the same launch problem:\n\n${pain}\n\nThe first useful version does one thing: ${value}\n\nIf you have dealt with this, I would genuinely like to know what would make it worth trying.`
+    }
+
+    if (blueprint.id === 'x-lesson-post') {
+      return `Launch lesson: a product can be useful and still sound boring if the distribution story is wrong.\n\nFor ${audience}, the pain is not "needing another tool."\n\nIt is this: ${pain}\n\nThat changed how I talk about ${product}: lead with the lived problem, then show ${value}.`
+    }
+
     if (blueprint.id === 'x-short-thread') {
-      return `1/ I kept running into this problem: ${pain}.\n\n2/ ${product} is my attempt to make that workflow simpler for ${audience}.\n\n3/ The useful bit so far: ${value}.\n\n4/ Proof signal: ${proof}\n\n5/ Next step: ${cta}`
+      return `1/ I used to think launching was mostly about writing a good announcement.\n\n2/ The harder part is translating one product story for different rooms without sounding fake.\n\n3/ That is why I built ${product}: ${pain}\n\n4/ The useful part so far is simple: ${value}\n\n5/ What I am still testing: what proof or demo would make ${audience} trust it enough to try?`
     }
 
     if (blueprint.id === 'x-reply-prompts') {
-      return `Reply prompts:\n- What would make this useful in your current workflow?\n- Where would you be most skeptical before trying ${product}?\n- What proof would you need before trying ${product}?`
+      return `Reply prompts:\n- What part of launching or distribution still feels weirdly manual for you?\n- When you see a new tool like ${product}, what makes you trust it enough to try?\n- Which launch channel is hardest to write for without sounding fake?`
     }
 
-    return `Building ${product} because ${pain} keeps slowing down ${audience}.\n\nThe bet: ${value}.\n\nProof signal: ${proof}`
+    return `I built ${product} after getting tired of this problem:\n\n${pain}\n\nFor ${audience}, the useful part is not another tool. It is finally getting ${value}.\n\nStill learning which part of that story makes people stop scrolling.`
   }
 
   if (channelId === 'reddit') {
@@ -1737,7 +1785,7 @@ function fallbackSocialContractNote(
   }
 
   if (channelId === 'x') {
-    return 'X rewards concise public learning, sharp specifics, and real replies over polished announcements.'
+    return 'X works best when the post feels like a lived build, launch, or distribution lesson, not a polished announcement.'
   }
 
   if (channelId === 'linkedin') {

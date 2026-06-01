@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -54,11 +53,7 @@ import {
   splitLines,
   writeGuestProjects,
 } from './dashboard-utils'
-
-const ResultAssetBrowser = dynamic(
-  () => import('./result-asset-browser').then((m) => m.ResultAssetBrowser),
-  { ssr: false },
-)
+import { ResultAssetBrowser } from './result-asset-browser'
 
 type DashboardPageClientProps = {
   initialUrlParam: string
@@ -737,7 +732,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     }
 
     await navigator.clipboard.writeText(
-      formatChannelCardForCopy(card, {
+      formatChannelCardForCopy(channelId, card, {
         cta: t('output.copyCtaPrefix'),
         proofPoint: t('output.proofPointLabel'),
         socialContract: t('output.socialContractLabel'),

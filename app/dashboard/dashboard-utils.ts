@@ -104,6 +104,7 @@ export function formatOutreachPackForCopy(
 }
 
 export function formatChannelCardForCopy(
+  channelId: ChannelPackId,
   card: ChannelCard,
   labels: {
     cta: string
@@ -111,6 +112,10 @@ export function formatChannelCardForCopy(
     socialContract: string
   },
 ): string {
+  if (channelId === 'x') {
+    return card.body
+  }
+
   return [
     card.title,
     card.body,
@@ -328,7 +333,7 @@ export type ExportLabels = {
   prospecting: string
   leads: string
   personalizedOutreach: string
-  emailJobsStub: string
+  emailJobs: string
   seoGrowth: string
   websiteSeoAnalysis: string
   blogStrategy: string
@@ -391,7 +396,7 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     prospecting: t('export.markdown.prospecting'),
     leads: t('export.markdown.leads'),
     personalizedOutreach: t('export.markdown.personalizedOutreach'),
-    emailJobsStub: t('export.markdown.emailJobsStub'),
+    emailJobs: t('export.markdown.emailJobs'),
     seoGrowth: t('growth.seo.title'),
     websiteSeoAnalysis: t('growth.seo.analysis.title'),
     blogStrategy: t('growth.seo.blog.title'),
@@ -500,7 +505,7 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
     }
 
     for (const card of cards) {
-      lines.push(`#### ${card.title}`)
+      lines.push(`#### ${channelId === 'x' ? card.format : card.title}`)
       lines.push(`- ${labels.format}: ${card.format}`)
       lines.push(`- ${labels.stage}: ${card.stage}`)
       if (card.proofPoint) {

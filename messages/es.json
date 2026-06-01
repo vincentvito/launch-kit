@@ -1,7 +1,14 @@
 {
+  "App": {
+    "meta": {
+      "title": "Launch Kit",
+      "description": "Convierte una URL de producto en copy de lanzamiento, exports y assets premium de growth.",
+      "siteName": "Launch Kit"
+    }
+  },
   "HomePage": {
-    "title": "Hola mundo!",
-    "description": "Bienvenido a nuestra aplicacion internacionalizada"
+    "title": "Launch Kit",
+    "description": "Convierte una URL de producto en copy listo para launch y assets de growth."
   },
   "LanguageSwitcher": {
     "label": "Idioma",
@@ -9,9 +16,23 @@
     "es": "Espanol"
   },
   "Auth": {
+    "meta": {
+      "title": "Iniciar sesion | Launch Kit",
+      "description": "Inicia sesion para guardar proyectos, exports y trabajo premium de growth."
+    },
     "title": "Inicia sesion en tu cuenta",
-    "subtitle": "Continua con tu cuenta de Google",
+    "createTitle": "Crea tu cuenta",
+    "subtitle": "Continua para guardar proyectos, exports y trabajo premium.",
     "googleButton": "Continuar con Google",
+    "nameLabel": "Nombre",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "emailSignIn": "Iniciar sesion con email",
+    "emailSignUp": "Crear cuenta",
+    "switchToSignUp": "Necesitas una cuenta? Crea una",
+    "switchToSignIn": "Ya tienes cuenta? Inicia sesion",
+    "submitting": "Trabajando...",
+    "emailError": "No pudimos completar esa solicitud de auth.",
     "loading": "Cargando..."
   },
   "Dashboard": {
@@ -20,6 +41,63 @@
     "description": "Has iniciado sesion en tu panel de control.",
     "signOut": "Cerrar sesion",
     "loading": "Cargando..."
+  },
+  "Billing": {
+    "checkout": {
+      "title": "Iniciando checkout",
+      "description": "Preparando tu sesion segura de billing.",
+      "errorTitle": "Checkout no disponible",
+      "unavailable": "Checkout no esta disponible.",
+      "back": "Volver a pricing"
+    }
+  },
+  "GlobalError": {
+    "eyebrow": "Error",
+    "title": "Algo salio mal",
+    "description": "Ocurrio un error inesperado. Intentalo de nuevo.",
+    "retry": "Intentar de nuevo"
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "title": "Pagina no encontrada",
+    "description": "La pagina que buscas no existe o puede haberse movido.",
+    "backHome": "Volver al inicio"
+  },
+  "Legal": {
+    "privacy": {
+      "meta": {
+        "title": "Privacidad | Launch Kit",
+        "description": "Como Launch Kit maneja datos de cuenta, waitlist, URLs de producto y contenido generado."
+      },
+      "back": "Volver al inicio",
+      "eyebrow": "Privacidad",
+      "title": "Politica de privacidad",
+      "description": "Launch Kit guarda solo los datos necesarios para operar el producto y mejorar workflows de launch.",
+      "items": [
+        "Recolectamos datos de cuenta, emails de waitlist, proyectos guardados, campos de perfil, identificadores de billing, eventos de uso y URLs o contenido que envias para generar.",
+        "Las URLs enviadas pueden ser consultadas y analizadas para crear un brief de producto. Los outputs generados y proyectos guardados pueden almacenarse con tu cuenta.",
+        "Los datos de billing premium los maneja el proveedor configurado. Launch Kit guarda identificadores de cliente y suscripcion, no datos completos de tarjeta.",
+        "Usamos API keys y credenciales de proveedores solo en el servidor. Los proveedores de AI y media pueden procesar prompts enviados segun sus propios terminos.",
+        "Puedes pedir la eliminacion de datos de cuenta, perfil, waitlist y proyectos guardados contactando soporte del producto desplegado."
+      ]
+    },
+    "terms": {
+      "meta": {
+        "title": "Terminos | Launch Kit",
+        "description": "Terminos para usar contenido generado, exports, prospecting y workflows premium de Launch Kit."
+      },
+      "back": "Volver al inicio",
+      "eyebrow": "Terminos",
+      "title": "Terminos de servicio",
+      "description": "Usa Launch Kit como herramienta de planificacion de launch y revisa los outputs antes de publicar o contactar a alguien.",
+      "items": [
+        "Eres responsable por las URLs, prompts, listas de contacto y contenido que envias, y por revisar el copy generado antes de publicarlo.",
+        "Las funciones de prospecting, backlinks y outreach son ayudas de planificacion. Debes cumplir reglas de plataformas, leyes de email, privacidad y consentimiento.",
+        "Los outputs de AI pueden estar incompletos o ser inexactos. No los trates como asesoria legal, financiera, medica o de compliance.",
+        "El acceso premium depende de una suscripcion activa, entitlement manual u otra configuracion de billing.",
+        "Podemos limitar, suspender o bloquear trafico abusivo, uso inseguro o intentos de evadir controles de entitlement."
+      ]
+    }
   },
   "WaitingList": {
     "meta": {
@@ -266,11 +344,20 @@
     "note": {
       "title": "Intencionalmente pequeno",
       "description": "Los flujos de marketplaces, partnerships de newsletters, podcast pitching y envio automatico de emails quedan diferidos para que la app siga siendo facil de entender y confiar."
+    },
+    "manual": {
+      "title": "Billing manual activo",
+      "description": "Checkout esta pausado en este despliegue. Un admin debe otorgar acceso Premium hasta que Stripe checkout este configurado."
     }
   },
   "Changelog": {
+    "meta": {
+      "title": "Historial | Launch Kit",
+      "description": "Actualizaciones notables de producto y preparacion para produccion de Launch Kit."
+    },
+    "brand": "Launch Kit",
     "title": "Historial de Cambios",
-    "description": "Todos los cambios notables de este proyecto estan documentados aqui.",
+    "description": "Actualizaciones notables de producto y preparacion para produccion estan documentadas aqui.",
     "backHome": "Volver al inicio",
     "latest": "Ultimo",
     "types": {
@@ -279,8 +366,46 @@
       "fixed": "Corregido",
       "removed": "Eliminado"
     },
-    "moreHistory": "Buscas mas historial?",
-    "viewGithub": "Ver historial completo en GitHub"
+    "releases": [
+      {
+        "version": "0.2.0",
+        "date": "2026-06-01",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Preflight de produccion para revisar entorno de deploy, billing, auth, AI y proveedor de base de datos",
+              "Uso, jobs, planes, rate limits, rutas de billing, health checks y readiness checks persistidos para Launch Kit",
+              "Generacion de posts para X con historias honestas, sin titulos, exports sin titulo y copy ajustado por canal"
+            ]
+          },
+          {
+            "type": "changed",
+            "items": [
+              "Las respuestas API ahora usan private, no-store por defecto para JSON y errores especificos del usuario",
+              "El runtime de base de datos ahora elige adaptadores SQLite o Postgres desde DATABASE_URL",
+              "Se reforzaron headers de seguridad, origin checks, limites de request body y protecciones de ingest de URLs"
+            ]
+          }
+        ]
+      },
+      {
+        "version": "0.1.0",
+        "date": "2026-05-04",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Experiencia inicial de Launch Kit sobre el stack estandar de la app",
+              "Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma 7, Better Auth y next-intl",
+              "Arranque local zero-config con SQLite por defecto y ruta documentada a Postgres para produccion"
+            ]
+          }
+        ]
+      }
+    ],
+    "moreHistory": "Listo para convertir una URL de producto en assets de lanzamiento?",
+    "homeCta": "Abrir Launch Kit"
   },
   "LaunchKit": {
     "tagline": "Launch kit gratis, growth engine premium",
@@ -536,7 +661,7 @@
         "comparison_alternatives": { "title": "Comparison / Alternatives Pages", "description": "Playbook SEO de alta intencion" },
         "email_scrape_contacts": { "title": "Scrapear Website para Contactos", "description": "Encuentra contactos relevantes" },
         "email_import_list": { "title": "Importar Lista", "description": "Pega CSV o emails" },
-        "email_automation": { "title": "Automatizar Envio de Emails", "description": "Jobs simulados de outreach" },
+        "email_automation": { "title": "Automatizar Envio de Emails", "description": "Jobs de outreach listos para webhook" },
         "backlink_building": { "title": "Backlink Building", "description": "Prospecta y puntua sitios" },
         "guest_posts": { "title": "Guest Posts", "description": "Playbook de backlinks editoriales" },
         "partner_pages": { "title": "Partner Pages", "description": "Menciones en ecosistemas" },
@@ -646,10 +771,10 @@
         "importPlaceholder": "Alex Rivera, Growth Lead, Acme, alex@acme.com, https://acme.com\nMaya Chen <maya@example.com>\npartners@example.org",
         "importAction": "Importar Contactos",
         "importEmpty": "Pega al menos un email o fila de contacto primero.",
-        "automationDescription": "Personaliza outreach y simula envio de emails. En v1 no se envia ningun email real.",
+        "automationDescription": "Personaliza outreach y prepara batches de email listos para webhook. Configura el webhook de delivery para enviar automaticamente.",
         "personalizeAction": "Personalizar Emails",
-        "sendAction": "Enviar Email (Stub)",
-        "noJobs": "Todavia no hay jobs de email simulados."
+        "sendAction": "Enviar Email",
+        "noJobs": "Todavia no hay jobs de email."
       },
       "geo": {
         "steps": {
@@ -756,7 +881,7 @@
           "blog": "Crear Estrategia Blog",
           "backlinks": "Buscar Prospectos Backlink",
           "personalizeEmails": "Personalizar Emails",
-          "sendEmails": "Enviar Email (Stub)",
+          "sendEmails": "Enviar Email",
           "exportBacklinks": "Exportar Backlinks"
         },
         "analysis": {
@@ -869,7 +994,7 @@
         "prospecting": "Prospecting",
         "leads": "Leads",
         "personalizedOutreach": "Outreach Personalizado",
-        "emailJobsStub": "Trabajos de Email (stub)"
+        "emailJobs": "Trabajos de Email"
       },
       "pressPack": {
         "titleSuffix": "Press Pack",

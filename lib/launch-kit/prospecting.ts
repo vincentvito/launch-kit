@@ -12,7 +12,7 @@ import {
   type ProspectingState,
 } from '@/lib/launch-kit/types'
 import { createEmptyProspectingState } from '@/lib/launch-kit/normalizers'
-import { dedupe } from '@/lib/launch-kit/utils'
+import { dedupe, escapeCsvCell } from '@/lib/launch-kit/utils'
 
 type DiscoveryEntity = {
   company: string
@@ -31,6 +31,18 @@ type DiscoveryProviderResult = {
 
 type DiscoveryProvider = {
   discover: (queries: string[]) => Promise<DiscoveryProviderResult>
+}
+
+type DeliveryState = {
+  configured: boolean
+  delivered: boolean
+}
+
+type SendOutreachEmailInput = {
+  launchKit: LaunchKit
+  selectedLeadIds?: string[]
+  subject?: string
+  body?: string
 }
 
 const MAX_LEADS = 60
@@ -143,7 +155,7 @@ const ACTION_LABELS: Record<ProspectActionType, string> = {
   prospect: 'Scrape potential customers',
   build_email_list: 'Build lead email list',
   personalize_outreach: 'Generate personalized outreach',
-  send_outreach_email: 'Send outreach email (stub)',
+  send_outreach_email: 'Send outreach email',
   score_segment: 'Score and segment leads',
   export_leads: 'Export lead list CSV',
   followup_sequences: 'Create follow-up sequence drafts',
@@ -438,12 +450,87 @@ export function runFollowUpSequenceAction(input: {
   }
 }
 
-export function runSendOutreachEmailStubAction(input: {
-  launchKit: LaunchKit
-  selectedLeadIds?: string[]
-  subject?: string
-  body?: string
+export function buildLeadOutreachDeliveryPayload(input: SendOutreachEmailInput) {
+  const { leadsWithEmail, subject, body } = buildOutreachEmailBatch(input)
+
+  return {
+    subject,
+    body,
+    leads: leadsWithEmail.map((lead) => ({
+      id: lead.id,
+      name: lead.name,
+      role: lead.role,
+      company: lead.company,
+      website: lead.website,
+      email: lead.email,
+      tier: lead.tier,
+      score: lead.score,
+    })),
+  }
+}
+
+export function runSendOutreachEmailAction(input: SendOutreachEmailInput & {
+  delivery?: DeliveryState
 }) {
+  const state = normalizeProspecting(input.launchKit.prospecting)
+  const { leadsWithEmail, subject, body } = buildOutreachEmailBatch(input)
+  const now = new Date().toISOString()
+
+  if (leadsWithEmail.length === 0) {
+    const next = {
+      ...state,
+      actionRuns: pushActionRun(state.actionRuns, {
+        type: 'send_outreach_email',
+        status: 'failed',
+        summary: 'No leads with email addresses were available for delivery.',
+      }),
+    }
+
+    return {
+      prospecting: next,
+      info: 'No leads with email addresses were available to send.',
+    }
+  }
+
+  const delivered = Boolean(input.delivery?.delivered)
+  const configured = Boolean(input.delivery?.configured)
+  const leadCount = leadsWithEmail.length
+  const job = {
+    id: `email-job-${Date.now()}`,
+    status: delivered ? ('completed' as const) : ('queued' as const),
+    leadIds: leadsWithEmail.map((lead) => lead.id),
+    subject,
+    bodyPreview: body.slice(0, 220),
+    createdAt: now,
+    ...(delivered ? { completedAt: now } : {}),
+  }
+
+  const next = {
+    ...state,
+    emailJobs: [job, ...state.emailJobs].slice(0, MAX_EMAIL_JOBS),
+  }
+
+  const queuedInfo = configured
+    ? `Email batch prepared for ${leadCount} lead${leadCount === 1 ? '' : 's'}; delivery is awaiting provider confirmation.`
+    : `Email batch prepared for ${leadCount} lead${leadCount === 1 ? '' : 's'}. Configure OUTREACH_EMAIL_WEBHOOK_URL to deliver automatically.`
+
+  next.actionRuns = pushActionRun(next.actionRuns, {
+    type: 'send_outreach_email',
+    status: delivered ? 'completed' : 'pending_approval',
+    summary: delivered
+      ? `Email delivery webhook accepted ${leadCount} lead${leadCount === 1 ? '' : 's'}.`
+      : queuedInfo,
+  })
+
+  return {
+    prospecting: next,
+    info: delivered
+      ? `Email delivery webhook accepted ${leadCount} lead${leadCount === 1 ? '' : 's'}.`
+      : queuedInfo,
+  }
+}
+
+function buildOutreachEmailBatch(input: SendOutreachEmailInput) {
   const state = normalizeProspecting(input.launchKit.prospecting)
   const selectedSet = new Set(input.selectedLeadIds || [])
   const selected = selectedSet.size
@@ -457,34 +544,10 @@ export function runSendOutreachEmailStubAction(input: {
     input.launchKit.growthAssets.emailOutreach.variants[0]?.message ||
     'Sharing a short launch workflow concept that may help your next release.'
 
-  const subject = input.subject?.trim() || fallbackSubject
-  const body = input.body?.trim() || fallbackBody
-
-  const jobId = `email-job-${Date.now()}`
-  const job = {
-    id: jobId,
-    status: 'completed' as const,
-    leadIds: leadsWithEmail.map((lead) => lead.id),
-    subject,
-    bodyPreview: body.slice(0, 220),
-    createdAt: new Date().toISOString(),
-    completedAt: new Date().toISOString(),
-  }
-
-  const next = {
-    ...state,
-    emailJobs: [job, ...state.emailJobs].slice(0, MAX_EMAIL_JOBS),
-  }
-
-  next.actionRuns = pushActionRun(next.actionRuns, {
-    type: 'send_outreach_email',
-    status: 'completed',
-    summary: `Stub queued and completed for ${leadsWithEmail.length} leads`,
-  })
-
   return {
-    prospecting: next,
-    info: `Email send stub completed (${leadsWithEmail.length} leads, no real delivery)`,
+    leadsWithEmail,
+    subject: input.subject?.trim() || fallbackSubject,
+    body: input.body?.trim() || fallbackBody,
   }
 }
 
@@ -521,7 +584,7 @@ export function exportLeadsCsv(prospecting: ProspectingState | null | undefined)
   return [headers, ...rows]
     .map((row) =>
       row
-        .map((value) => `"${String(value || '').replaceAll('"', '""')}"`)
+        .map(escapeCsvCell)
         .join(','),
     )
     .join('\n')
@@ -579,19 +642,19 @@ function buildProspectQueries(brief: ExtractedBrief): string[] {
 }
 
 function resolveDiscoveryProvider(): DiscoveryProvider {
-  const provider = (process.env.LAUNCH_KIT_DISCOVERY_PROVIDER || 'mock').trim().toLowerCase()
+  const provider = (process.env.LAUNCH_KIT_DISCOVERY_PROVIDER || 'seeded').trim().toLowerCase()
   if (provider === 'serpapi') {
     const key = process.env.SERPAPI_API_KEY
     if (key) {
       return createSerpApiProvider(key)
     }
-    return createMockProvider('SERPAPI_API_KEY missing, switched to built-in discovery seed')
+    return createSeededProvider('SERPAPI_API_KEY missing, switched to built-in discovery seed')
   }
 
-  return createMockProvider()
+  return createSeededProvider()
 }
 
-function createMockProvider(note?: string): DiscoveryProvider {
+function createSeededProvider(note?: string): DiscoveryProvider {
   return {
     async discover(queries: string[]) {
       const joined = queries.join(' ').toLowerCase()
@@ -614,13 +677,13 @@ function createMockProvider(note?: string): DiscoveryProvider {
         website: company.website,
         roleHint: company.roleHint,
         reason: `Matches ICP tags: ${company.categories.slice(0, 2).join(', ')}`,
-        source: 'mock-seed',
+        source: 'seeded-discovery',
         score: clamp(company.score - index, 38, 90),
       }))
 
       return {
         entities,
-        providerName: 'Mock Discovery',
+        providerName: 'Seeded Discovery',
         note: note || 'Using local seeded provider (configure discovery provider env for live search)',
       }
     },
@@ -681,7 +744,7 @@ function createSerpApiProvider(apiKey: string): DiscoveryProvider {
       }
 
       if (entities.length === 0) {
-        return createMockProvider('SerpAPI returned no entities, switched to local seed').discover(
+        return createSeededProvider('SerpAPI returned no entities, switched to local seed').discover(
           queries,
         )
       }

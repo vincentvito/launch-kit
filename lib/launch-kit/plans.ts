@@ -20,7 +20,7 @@ export const FREE_CHANNEL_PACK_IDS: readonly ChannelPackId[] = [
 
 export const FREE_CHANNEL_CARD_IDS: Partial<Record<ChannelPackId, readonly string[]>> = {
   x: ['x-launch-post', 'x-short-thread'],
-  reddit: ['reddit-cautious-discussion'],
+  reddit: ['reddit-cautious-discussion', 'reddit-self-promo-launch'],
   linkedin: ['linkedin-founder-launch'],
   indie_hackers: ['indie-hackers-founder-launch'],
 }

@@ -1,7 +1,14 @@
 {
+  "App": {
+    "meta": {
+      "title": "Launch Kit",
+      "description": "Turn one product URL into launch copy, exports, and premium growth assets.",
+      "siteName": "Launch Kit"
+    }
+  },
   "HomePage": {
-    "title": "Hello world!",
-    "description": "Welcome to our internationalized app"
+    "title": "Launch Kit",
+    "description": "Turn one product URL into launch-ready copy and growth assets."
   },
   "LanguageSwitcher": {
     "label": "Language",
@@ -9,9 +16,23 @@
     "es": "Spanish"
   },
   "Auth": {
+    "meta": {
+      "title": "Sign in | Launch Kit",
+      "description": "Sign in to save launch projects, exports, and premium growth work."
+    },
     "title": "Sign in to your account",
-    "subtitle": "Continue with your Google account",
+    "createTitle": "Create your account",
+    "subtitle": "Continue to save projects, exports, and premium work.",
     "googleButton": "Continue with Google",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "emailSignIn": "Sign in with email",
+    "emailSignUp": "Create account",
+    "switchToSignUp": "Need an account? Create one",
+    "switchToSignIn": "Already have an account? Sign in",
+    "submitting": "Working...",
+    "emailError": "We could not complete that auth request.",
     "loading": "Loading..."
   },
   "Dashboard": {
@@ -20,6 +41,63 @@
     "description": "You are now signed in to your dashboard.",
     "signOut": "Sign out",
     "loading": "Loading..."
+  },
+  "Billing": {
+    "checkout": {
+      "title": "Starting checkout",
+      "description": "Preparing your secure billing session.",
+      "errorTitle": "Checkout unavailable",
+      "unavailable": "Checkout is not available.",
+      "back": "Back to pricing"
+    }
+  },
+  "GlobalError": {
+    "eyebrow": "Error",
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or may have moved.",
+    "backHome": "Back to home"
+  },
+  "Legal": {
+    "privacy": {
+      "meta": {
+        "title": "Privacy | Launch Kit",
+        "description": "How Launch Kit handles account, waitlist, product URL, and generated content data."
+      },
+      "back": "Back to home",
+      "eyebrow": "Privacy",
+      "title": "Privacy policy",
+      "description": "Launch Kit stores only the data needed to run the product and improve launch workflows.",
+      "items": [
+        "We collect account details, waitlist emails, saved launch projects, user profile fields, billing identifiers, usage events, and product URLs or content you submit for generation.",
+        "Submitted URLs may be fetched and analyzed so the app can build a product brief. Generated outputs and saved projects may be stored with your account.",
+        "Premium billing data is handled by the configured billing provider. Launch Kit stores customer and subscription identifiers, not full payment card data.",
+        "We use API keys and provider credentials only on the server. Generated AI and media providers may process submitted prompts according to their own terms.",
+        "You can request deletion of account, profile, waitlist, and saved project data by contacting support for the deployed product."
+      ]
+    },
+    "terms": {
+      "meta": {
+        "title": "Terms | Launch Kit",
+        "description": "Terms for using Launch Kit generated content, exports, prospecting, and premium workflows."
+      },
+      "back": "Back to home",
+      "eyebrow": "Terms",
+      "title": "Terms of service",
+      "description": "Use Launch Kit as a launch planning tool, and review outputs before publishing or contacting anyone.",
+      "items": [
+        "You are responsible for the product URLs, prompts, contact lists, and content you submit, and for reviewing generated copy before publishing.",
+        "Prospecting, backlink, and outreach features are planning aids. You must comply with platform rules, email laws, privacy rules, and recipient consent requirements.",
+        "AI outputs may be incomplete or inaccurate. Do not treat generated content as legal, financial, medical, or compliance advice.",
+        "Premium access depends on an active subscription, manual entitlement, or another configured billing arrangement.",
+        "We may rate limit, suspend, or block abusive traffic, unsafe usage, or attempts to bypass entitlement checks."
+      ]
+    }
   },
   "WaitingList": {
     "meta": {
@@ -266,11 +344,20 @@
     "note": {
       "title": "Kept intentionally small",
       "description": "Marketplace selling flows, newsletter partnerships, podcast pitching, and automated email sending are deferred so the app stays easy to understand and trust."
+    },
+    "manual": {
+      "title": "Manual billing is active",
+      "description": "Checkout is paused for this deployment. Premium access must be granted by an admin until Stripe checkout is configured."
     }
   },
   "Changelog": {
+    "meta": {
+      "title": "Changelog | Launch Kit",
+      "description": "Notable Launch Kit product and production-readiness updates."
+    },
+    "brand": "Launch Kit",
     "title": "Changelog",
-    "description": "All notable changes to this project are documented here.",
+    "description": "Notable product and production-readiness updates are documented here.",
     "backHome": "Back to home",
     "latest": "Latest",
     "types": {
@@ -279,8 +366,46 @@
       "fixed": "Fixed",
       "removed": "Removed"
     },
-    "moreHistory": "Looking for more history?",
-    "viewGithub": "View full changelog on GitHub"
+    "releases": [
+      {
+        "version": "0.2.0",
+        "date": "2026-06-01",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Production readiness preflight for required deployment environment, billing, auth, AI, and database-provider checks",
+              "Persisted Launch Kit usage, jobs, plans, rate limits, billing routes, health checks, and readiness checks",
+              "Story-first X post generation with titleless exports and channel-specific launch copy behavior"
+            ]
+          },
+          {
+            "type": "changed",
+            "items": [
+              "API responses now default to private, no-store caching for user-specific JSON and errors",
+              "Runtime database wiring now selects SQLite or Postgres adapters from DATABASE_URL",
+              "Security headers, origin checks, bounded request bodies, and URL-ingest protections were hardened"
+            ]
+          }
+        ]
+      },
+      {
+        "version": "0.1.0",
+        "date": "2026-05-04",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Initial Launch Kit experience on the standard app stack",
+              "Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma 7, Better Auth, and next-intl",
+              "Zero-config local startup with SQLite defaults and a documented Postgres production path"
+            ]
+          }
+        ]
+      }
+    ],
+    "moreHistory": "Ready to turn a product URL into launch assets?",
+    "homeCta": "Open Launch Kit"
   },
   "LaunchKit": {
     "tagline": "Free launch kit, premium growth engine",
@@ -536,7 +661,7 @@
         "comparison_alternatives": { "title": "Comparison / Alternatives Pages", "description": "High-intent SEO playbook" },
         "email_scrape_contacts": { "title": "Scrape Website for Contacts", "description": "Find relevant contacts" },
         "email_import_list": { "title": "Import List", "description": "Paste CSV or emails" },
-        "email_automation": { "title": "Automate Email Sending", "description": "Simulated outreach jobs" },
+        "email_automation": { "title": "Automate Email Sending", "description": "Webhook-ready outreach jobs" },
         "backlink_building": { "title": "Backlink Building", "description": "Prospect and score sites" },
         "guest_posts": { "title": "Guest Posts", "description": "Editorial backlink playbook" },
         "partner_pages": { "title": "Partner Pages", "description": "Ecosystem mentions" },
@@ -646,10 +771,10 @@
         "importPlaceholder": "Alex Rivera, Growth Lead, Acme, alex@acme.com, https://acme.com\nMaya Chen <maya@example.com>\npartners@example.org",
         "importAction": "Import Contacts",
         "importEmpty": "Paste at least one email or contact row first.",
-        "automationDescription": "Personalize outreach and simulate email sending. No real emails are sent in v1.",
+        "automationDescription": "Personalize outreach and prepare webhook-ready email batches. Configure the delivery webhook to send automatically.",
         "personalizeAction": "Personalize Emails",
-        "sendAction": "Send Email (Stub)",
-        "noJobs": "No simulated email jobs yet."
+        "sendAction": "Send Email",
+        "noJobs": "No email jobs yet."
       },
       "geo": {
         "steps": {
@@ -756,7 +881,7 @@
           "blog": "Build Blog Strategy",
           "backlinks": "Find Backlink Prospects",
           "personalizeEmails": "Customize Emails",
-          "sendEmails": "Send Email (Stub)",
+          "sendEmails": "Send Email",
           "exportBacklinks": "Export Backlinks"
         },
         "analysis": {
@@ -869,7 +994,7 @@
         "prospecting": "Prospecting",
         "leads": "Leads",
         "personalizedOutreach": "Personalized Outreach",
-        "emailJobsStub": "Email Jobs (stub)"
+        "emailJobs": "Email Jobs"
       },
       "pressPack": {
         "titleSuffix": "Press Pack",
