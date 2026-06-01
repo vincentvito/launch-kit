@@ -39,7 +39,7 @@
     "form": {
       "placeholder": "founder@tustartup.com",
       "submit": "Ver muestra",
-      "helper": "Ingresa un email para desbloquear la muestra generada de ShipDaddy.",
+      "helper": "Ingresa un email para desbloquear la muestra generada de Shipdaddy.",
       "invalidEmail": "Ese email no parece valido. Intentalo de nuevo.",
       "success": "Ya estas en la lista. Te escribiremos cuando abra el acceso anticipado.",
       "error": "Algo salio mal. Intentalo de nuevo.",
@@ -60,11 +60,11 @@
     },
     "sample": {
       "unlocked": "Muestra desbloqueada",
-      "generatedFor": "Launch kit generado para ShipDaddy",
-      "subtitle": "Esta es la promesa exacta: dale a ShipDaddy una URL de producto y revisa primero el launch kit gratis. Premium desbloquea SEO, backlinks, outreach, Product Demo y assets creativos desde el mismo brief.",
+      "generatedFor": "Launch kit generado para Shipdaddy",
+      "subtitle": "Una muestra generada para Shipdaddy usando el perfil real de generacion: copy de lanzamiento basado en la fuente primero, y luego SEO premium, outreach, demo, prompts creativos y media kit desde el mismo brief.",
       "inputUrl": "URL de entrada",
       "contentYouGet": "Contenido que recibes",
-      "contentSummary": "Launch kit gratis primero. Sistema de growth premium cuando estes listo.",
+      "contentSummary": "Launch kit basado en la fuente primero. Sistema de growth premium cuando estes listo.",
       "channels": "Canales generados",
       "generatedCopy": "Copy generado",
       "mediaAssets": "Assets visuales",

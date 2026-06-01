@@ -39,7 +39,7 @@
     "form": {
       "placeholder": "founder@yourstartup.com",
       "submit": "View sample",
-      "helper": "Enter an email to unlock the generated ShipDaddy launch sample.",
+      "helper": "Enter an email to unlock the generated Shipdaddy launch sample.",
       "invalidEmail": "That does not look like an email. Try again.",
       "success": "You are on the list. We will email you when early access opens.",
       "error": "Something went wrong. Please try again.",
@@ -60,11 +60,11 @@
     },
     "sample": {
       "unlocked": "Sample unlocked",
-      "generatedFor": "Generated launch kit for ShipDaddy",
-      "subtitle": "This is the exact promise: give ShipDaddy one product URL, then review the free launch kit first. Premium unlocks SEO, backlinks, outreach, Product Demo, and creative assets from the same brief.",
+      "generatedFor": "Generated launch kit for Shipdaddy",
+      "subtitle": "A sample run for Shipdaddy using the real generation profile: source-grounded launch copy first, then premium SEO, outreach, demo, creative prompts, and media-kit notes from the same brief.",
       "inputUrl": "Input URL",
       "contentYouGet": "Content you get",
-      "contentSummary": "Free launch kit first. Premium growth system when ready.",
+      "contentSummary": "Source-grounded launch kit first. Premium growth system when ready.",
       "channels": "Generated channels",
       "generatedCopy": "Generated copy",
       "mediaAssets": "Visual assets",

@@ -59,7 +59,7 @@ export default function WaitingListExperience({
           </h1>
 
           <p className={styles.lede}>
-            Stop guessing what to write first. ShipDaddy turns one URL into the launch copy,
+            Stop guessing what to write first. Shipdaddy turns one URL into the launch copy,
             subreddit guidance, email announcement, and media kit you can use today.{' '}
             <span className={styles.ledeEm}>Premium unlocks SEO, outreach, demos, and creative assets.</span>
           </p>
