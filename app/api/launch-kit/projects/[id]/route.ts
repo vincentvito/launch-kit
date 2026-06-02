@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { launchApiRouteErrorResponse, privateJsonResponse } from '@/lib/launch-kit/api-guard'
 import { requireServerSession } from '@/lib/launch-kit/auth'
 import { getLaunchProject } from '@/lib/launch-kit/projects'
 
@@ -15,15 +15,15 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     const project = await getLaunchProject(session.user.id, id)
     if (!project) {
-      return NextResponse.json({ error: 'Project not found.' }, { status: 404 })
+      return privateJsonResponse({ error: 'Project not found.' }, { status: 404 })
     }
 
-    return NextResponse.json({ project })
+    return privateJsonResponse({ project })
   } catch (error) {
-    if (error instanceof Error && error.message === 'UNAUTHORIZED') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    return NextResponse.json({ error: 'Failed to fetch project.' }, { status: 500 })
+    return launchApiRouteErrorResponse(
+      error,
+      'Failed to fetch project.',
+      'launch_project_fetch_failed',
+    )
   }
 }

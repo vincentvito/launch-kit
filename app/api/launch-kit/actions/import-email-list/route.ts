@@ -1,4 +1,10 @@
-import { NextResponse } from 'next/server'
+import {
+  launchApiRouteErrorResponse,
+  privateJsonResponse,
+  readJsonBody,
+  recordLaunchApiUsage,
+  requireLaunchApiAccess,
+} from '@/lib/launch-kit/api-guard'
 import { runImportEmailListAction } from '@/lib/launch-kit/prospecting'
 import type { ProspectingState } from '@/lib/launch-kit/types'
 
@@ -6,19 +12,28 @@ export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
+    const body = await readJsonBody<{
       prospecting?: ProspectingState
       rawContacts?: string
-    }
+    }>(request)
 
+    const access = await requireLaunchApiAccess(request, {
+      action: 'import_email_list',
+      feature: 'premium',
+      rateLimitAction: 'premium_action',
+    })
     const result = runImportEmailListAction({
       prospecting: body.prospecting,
       rawContacts: body.rawContacts || '',
     })
+    await recordLaunchApiUsage(access, 'import_email_list')
 
-    return NextResponse.json(result)
+    return privateJsonResponse(result)
   } catch (error) {
-    console.error('Import email list action failed.', error)
-    return NextResponse.json({ error: 'Import email list action failed.' }, { status: 500 })
+    return launchApiRouteErrorResponse(
+      error,
+      'Import email list action failed.',
+      'import_email_list_action_failed',
+    )
   }
 }

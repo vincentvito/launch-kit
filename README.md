@@ -38,6 +38,7 @@ That's it. Open <http://localhost:3000>. SQLite is created automatically on firs
 | `npm run build` | Run migrations then build for production |
 | `npm run start` | Start the production server |
 | `npm run lint` | ESLint |
+| `npm run preflight:production` | Check required production env and provider readiness |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run db:reset` | Wipe and re-seed the local SQLite DB |
 
@@ -46,22 +47,39 @@ That's it. Open <http://localhost:3000>. SQLite is created automatically on firs
 See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
 
 - `WAITING_LIST_ENABLED` — set to `true` in production to show a waitlist page at `/` instead of the full landing page. Leave unset locally so the landing page renders by default.
-- `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Replace with a `postgres://` URL when graduating to Postgres.
+- `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Production preflight requires a `postgres://` or `postgresql://` URL.
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
 - `OPENAI_API_KEY` — optional for Launch Kit AI generation. If omitted, Launch Kit returns template-based fallback content.
 - `OPENAI_MODEL` — optional model override for Launch Kit generation (defaults to `gpt-4.1-mini`).
 - `REPLICATE_IMAGE_MODEL` / `REPLICATE_VIDEO_MODEL` — optional model overrides for Launch Kit asset generation (defaults to `google/imagen-4-fast` and `google/veo-3.1-fast`).
-- `LAUNCH_KIT_DISCOVERY_PROVIDER` / `LAUNCH_KIT_SEO_DISCOVERY_PROVIDER` — optional discovery providers for lead and backlink search. Leave as `mock` for local seeded results.
+- `LAUNCH_KIT_DISCOVERY_PROVIDER` / `LAUNCH_KIT_SEO_DISCOVERY_PROVIDER` — optional discovery providers for lead and backlink search. Leave as `seeded` for local deterministic results.
 - `SERPAPI_API_KEY` — optional. Used only when a discovery provider is set to `serpapi`; otherwise the app falls back to seeded discovery.
+- `LAUNCH_KIT_PUBLIC_FREE_ENABLED` — enables anonymous free URL ingest/generation. Defaults to enabled locally and disabled in production.
+- `LAUNCH_KIT_ADMIN_EMAILS` — comma-separated emails that receive premium/admin entitlement without billing.
+- `RATE_LIMIT_*` — optional overrides for persisted API rate limits.
+- `BILLING_PROVIDER` — set to `manual` for admin-granted premium during private production before Stripe is configured.
+- `BILLING_ADMIN_TOKEN` — strong bearer token for the manual entitlement endpoint; required when `BILLING_PROVIDER=manual`.
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRICE_ID` — Stripe checkout, portal, and webhook configuration.
+- `OUTREACH_EMAIL_WEBHOOK_URL` / `OUTREACH_EMAIL_WEBHOOK_TOKEN` — optional server-to-server webhook for real outreach delivery. Without it, outreach remains a tracked no-delivery workflow.
 
 ## Going to Production
 
 SQLite is for local dev only. Before deploying:
 
 1. Switch Prisma to Postgres (see [`AGENTS.md`](./AGENTS.md) → "Switching SQLite → Postgres").
+   Production preflight verifies both `prisma/schema.prisma` and `prisma/migrations/migration_lock.toml` are set to `postgresql`, not just that `DATABASE_URL` points at Postgres.
+   The app runtime selects the Prisma adapter and Better Auth adapter provider from `DATABASE_URL`, so local SQLite remains zero-config while production Postgres uses `@prisma/adapter-pg`.
 2. Set all env vars in Vercel (or your platform of choice).
-3. `npm run build && npm run start`.
+3. Run `npm run preflight:production`.
+4. `npm run build && npm run start`.
+
+The production API surface includes persisted rate limiting, usage events, plan entitlement checks, Stripe-ready billing routes, and admin-granted manual premium entitlement for private launches before billing keys are present.
+
+Operational endpoints:
+
+- `/api/health` — liveness check with no database dependency.
+- `/api/readiness` — readiness check for database connectivity and production env gates.
 
 ## Project Structure
 

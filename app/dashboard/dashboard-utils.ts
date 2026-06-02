@@ -1,5 +1,8 @@
 import {
+  CHANNEL_PACK_IDS,
   PLATFORM_IDS,
+  type ChannelCard,
+  type ChannelPackId,
   type GrowthBlockId,
   type LaunchKit,
   type LaunchProjectSnapshot,
@@ -8,6 +11,11 @@ import {
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
+import {
+  FREE_CHANNEL_PACK_IDS,
+  FREE_PLATFORM_BLOCK_IDS,
+  isFreeChannelCard,
+} from '@/lib/launch-kit/plans'
 import { GUEST_PROJECTS_KEY, type TrafficChannelId } from './dashboard-config'
 
 export function splitLines(input: string): string[] {
@@ -25,11 +33,7 @@ export function getPlatformBlockIdForTrafficChannel(channelId: TrafficChannelId)
   if (
     channelId === 'product_hunt' ||
     channelId === 'hacker_news' ||
-    channelId === 'indie_hackers' ||
-    channelId === 'linkedin' ||
-    channelId === 'reddit' ||
-    channelId === 'tiktok' ||
-    channelId === 'youtube_shorts'
+    channelId === 'email_announcement'
   ) {
     return channelId
   }
@@ -37,9 +41,17 @@ export function getPlatformBlockIdForTrafficChannel(channelId: TrafficChannelId)
   return null
 }
 
+export function getChannelPackIdForTrafficChannel(channelId: TrafficChannelId): ChannelPackId | null {
+  return CHANNEL_PACK_IDS.includes(channelId as ChannelPackId) ? (channelId as ChannelPackId) : null
+}
+
 export function getGrowthBlockIdForTrafficChannel(channelId: TrafficChannelId): GrowthBlockId | null {
-  if (channelId === 'x') {
-    return 'x_outreach'
+  if (
+    channelId === 'linkedin_outreach' ||
+    channelId === 'x_outreach' ||
+    channelId === 'cold_email_outreach'
+  ) {
+    return channelId
   }
 
   return null
@@ -51,8 +63,6 @@ export function isPlaybookChannel(channelId: TrafficChannelId) {
     channelId === 'trustmrr' ||
     channelId === 'acquire_com' ||
     channelId === 'flippa' ||
-    channelId === 'threads' ||
-    channelId === 'instagram' ||
     channelId === 'comparison_alternatives' ||
     channelId === 'guest_posts' ||
     channelId === 'partner_pages' ||
@@ -88,6 +98,30 @@ export function formatOutreachPackForCopy(
         .filter(Boolean)
         .join('\n'),
     ),
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+export function formatChannelCardForCopy(
+  channelId: ChannelPackId,
+  card: ChannelCard,
+  labels: {
+    cta: string
+    proofPoint: string
+    socialContract: string
+  },
+): string {
+  if (channelId === 'x') {
+    return card.body
+  }
+
+  return [
+    card.title,
+    card.body,
+    card.cta ? `${labels.cta}: ${card.cta}` : '',
+    card.proofPoint ? `${labels.proofPoint}: ${card.proofPoint}` : '',
+    card.socialContractNote ? `${labels.socialContract}: ${card.socialContractNote}` : '',
   ]
     .filter(Boolean)
     .join('\n\n')
@@ -259,6 +293,7 @@ export type ExportLabels = {
   positioning: string
   icp: string
   targetUsers: string
+  voiceGuide: string
   painPoints: string
   valueProps: string
   proofPoints: string
@@ -269,9 +304,14 @@ export type ExportLabels = {
   keywords: string
   contentAngles: string
   platformBlocks: string
+  channelPacks: string
   title: string
   cta: string
   notes: string
+  format: string
+  stage: string
+  proofPoint: string
+  socialContract: string
   redditEngagementSubreddits: string
   redditSelfPromotionSubreddits: string
   redditReason: string
@@ -293,7 +333,7 @@ export type ExportLabels = {
   prospecting: string
   leads: string
   personalizedOutreach: string
-  emailJobsStub: string
+  emailJobs: string
   seoGrowth: string
   websiteSeoAnalysis: string
   blogStrategy: string
@@ -316,6 +356,7 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     positioning: t('export.markdown.positioning'),
     icp: t('export.markdown.icp'),
     targetUsers: t('export.markdown.targetUsers'),
+    voiceGuide: t('export.markdown.voiceGuide'),
     painPoints: t('export.markdown.painPoints'),
     valueProps: t('export.markdown.valueProps'),
     proofPoints: t('export.markdown.proofPoints'),
@@ -326,9 +367,14 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     keywords: t('export.markdown.keywords'),
     contentAngles: t('export.markdown.contentAngles'),
     platformBlocks: t('export.markdown.platformBlocks'),
+    channelPacks: t('export.markdown.channelPacks'),
     title: t('output.titleLabel'),
     cta: t('output.copyCtaPrefix'),
     notes: t('output.copyNotesPrefix'),
+    format: t('output.formatLabel'),
+    stage: t('output.stageLabel'),
+    proofPoint: t('output.proofPointLabel'),
+    socialContract: t('output.socialContractLabel'),
     redditEngagementSubreddits: t('output.reddit.engagementTitle'),
     redditSelfPromotionSubreddits: t('output.reddit.selfPromotionTitle'),
     redditReason: t('output.reddit.reasonLabel'),
@@ -350,7 +396,7 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     prospecting: t('export.markdown.prospecting'),
     leads: t('export.markdown.leads'),
     personalizedOutreach: t('export.markdown.personalizedOutreach'),
-    emailJobsStub: t('export.markdown.emailJobsStub'),
+    emailJobs: t('export.markdown.emailJobs'),
     seoGrowth: t('growth.seo.title'),
     websiteSeoAnalysis: t('growth.seo.analysis.title'),
     blogStrategy: t('growth.seo.blog.title'),
@@ -385,6 +431,7 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
   lines.push(`- ${labels.product}: ${project.brief.productName}`)
   lines.push(`- ${labels.positioning}: ${project.brief.positioning}`)
   lines.push(`- ${labels.icp}: ${project.brief.icp}`)
+  lines.push(`- ${labels.voiceGuide}: ${project.brief.voiceGuide}`)
   lines.push('')
 
   lines.push(`### ${labels.targetUsers}`)
@@ -415,27 +462,13 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
   lines.push(project.brief.cta)
   lines.push('')
 
-  lines.push(`## ${labels.keywordResearch}`)
-  lines.push(project.brief.keywordResearch.notes)
-  lines.push('')
-  for (const cluster of project.brief.keywordResearch.clusters) {
-    lines.push(`### ${cluster.topic}`)
-    lines.push(`- ${labels.intent}: ${cluster.intent}`)
-    lines.push(`- ${labels.priority}: ${cluster.priority}`)
-    lines.push(`- ${labels.keywords}:`)
-    for (const keyword of cluster.keywords) {
-      lines.push(`  - ${keyword}`)
-    }
-    lines.push(`- ${labels.contentAngles}:`)
-    for (const angle of cluster.contentAngles) {
-      lines.push(`  - ${angle}`)
-    }
-    lines.push('')
-  }
-
   lines.push(`## ${labels.platformBlocks}`)
   lines.push('')
-  for (const blockId of PLATFORM_IDS) {
+  for (const blockId of FREE_PLATFORM_BLOCK_IDS) {
+    if (shouldSkipPlatformBlockInExport(blockId, project.kit)) {
+      continue
+    }
+
     const block = project.kit.platformBlocks[blockId]
     lines.push(`### ${labels.platformLabels[blockId]}`)
     lines.push(`${labels.title}: ${block.title}`)
@@ -448,6 +481,48 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
 
     if (blockId === 'reddit' && block.redditRecommendations) {
       appendRedditRecommendationsMarkdown(lines, block.redditRecommendations, {
+        engagement: labels.redditEngagementSubreddits,
+        selfPromotion: labels.redditSelfPromotionSubreddits,
+        reason: labels.redditReason,
+        postingGuidance: labels.redditPostingGuidance,
+      })
+    }
+  }
+
+  lines.push(`## ${labels.channelPacks}`)
+  lines.push('')
+  for (const channelId of FREE_CHANNEL_PACK_IDS) {
+    const pack = project.kit.channelPacks[channelId]
+    const cards = pack.cards.filter((card) => isFreeChannelCard(channelId, card.id))
+    if (!cards.length) {
+      continue
+    }
+
+    lines.push(`### ${pack.label}`)
+    if (pack.notes) {
+      lines.push(`${labels.notes}: ${pack.notes}`)
+      lines.push('')
+    }
+
+    for (const card of cards) {
+      lines.push(`#### ${channelId === 'x' ? card.format : card.title}`)
+      lines.push(`- ${labels.format}: ${card.format}`)
+      lines.push(`- ${labels.stage}: ${card.stage}`)
+      if (card.proofPoint) {
+        lines.push(`- ${labels.proofPoint}: ${card.proofPoint}`)
+      }
+      lines.push('')
+      lines.push(card.body)
+      lines.push('')
+      lines.push(`${labels.cta}: ${card.cta}`)
+      if (card.socialContractNote) {
+        lines.push(`${labels.socialContract}: ${card.socialContractNote}`)
+      }
+      lines.push('')
+    }
+
+    if (channelId === 'reddit' && pack.redditRecommendations) {
+      appendRedditRecommendationsMarkdown(lines, pack.redditRecommendations, {
         engagement: labels.redditEngagementSubreddits,
         selfPromotion: labels.redditSelfPromotionSubreddits,
         reason: labels.redditReason,
@@ -473,68 +548,6 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
   lines.push(`${labels.screenshotsAndLogos}: ${project.kit.mediaKit.screenshotsAndLogos}`)
   lines.push('')
   lines.push(`${labels.contactDetails}: ${project.kit.mediaKit.contactDetails}`)
-  lines.push('')
-
-  lines.push(`## ${labels.growthAssets}`)
-  lines.push('')
-  lines.push(`### ${labels.linkedinOutreach}`)
-  for (const variant of project.kit.growthAssets.linkedinOutreach.variants) {
-    lines.push(`- ${variant.title}: ${variant.message}`)
-  }
-  lines.push('')
-
-  lines.push(`### ${labels.xOutreach}`)
-  for (const variant of project.kit.growthAssets.xOutreach.variants) {
-    lines.push(`- ${variant.title}: ${variant.message}`)
-  }
-  lines.push('')
-
-  lines.push(`### ${labels.coldEmailOutreach}`)
-  for (const variant of project.kit.growthAssets.emailOutreach.variants) {
-    lines.push(`- ${variant.title} (${variant.subject || labels.noSubject})`)
-    lines.push(`  ${variant.message}`)
-  }
-  lines.push('')
-
-  lines.push(`### ${labels.seoPacks}`)
-  for (const post of project.kit.growthAssets.seoPostPacks) {
-    lines.push(`- ${post.title} [${post.keywordTopic}]`)
-  }
-  lines.push('')
-
-  lines.push(`## ${labels.prospecting}`)
-  lines.push(`- ${labels.leads}: ${project.kit.prospecting.leads.length}`)
-  lines.push(`- ${labels.personalizedOutreach}: ${project.kit.prospecting.personalizedOutreach.length}`)
-  lines.push(`- ${labels.emailJobsStub}: ${project.kit.prospecting.emailJobs.length}`)
-  lines.push('')
-
-  lines.push(`## ${labels.seoGrowth}`)
-  lines.push('')
-  if (project.kit.seoGrowth.websiteAnalysis) {
-    lines.push(`### ${labels.websiteSeoAnalysis}`)
-    lines.push(`- ${labels.valueScore}: ${project.kit.seoGrowth.websiteAnalysis.score}/100`)
-    lines.push(project.kit.seoGrowth.websiteAnalysis.summary)
-    lines.push('')
-  }
-
-  lines.push(`### ${labels.blogStrategy}`)
-  for (const post of project.kit.seoGrowth.blogStrategy) {
-    lines.push(`- Day ${post.dayOffset + 1}: ${post.title} [${post.keywordTopic}]`)
-  }
-  lines.push('')
-
-  lines.push(`### ${labels.freeTools}`)
-  for (const tool of project.kit.seoGrowth.freeTools) {
-    lines.push(`- ${tool.title}: ${tool.url}`)
-  }
-  lines.push('')
-
-  lines.push(`### ${labels.backlinkProspects}`)
-  for (const prospect of project.kit.seoGrowth.backlinkProspects) {
-    lines.push(
-      `- ${prospect.title} (${prospect.domain}) - ${labels.valueScore}: ${prospect.valueScore}, ${labels.status}: ${prospect.status}`,
-    )
-  }
   lines.push('')
 
   return lines.join('\n')
@@ -634,6 +647,11 @@ export function hasGeneratedResultsInKit(kit: LaunchKit): boolean {
     const block = kit.platformBlocks[platformId]
     return Boolean(block.title.trim() || block.body.trim() || block.cta.trim() || block.notes.trim())
   })
+  const hasChannelPackOutput = CHANNEL_PACK_IDS.some((channelId) =>
+    kit.channelPacks[channelId].cards.some((card) =>
+      Boolean(card.title.trim() || card.body.trim() || card.cta.trim()),
+    ),
+  )
   const hasGrowthOutput =
     kit.growthAssets.linkedinOutreach.variants.length > 0 ||
     kit.growthAssets.xOutreach.variants.length > 0 ||
@@ -657,7 +675,26 @@ export function hasGeneratedResultsInKit(kit: LaunchKit): boolean {
   )
   const hasAssetOutput = kit.assetLibrary.generatedAssets.length > 0
 
-  return hasPlatformOutput || hasGrowthOutput || hasSeoGrowthOutput || hasMediaKitOutput || hasAssetOutput
+  return hasPlatformOutput ||
+    hasChannelPackOutput ||
+    hasGrowthOutput ||
+    hasSeoGrowthOutput ||
+    hasMediaKitOutput ||
+    hasAssetOutput
+}
+
+function shouldSkipPlatformBlockInExport(blockId: PlatformBlockId, kit: LaunchKit): boolean {
+  if (
+    blockId !== 'reddit' &&
+    blockId !== 'indie_hackers' &&
+    blockId !== 'linkedin' &&
+    blockId !== 'tiktok' &&
+    blockId !== 'youtube_shorts'
+  ) {
+    return false
+  }
+
+  return kit.channelPacks[blockId].cards.length > 0
 }
 
 function escapeHtml(input: string): string {

@@ -1,15 +1,23 @@
 import { PrismaClient } from './generated/prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+import { getDatabaseProvider, getDatabaseUrl } from '@/lib/database-provider'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL || ''
+  const url = getDatabaseUrl()
+  const adapter = getDatabaseProvider(url) === 'postgresql'
+    ? createPostgresAdapter(url)
+    : new PrismaBetterSqlite3({ url })
 
-  // Pull an optional `?schema=` out of the URL; pg doesn't understand it.
+  return new PrismaClient({ adapter })
+}
+
+function createPostgresAdapter(connectionString: string) {
   const url = new URL(connectionString)
   const schema = url.searchParams.get('schema') || 'public'
   url.searchParams.delete('schema')
@@ -19,8 +27,7 @@ function createPrismaClient() {
     options: `-c search_path=${schema}`,
   })
 
-  const adapter = new PrismaPg(pool, { schema })
-  return new PrismaClient({ adapter })
+  return new PrismaPg(pool, { schema })
 }
 
 const prisma = globalForPrisma.prisma ?? createPrismaClient()

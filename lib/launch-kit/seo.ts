@@ -9,7 +9,7 @@ import {
   type WebsiteSeoCheck,
 } from '@/lib/launch-kit/types'
 import { normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
-import { dedupe } from '@/lib/launch-kit/utils'
+import { dedupe, escapeCsvCell } from '@/lib/launch-kit/utils'
 
 type BacklinkDiscoveryEntity = {
   title: string
@@ -31,6 +31,16 @@ type BacklinkDiscoveryProvider = {
     providerName: string
     note?: string
   }>
+}
+
+type DeliveryState = {
+  configured: boolean
+  delivered: boolean
+}
+
+type SendBacklinkEmailInput = {
+  seoGrowth: SeoGrowthState | null | undefined
+  prospectIds?: string[]
 }
 
 const MAX_BLOG_POSTS = 12
@@ -358,34 +368,52 @@ export function runPersonalizeBacklinkEmailsAction(input: {
   }
 }
 
-export function runSendBacklinkEmailStubAction(input: {
-  seoGrowth: SeoGrowthState | null | undefined
-  prospectIds?: string[]
+export function buildBacklinkOutreachDeliveryPayload(input: SendBacklinkEmailInput) {
+  const { emails, subject, bodyPreview } = buildBacklinkEmailBatch(input)
+
+  return {
+    subject,
+    bodyPreview,
+    prospects: emails.map((email) => ({
+      id: email.prospect.id,
+      title: email.prospect.title,
+      website: email.prospect.website,
+      domain: email.prospect.domain,
+      contactName: email.prospect.contactName,
+      contactEmail: email.prospect.contactEmail,
+      subject: email.subject,
+      body: email.body,
+      backlinkAngle: email.prospect.backlinkAngle,
+    })),
+  }
+}
+
+export function runSendBacklinkEmailAction(input: SendBacklinkEmailInput & {
+  delivery?: DeliveryState
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
-  const selected = new Set((input.prospectIds || []).filter(Boolean))
-  const targets = selected.size
-    ? state.backlinkProspects.filter((prospect) => selected.has(prospect.id))
-    : state.backlinkProspects.filter((prospect) => prospect.contactEmail).slice(0, 10)
+  const { targets, subject, bodyPreview } = buildBacklinkEmailBatch(input)
   const now = new Date().toISOString()
   const prospectIds = targets.map((prospect) => prospect.id)
-  const first = targets[0]
-  const fallbackEmail = first ? buildBacklinkEmailFromProspect(first) : null
+
+  if (targets.length === 0) {
+    return {
+      seoGrowth: state,
+      info: 'No backlink prospects with contact emails were available to send.',
+    }
+  }
+
+  const delivered = Boolean(input.delivery?.delivered)
+  const configured = Boolean(input.delivery?.configured)
 
   const job = {
     id: `backlink-email-job-${Date.now()}`,
-    status: 'completed' as const,
+    status: delivered ? ('completed' as const) : ('queued' as const),
     prospectIds,
-    subject:
-      first?.customizedEmailSubject ||
-      fallbackEmail?.subject ||
-      `Backlink outreach for ${targets.length} prospects`,
-    bodyPreview:
-      first?.customizedEmailBody?.slice(0, 220) ||
-      fallbackEmail?.body.slice(0, 220) ||
-      'Simulated backlink outreach send.',
+    subject,
+    bodyPreview,
     createdAt: now,
-    completedAt: now,
+    ...(delivered ? { completedAt: now } : {}),
   }
 
   const selectedIds = new Set(prospectIds)
@@ -404,9 +432,45 @@ export function runSendBacklinkEmailStubAction(input: {
     lastBacklinkEmailAt: now,
   }
 
+  const queuedInfo = configured
+    ? `Backlink email batch prepared for ${prospectIds.length} prospect${prospectIds.length === 1 ? '' : 's'}; delivery is awaiting provider confirmation.`
+    : `Backlink email batch prepared for ${prospectIds.length} prospect${prospectIds.length === 1 ? '' : 's'}. Configure OUTREACH_EMAIL_WEBHOOK_URL to deliver automatically.`
+
   return {
     seoGrowth: next,
-    info: `Backlink email send stub completed (${prospectIds.length} prospect${prospectIds.length === 1 ? '' : 's'}, no real delivery)`,
+    info: delivered
+      ? `Email delivery webhook accepted ${prospectIds.length} backlink prospect${prospectIds.length === 1 ? '' : 's'}.`
+      : queuedInfo,
+  }
+}
+
+function buildBacklinkEmailBatch(input: SendBacklinkEmailInput) {
+  const state = normalizeSeoGrowthState(input.seoGrowth)
+  const selected = new Set((input.prospectIds || []).filter(Boolean))
+  const targets = (selected.size
+    ? state.backlinkProspects.filter((prospect) => selected.has(prospect.id))
+    : state.backlinkProspects
+  )
+    .filter((prospect) => prospect.contactEmail)
+    .slice(0, 10)
+  const first = targets[0]
+  const fallbackEmail = first ? buildBacklinkEmailFromProspect(first) : null
+  const emails = targets.map((prospect) => ({
+    prospect,
+    ...buildBacklinkEmailFromProspect(prospect),
+  }))
+
+  return {
+    targets,
+    emails,
+    subject:
+      first?.customizedEmailSubject ||
+      fallbackEmail?.subject ||
+      `Backlink outreach for ${targets.length} prospects`,
+    bodyPreview:
+      first?.customizedEmailBody?.slice(0, 220) ||
+      fallbackEmail?.body.slice(0, 220) ||
+      'Backlink outreach email prepared for delivery.',
   }
 }
 
@@ -457,7 +521,7 @@ export function exportBacklinkProspectsCsv(
   return [headers, ...rows]
     .map((row) =>
       row
-        .map((value) => `"${String(value || '').replaceAll('"', '""')}"`)
+        .map(escapeCsvCell)
         .join(','),
     )
     .join('\n')
@@ -653,7 +717,7 @@ function resolveBacklinkDiscoveryProvider(): BacklinkDiscoveryProvider {
   const provider = (
     process.env.LAUNCH_KIT_SEO_DISCOVERY_PROVIDER ||
     process.env.LAUNCH_KIT_DISCOVERY_PROVIDER ||
-    'mock'
+    'seeded'
   )
     .trim()
     .toLowerCase()
@@ -663,13 +727,13 @@ function resolveBacklinkDiscoveryProvider(): BacklinkDiscoveryProvider {
   }
 
   if (provider === 'serpapi') {
-    return createMockBacklinkProvider('SERPAPI_API_KEY missing, switched to built-in backlink seed')
+    return createSeededBacklinkProvider('SERPAPI_API_KEY missing, switched to built-in backlink seed')
   }
 
-  return createMockBacklinkProvider()
+  return createSeededBacklinkProvider()
 }
 
-function createMockBacklinkProvider(note?: string): BacklinkDiscoveryProvider {
+function createSeededBacklinkProvider(note?: string): BacklinkDiscoveryProvider {
   return {
     async discover(queries: string[]) {
       const queryText = queries.join(' ').toLowerCase()
@@ -681,14 +745,14 @@ function createMockBacklinkProvider(note?: string): BacklinkDiscoveryProvider {
 
         return {
           ...site,
-          source: 'mock-backlink-seed',
+          source: 'seeded-backlink-discovery',
           relevanceScore: clamp(58 + tagScore - index, 35, 96),
         }
       }).sort((a, b) => b.relevanceScore - a.relevanceScore)
 
       return {
         entities,
-        providerName: 'Mock Backlink Discovery',
+        providerName: 'Seeded Backlink Discovery',
         note: note || 'Using local seeded provider (configure optional discovery env for live search)',
       }
     },
@@ -750,7 +814,7 @@ function createSerpApiBacklinkProvider(apiKey: string): BacklinkDiscoveryProvide
       }
 
       if (entities.length === 0) {
-        return createMockBacklinkProvider('SerpAPI returned no backlink prospects, switched to local seed').discover(
+        return createSeededBacklinkProvider('SerpAPI returned no backlink prospects, switched to local seed').discover(
           queries,
         )
       }

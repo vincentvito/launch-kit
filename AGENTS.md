@@ -53,6 +53,9 @@ That means:
 - **No external services required to boot.** SQLite is the default DB; the file is created on first migrate by the `dev` script.
 - **No login required to view the app.** Landing, changelog, and dashboard render. Login only fails gracefully if Google OAuth isn't configured.
 - **Optional waiting list mode.** Set `WAITING_LIST_ENABLED=true` to show the waitlist page at `/` instead of the full landing page. Unset or `false` shows the normal landing page. Signups are stored in `waitlist_entry` via `POST /api/waitlist`.
+- **Production access controls.** `LAUNCH_KIT_PUBLIC_FREE_ENABLED` controls anonymous free generation, `LAUNCH_KIT_ADMIN_EMAILS` grants manual premium/admin access, `RATE_LIMIT_*` overrides persisted API rate limits, and billing can run in admin-granted manual mode with `BILLING_PROVIDER=manual` plus a strong `BILLING_ADMIN_TOKEN` until Stripe env vars are set.
+- **Billing hooks.** Stripe-ready routes use `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; manual entitlement updates use `BILLING_ADMIN_TOKEN`.
+- **Outbound outreach delivery.** `OUTREACH_EMAIL_WEBHOOK_URL` and `OUTREACH_EMAIL_WEBHOOK_TOKEN` can connect the reviewed outreach flow to a real delivery service. Leave unset to keep no-delivery tracking.
 - **`postinstall` runs `prisma generate`** so the generated client is always present after install.
 - **`predev`/`prebuild` is folded into `dev`/`build`** as `prisma migrate deploy && next ...` — keeps the SQLite file in sync with the schema.
 
@@ -67,11 +70,9 @@ When a project graduates to Postgres:
 1. Edit `prisma/schema.prisma` → `datasource.provider = "postgresql"`.
 2. Edit `prisma/migrations/migration_lock.toml` → `provider = "postgresql"`.
 3. Delete `prisma/migrations/*` and run `npx prisma migrate dev --name init` against the Postgres DB.
-4. Update `lib/prisma.ts` to use `PrismaPg` from `@prisma/adapter-pg` instead of `PrismaBetterSQLite3`. (Prisma 7 always requires an adapter — only the adapter changes.)
-5. Update `lib/auth.ts` → `prismaAdapter(prisma, { provider: 'postgresql' })`.
-6. Set `DATABASE_URL` to the Postgres connection string in `.env`.
+4. Set `DATABASE_URL` to the Postgres connection string in `.env`.
 
-The `pg` driver and `@prisma/adapter-pg` package are intentionally kept installed so this is friction-free.
+The runtime database adapter and Better Auth Prisma adapter provider are selected from `DATABASE_URL`, so no code edit is needed for the SQLite/Postgres switch. The `pg` driver and `@prisma/adapter-pg` package are intentionally kept installed so this is friction-free.
 
 ---
 

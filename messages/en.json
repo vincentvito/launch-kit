@@ -1,7 +1,14 @@
 {
+  "App": {
+    "meta": {
+      "title": "Launch Kit",
+      "description": "Turn one product URL into launch copy, exports, and premium growth assets.",
+      "siteName": "Launch Kit"
+    }
+  },
   "HomePage": {
-    "title": "Hello world!",
-    "description": "Welcome to our internationalized app"
+    "title": "Launch Kit",
+    "description": "Turn one product URL into launch-ready copy and growth assets."
   },
   "LanguageSwitcher": {
     "label": "Language",
@@ -9,9 +16,23 @@
     "es": "Spanish"
   },
   "Auth": {
+    "meta": {
+      "title": "Sign in | Launch Kit",
+      "description": "Sign in to save launch projects, exports, and premium growth work."
+    },
     "title": "Sign in to your account",
-    "subtitle": "Continue with your Google account",
+    "createTitle": "Create your account",
+    "subtitle": "Continue to save projects, exports, and premium work.",
     "googleButton": "Continue with Google",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "emailSignIn": "Sign in with email",
+    "emailSignUp": "Create account",
+    "switchToSignUp": "Need an account? Create one",
+    "switchToSignIn": "Already have an account? Sign in",
+    "submitting": "Working...",
+    "emailError": "We could not complete that auth request.",
     "loading": "Loading..."
   },
   "Dashboard": {
@@ -21,28 +42,161 @@
     "signOut": "Sign out",
     "loading": "Loading..."
   },
+  "Billing": {
+    "checkout": {
+      "title": "Starting checkout",
+      "description": "Preparing your secure billing session.",
+      "errorTitle": "Checkout unavailable",
+      "unavailable": "Checkout is not available.",
+      "back": "Back to pricing"
+    }
+  },
+  "GlobalError": {
+    "eyebrow": "Error",
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or may have moved.",
+    "backHome": "Back to home"
+  },
+  "Legal": {
+    "privacy": {
+      "meta": {
+        "title": "Privacy | Launch Kit",
+        "description": "How Launch Kit handles account, waitlist, product URL, and generated content data."
+      },
+      "back": "Back to home",
+      "eyebrow": "Privacy",
+      "title": "Privacy policy",
+      "description": "Launch Kit stores only the data needed to run the product and improve launch workflows.",
+      "items": [
+        "We collect account details, waitlist emails, saved launch projects, user profile fields, billing identifiers, usage events, and product URLs or content you submit for generation.",
+        "Submitted URLs may be fetched and analyzed so the app can build a product brief. Generated outputs and saved projects may be stored with your account.",
+        "Premium billing data is handled by the configured billing provider. Launch Kit stores customer and subscription identifiers, not full payment card data.",
+        "We use API keys and provider credentials only on the server. Generated AI and media providers may process submitted prompts according to their own terms.",
+        "You can request deletion of account, profile, waitlist, and saved project data by contacting support for the deployed product."
+      ]
+    },
+    "terms": {
+      "meta": {
+        "title": "Terms | Launch Kit",
+        "description": "Terms for using Launch Kit generated content, exports, prospecting, and premium workflows."
+      },
+      "back": "Back to home",
+      "eyebrow": "Terms",
+      "title": "Terms of service",
+      "description": "Use Launch Kit as a launch planning tool, and review outputs before publishing or contacting anyone.",
+      "items": [
+        "You are responsible for the product URLs, prompts, contact lists, and content you submit, and for reviewing generated copy before publishing.",
+        "Prospecting, backlink, and outreach features are planning aids. You must comply with platform rules, email laws, privacy rules, and recipient consent requirements.",
+        "AI outputs may be incomplete or inaccurate. Do not treat generated content as legal, financial, medical, or compliance advice.",
+        "Premium access depends on an active subscription, manual entitlement, or another configured billing arrangement.",
+        "We may rate limit, suspend, or block abusive traffic, unsafe usage, or attempts to bypass entitlement checks."
+      ]
+    }
+  },
   "WaitingList": {
     "meta": {
       "title": "shipdaddy — join the launch crew",
-      "description": "Your post-launch cofounder. Automate onboarding, emails, notifications, analytics, support and launch ops after your app goes live. You ship it. We handle the chaos."
+      "description": "Turn one product URL into a focused launch kit, then unlock SEO, outreach, demos, and creative assets with Premium."
     },
     "nav": {
       "brand": "Launch Kit",
-      "sub": "Editorial launch engine for builders"
+      "sub": "Editorial launch engine for builders",
+      "logoPrefix": "ship",
+      "logoSuffix": "daddy",
+      "prelaunch": "pre-launch · waitlist open"
     },
     "hero": {
       "badge": "Coming soon",
       "title": "Launch day copy,",
       "titleHighlight": "before launch day",
-      "description": "We are putting the finishing touches on Launch Kit. Join the waitlist for early access when we open the doors."
+      "description": "Stop guessing what to write first. Shipdaddy turns one URL into the launch copy, subreddit guidance, email announcement, and media kit you can use today.",
+      "descriptionEmphasis": "Premium unlocks SEO, outreach, demos, and creative assets.",
+      "titleLine1": "launch everywhere.",
+      "titleLine2": "from one URL.",
+      "eyebrow": "your focused launch kit"
     },
+    "painPosts": [
+      { "text": "spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.", "c": 268, "tag": "rewriting hell" },
+      { "text": "one generic post reused everywhere. the voice dies the second i copy-paste it.", "c": 252, "tag": "voice" },
+      { "text": "x thread, reddit post, subreddit list, launch email — all in different docs. why.", "c": 280, "tag": "tool sprawl" },
+      { "text": "PH tomorrow. HN draft? not written. press blurb? lmao. wish me luck.", "c": 30, "tag": "launch day" },
+      { "text": "writing 'professional' LinkedIn copy drains the will to live out of me.", "c": 200, "tag": "linkedin" },
+      { "text": "what do you mean reddit doesn't want my polished landing-page copy.", "c": 320, "tag": "reddit" },
+      { "text": "which subreddit can i post in without getting instantly roasted or removed?", "c": 180, "tag": "subreddits" },
+      { "text": "showHN draft attempt #4. still sounds like a corporate brochure.", "c": 60, "tag": "hacker news" },
+      { "text": "rewrote the same product story 9 times for 9 channels today. 9.", "c": 110, "tag": "rewriting hell" },
+      { "text": "product ready. launch copy not ready. one human. one weekend. send help.", "c": 8, "tag": "alone" },
+      { "text": "i love coding. i love shipping. i HATE writing launch copy.", "c": 340, "tag": "copy" },
+      { "text": "i need useful launch copy first, not another giant growth dashboard.", "c": 90, "tag": "focus" },
+      { "text": "indie hackers wants the build-in-public story. linkedin wants polish. same product.", "c": 220, "tag": "indie hackers" },
+      { "text": "basic launch kit first. fancy ads and demo scripts can wait until the copy works.", "c": 160, "tag": "scope" },
+      { "text": "x wants a sharp hook. reddit wants context. linkedin wants polish. same product.", "c": 140, "tag": "platform fit" },
+      { "text": "every community has its own unwritten rules and i learn them the hard way each launch.", "c": 40, "tag": "social contract" },
+      { "text": "premium growth work is useful, but only after the launch story is clear.", "c": 290, "tag": "growth" },
+      { "text": "one URL, one story, ten platforms. there has to be a better way to do this.", "c": 250, "tag": "one brief" }
+    ],
+    "ticker": [
+      "one product URL · launch content generated",
+      "free launch kit · one structured brief",
+      "Product Hunt · Hacker News · Reddit · Indie Hackers",
+      "X · LinkedIn · Email · Media Kit",
+      "subreddit picks · where to post",
+      "premium · SEO · backlinks · outreach",
+      "premium · product demo · creative assets",
+      "founder-to-founder · no fluff",
+      "review it · then post"
+    ],
     "form": {
-      "placeholder": "you@company.com",
-      "submit": "Join the waitlist",
-      "helper": "No spam. One email when early access opens.",
-      "invalidEmail": "Enter a valid email address.",
+      "placeholder": "founder@yourstartup.com",
+      "submit": "View sample",
+      "helper": "Enter an email to unlock the generated Shipdaddy launch sample.",
+      "invalidEmail": "That does not look like an email. Try again.",
       "success": "You are on the list. We will email you when early access opens.",
-      "error": "Something went wrong. Please try again."
+      "error": "Something went wrong. Please try again.",
+      "stats": {
+        "launchChannels": {
+          "n": "6",
+          "label": "core outputs"
+        },
+        "seo": {
+          "n": "Premium",
+          "label": "growth unlock"
+        },
+        "outreach": {
+          "n": "1",
+          "label": "focused brief"
+        }
+      }
+    },
+    "sample": {
+      "unlocked": "Sample unlocked",
+      "generatedFor": "Generated launch kit for Shipdaddy",
+      "subtitle": "A sample run for Shipdaddy using the real generation profile: source-grounded launch copy first, then premium SEO, outreach, demo, creative prompts, and media-kit notes from the same brief.",
+      "inputUrl": "Input URL",
+      "contentYouGet": "Content you get",
+      "contentSummary": "Source-grounded launch kit first. Premium growth system when ready.",
+      "channels": "Generated channels",
+      "generatedCopy": "Generated copy",
+      "mediaAssets": "Visual assets",
+      "seoPlan": "SEO",
+      "subreddits": "Subreddits",
+      "outreach": "Outreach",
+      "mediaKit": "Media kit",
+      "cta": "CTA",
+      "notes": "Why it works",
+      "savedFor": "Preview saved for",
+      "generatedSystem": "Generated launch content",
+      "xPosts": "X posts",
+      "redditPost": "Reddit post",
+      "prospects": "Premium prospects",
+      "productDemo": "Product Demo",
+      "fullResults": "Full generated results"
     },
     "highlights": {
       "one": {
@@ -66,22 +220,23 @@
   "Landing": {
     "meta": {
       "title": "Launch Kit — Editorial launch engine",
-      "description": "Turn one product URL into a complete multi-channel launch kit."
+      "description": "Turn one product URL into a useful launch kit, then upgrade for SEO, backlinks, outreach, and creative assets."
     },
     "nav": {
       "brand": "Launch Kit",
       "sub": "Editorial launch engine for builders",
       "proof": "Transformation",
       "voices": "Voices",
-      "media": "Media Kit",
+      "media": "Growth",
+      "pricing": "Pricing",
       "signIn": "Sign in",
       "getStarted": "Dashboard"
     },
     "hero": {
       "badge": "Show, do not tell",
       "title": "From one product URL to",
-      "titleHighlight": "a complete launch narrative",
-      "description": "Launch Kit extracts your brief and rewrites it for each platform social contract. You can see the transformation before you type anything.",
+      "titleHighlight": "a launch kit you can use",
+      "description": "Launch Kit extracts your brief, writes the core launch copy, suggests subreddit angles, and packages a lightweight media kit. Premium adds the growth work: SEO, backlinks, outreach, and creative assets.",
       "urlPlaceholder": "Paste your product URL (for example, https://yourproduct.com)",
       "ctaPrimary": "Try with your URL",
       "ctaSecondary": "View full sample kit",
@@ -96,10 +251,12 @@
       "socialContract": "Different voice per platform",
       "swipeHint": "Swipe",
       "voice": {
+        "productHunt": "PH: Crisp + benefit-led",
         "hackerNews": "HN: Humble + technical",
         "reddit": "Reddit: Conversational + transparent",
         "linkedin": "LinkedIn: Professional + human",
-        "tiktok": "TikTok: Hook-led + visual beats"
+        "tiktok": "TikTok: Hook-led + visual beats",
+        "email": "Email: Direct + skimmable"
       },
       "brief": {
         "productName": "Product Name",
@@ -143,34 +300,103 @@
     },
     "generated": {
       "label": "What gets generated",
-      "title": "Everything needed for launch day",
-      "description": "One confirmed brief powers every major launch surface so you can ship once and distribute confidently.",
+      "title": "The free kit stays focused",
+      "description": "One confirmed brief powers the core launch assets founders actually publish first.",
       "items": {
         "productHunt": "Listing headline and maker comment",
         "hn": "Show HN draft with humble framing",
-        "reddit": "Subreddit-ready body and CTA",
+        "reddit": "Reddit-ready post plus subreddit recommendations",
+        "x": "X launch post and thread angles",
         "indie": "Build-in-public launch narrative",
         "linkedin": "Professional post with proof cues",
-        "video": "Hook/story/close scripts for short video",
-        "email": "Launch announcement email draft",
-        "press": "Media kit plus printable press-pack page"
+        "video": "Short-form variants available in Premium",
+        "email": "Launch announcement email",
+        "press": "Basic media kit and press pack exports"
       }
     },
     "media": {
-      "label": "Media Kit Creator",
-      "title": "Press assets included by default",
-      "description": "The same brief also produces journalist-friendly assets and a print-ready press pack page.",
-      "pressPackNote": "Export markdown for distribution workflows and open the press pack in-browser for Save as PDF.",
-      "cta": "Open sample press pack path"
+      "label": "Premium Growth",
+      "title": "Premium turns launch into growth",
+      "description": "The same brief can unlock SEO actions, backlink planning, prospecting, outreach sequences, a Product Demo, and reusable creative assets.",
+      "pressPackNote": "Review the generated work, copy what you need, and publish from the dashboard when the channel is ready.",
+      "cta": "Open sample growth dashboard",
+      "items": {
+        "seoActions": "SEO fixes, keyword targets, and comparison-page ideas",
+        "productDemo": "Product Demo script and walkthrough beats built from the product URL",
+        "prospectLists": "Premium prospect lists and reviewed outreach drafts",
+        "outreachVariants": "Personalized LinkedIn, X, and email outreach drafts",
+        "socialContent": "Reusable social posts and short-form content angles",
+        "reviewQueue": "A single review queue for what to copy, edit, and publish"
+      }
     },
     "footer": {
       "copyright": "Launch Kit. All rights reserved.",
-      "tagline": "Turn one product URL into a complete multi-channel launch kit."
+      "tagline": "Free: one URL to launch kit. Premium: SEO, backlinks, outreach, and creative assets."
+    }
+  },
+  "Pricing": {
+    "meta": {
+      "title": "Pricing | Launch Kit",
+      "description": "Simple pricing for Launch Kit: free launch copy, premium growth systems."
+    },
+    "nav": {
+      "label": "Pricing",
+      "back": "Back to home",
+      "dashboard": "Open dashboard"
+    },
+    "hero": {
+      "eyebrow": "Simple packaging",
+      "title": "Start with the launch kit. Upgrade for the growth engine.",
+      "description": "The free tier proves the URL-to-brief workflow and gives founders usable launch copy. Premium is reserved for the work that compounds: SEO, backlinks, outreach, product demos, and creative assets."
+    },
+    "plans": {
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "cadence": "per launch kit",
+        "description": "Use one URL to generate the focused launch kit.",
+        "cta": "Start free",
+        "items": [
+          "URL ingest and editable launch brief",
+          "Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, and email launch copy",
+          "Subreddit recommendations",
+          "Basic media kit with one-liner, boilerplate, bio, and press release draft",
+          "Copy blocks, Markdown export, and press pack export"
+        ]
+      },
+      "premium": {
+        "name": "Drive More Traffic",
+        "badge": "Growth plan",
+        "price": "$29",
+        "cadence": "per month",
+        "description": "Turn the same brief into a repeatable growth system.",
+        "cta": "Upgrade when ready",
+        "items": [
+          "SEO analysis, keyword research, blog cadence, GEO readiness, and comparison pages",
+          "Backlink prospects, scoring, lists, guest posts, partner pages, and directory outreach",
+          "Prospect scraping, email list building, personalized outreach, and follow-up sequences",
+          "Product demo scripts and walkthrough beats",
+          "Generated screenshots, image ads, video ads, and text ads"
+        ]
+      }
+    },
+    "note": {
+      "title": "Kept intentionally small",
+      "description": "Marketplace selling flows, newsletter partnerships, podcast pitching, and automated email sending are deferred so the app stays easy to understand and trust."
+    },
+    "manual": {
+      "title": "Manual billing is active",
+      "description": "Checkout is paused for this deployment. Premium access must be granted by an admin until Stripe checkout is configured."
     }
   },
   "Changelog": {
+    "meta": {
+      "title": "Changelog | Launch Kit",
+      "description": "Notable Launch Kit product and production-readiness updates."
+    },
+    "brand": "Launch Kit",
     "title": "Changelog",
-    "description": "All notable changes to this project are documented here.",
+    "description": "Notable product and production-readiness updates are documented here.",
     "backHome": "Back to home",
     "latest": "Latest",
     "types": {
@@ -179,11 +405,49 @@
       "fixed": "Fixed",
       "removed": "Removed"
     },
-    "moreHistory": "Looking for more history?",
-    "viewGithub": "View full changelog on GitHub"
+    "releases": [
+      {
+        "version": "0.2.0",
+        "date": "2026-06-01",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Production readiness preflight for required deployment environment, billing, auth, AI, and database-provider checks",
+              "Persisted Launch Kit usage, jobs, plans, rate limits, billing routes, health checks, and readiness checks",
+              "Story-first X post generation with titleless exports and channel-specific launch copy behavior"
+            ]
+          },
+          {
+            "type": "changed",
+            "items": [
+              "API responses now default to private, no-store caching for user-specific JSON and errors",
+              "Runtime database wiring now selects SQLite or Postgres adapters from DATABASE_URL",
+              "Security headers, origin checks, bounded request bodies, and URL-ingest protections were hardened"
+            ]
+          }
+        ]
+      },
+      {
+        "version": "0.1.0",
+        "date": "2026-05-04",
+        "changes": [
+          {
+            "type": "added",
+            "items": [
+              "Initial Launch Kit experience on the standard app stack",
+              "Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma 7, Better Auth, and next-intl",
+              "Zero-config local startup with SQLite defaults and a documented Postgres production path"
+            ]
+          }
+        ]
+      }
+    ],
+    "moreHistory": "Ready to turn a product URL into launch assets?",
+    "homeCta": "Open Launch Kit"
   },
   "LaunchKit": {
-    "tagline": "One URL, every launch channel",
+    "tagline": "Free launch kit, premium growth engine",
     "signOut": "Sign out",
     "signIn": "Sign in",
     "workflowHeader": {
@@ -239,6 +503,26 @@
       "copyBlock": "Copy",
       "regenerateBlock": "Regenerate"
     },
+    "plans": {
+      "badges": {
+        "free": "Free",
+        "premium": "Premium"
+      },
+      "paywall": {
+        "cta": "View pricing",
+        "channelDescription": "{feature} is part of Premium. Generate the free launch kit first, then upgrade when you want growth work built from the same brief.",
+        "assetDescription": "{feature} is a Premium creative asset. Upgrade when you are ready to turn your launch brief into reusable ads and demos.",
+        "utilitySeoDescription": "Keyword research and SEO planning stay locked in the free tier so the brief editor stays focused on launch copy.",
+        "bullets": {
+          "seo": "SEO planning, keyword clusters, blog cadence, GEO readiness, and comparison pages.",
+          "outreach": "Prospect scraping, email list building, personalized LinkedIn, X, and email outreach.",
+          "assets": "Backlink opportunities, guest post angles, partner pages, and directory outreach.",
+          "creative": "Generated screenshots, image ads, video ads, and text ads from your confirmed brief.",
+          "demo": "Product demo scripts and walkthrough beats for short-form launch content.",
+          "exports": "Keep the free copy/export workflow, then add premium assets when the launch needs scale."
+        }
+      }
+    },
     "extractionFeedback": {
       "readingSite": "Reading the website structure",
       "extractingConcept": "Extracting the product concept",
@@ -276,6 +560,7 @@
       "positioning": "Positioning",
       "icp": "Ideal Customer Profile",
       "targetUsers": "Target Users (one per line)",
+      "voiceGuide": "Voice Guide",
       "painPoints": "Pain Points (one per line)",
       "valueProps": "Value Props (one per line)",
       "keyClaims": "Key Claims (one per line)",
@@ -293,6 +578,11 @@
       "outlineLabel": "Outline",
       "clusterLabel": "Cluster",
       "metaLabel": "Meta",
+      "formatLabel": "Format",
+      "stageLabel": "Stage",
+      "proofPointLabel": "Proof point",
+      "socialContractLabel": "Social contract",
+      "qualityChecksLabel": "Quality checks",
       "copyCtaPrefix": "CTA",
       "copyNotesPrefix": "Notes",
       "tabsAriaLabel": "Generated output tabs",
@@ -345,34 +635,38 @@
     },
     "results": {
       "title": "Channels & Assets",
-      "subtitle": "Browse traffic channels by source: launch platforms, social, SEO and AI search, email, authority, and partnerships.",
+      "subtitle": "Use the free launch kit first, then unlock premium growth, outreach, and creative surfaces when you need more distribution.",
       "sidebar": {
         "channels": "Channels",
         "assets": "Assets"
       },
       "channelGroups": {
         "launch_platforms": {
-          "title": "Launch Platforms",
-          "description": "Get attention from launch communities."
+          "title": "Free Launch Kit",
+          "description": "The core copy and exports users get after URL ingest."
         },
         "marketplaces": {
           "title": "Marketplaces",
           "description": "List where founders, buyers, and operators compare startups."
         },
         "social_community": {
-          "title": "Social & Community",
-          "description": "Turn the launch into native posts."
+          "title": "Premium Social Variants",
+          "description": "Extra social formats for teams scaling the launch."
+        },
+        "outbound": {
+          "title": "Premium Outreach",
+          "description": "Find prospects and prepare personalized outreach."
         },
         "seo_ai_search": {
-          "title": "SEO & AI Search",
+          "title": "Premium SEO & AI Search",
           "description": "Capture long-term search and LLM traffic."
         },
         "email": {
-          "title": "Email",
-          "description": "Find contacts, import lists, and simulate sends."
+          "title": "Premium Email Lists",
+          "description": "Find contacts, import lists, and preview sequences."
         },
         "authority_backlinks": {
-          "title": "Authority & Backlinks",
+          "title": "Premium Backlinks",
           "description": "Build referral traffic and domain trust."
         },
         "press_partnerships": {
@@ -388,13 +682,17 @@
         "trustmrr": { "title": "TrustMRR", "description": "Revenue-verified startup marketplace" },
         "acquire_com": { "title": "Acquire.com", "description": "Startup acquisition marketplace" },
         "flippa": { "title": "Flippa", "description": "Online business marketplace" },
-        "x": { "title": "X", "description": "Short outreach" },
+        "x": { "title": "X", "description": "Build-in-public posts" },
         "linkedin": { "title": "LinkedIn", "description": "Professional post" },
         "threads": { "title": "Threads", "description": "Casual launch thread" },
         "reddit": { "title": "Reddit", "description": "Community post" },
         "instagram": { "title": "Instagram", "description": "Visual launch plan" },
         "tiktok": { "title": "TikTok", "description": "Short video script" },
         "youtube_shorts": { "title": "YouTube Shorts", "description": "Short video script" },
+        "email_announcement": { "title": "Email Announcement", "description": "Launch announcement" },
+        "linkedin_outreach": { "title": "LinkedIn Outreach", "description": "Cold DM variants" },
+        "x_outreach": { "title": "X Outreach", "description": "Cold DM variants" },
+        "cold_email_outreach": { "title": "Cold Email Outreach", "description": "Email variants" },
         "website_seo": { "title": "Website SEO", "description": "Technical and content checks" },
         "keyword_research": { "title": "Keyword Research", "description": "Search clusters" },
         "blog_cadence": { "title": "Blog Cadence", "description": "One post every 4 days" },
@@ -402,7 +700,7 @@
         "comparison_alternatives": { "title": "Comparison / Alternatives Pages", "description": "High-intent SEO playbook" },
         "email_scrape_contacts": { "title": "Scrape Website for Contacts", "description": "Find relevant contacts" },
         "email_import_list": { "title": "Import List", "description": "Paste CSV or emails" },
-        "email_automation": { "title": "Automate Email Sending", "description": "Simulated outreach jobs" },
+        "email_automation": { "title": "Automate Email Sending", "description": "Webhook-ready outreach jobs" },
         "backlink_building": { "title": "Backlink Building", "description": "Prospect and score sites" },
         "guest_posts": { "title": "Guest Posts", "description": "Editorial backlink playbook" },
         "partner_pages": { "title": "Partner Pages", "description": "Ecosystem mentions" },
@@ -512,10 +810,10 @@
         "importPlaceholder": "Alex Rivera, Growth Lead, Acme, alex@acme.com, https://acme.com\nMaya Chen <maya@example.com>\npartners@example.org",
         "importAction": "Import Contacts",
         "importEmpty": "Paste at least one email or contact row first.",
-        "automationDescription": "Personalize outreach and simulate email sending. No real emails are sent in v1.",
+        "automationDescription": "Personalize outreach and prepare webhook-ready email batches. Configure the delivery webhook to send automatically.",
         "personalizeAction": "Personalize Emails",
-        "sendAction": "Send Email (Stub)",
-        "noJobs": "No simulated email jobs yet."
+        "sendAction": "Send Email",
+        "noJobs": "No email jobs yet."
       },
       "geo": {
         "steps": {
@@ -602,6 +900,7 @@
       "outputs": {
         "title": "Growth Outputs",
         "subtitle": "Platform and outreach assets with per-tab regeneration.",
+        "emptyChannelPack": "No native channel cards generated yet.",
         "emptyOutreach": "No outreach variants generated yet.",
         "emptySeo": "No SEO packs generated yet."
       },
@@ -621,7 +920,7 @@
           "blog": "Build Blog Strategy",
           "backlinks": "Find Backlink Prospects",
           "personalizeEmails": "Customize Emails",
-          "sendEmails": "Send Email (Stub)",
+          "sendEmails": "Send Email",
           "exportBacklinks": "Export Backlinks"
         },
         "analysis": {
@@ -716,6 +1015,7 @@
         "positioning": "Positioning",
         "icp": "ICP",
         "targetUsers": "Target Users",
+        "voiceGuide": "Voice Guide",
         "painPoints": "Pain Points",
         "valueProps": "Value Props",
         "proofPoints": "Proof Points",
@@ -726,13 +1026,14 @@
         "keywords": "Keywords",
         "contentAngles": "Content Angles",
         "platformBlocks": "Platform Blocks",
+        "channelPacks": "Native Channel Packs",
         "mediaKit": "Media Kit",
         "growthAssets": "Growth Assets",
         "noSubject": "No subject",
         "prospecting": "Prospecting",
         "leads": "Leads",
         "personalizedOutreach": "Personalized Outreach",
-        "emailJobsStub": "Email Jobs (stub)"
+        "emailJobs": "Email Jobs"
       },
       "pressPack": {
         "titleSuffix": "Press Pack",
@@ -753,6 +1054,8 @@
       "briefReady": "Brief extracted. Review fields before generation.",
       "kitGenerated": "Launch kit generated successfully.",
       "blockRegenerated": "Block regenerated successfully.",
+      "channelPackRegenerated": "Channel pack regenerated successfully.",
+      "channelCardRegenerated": "Channel card regenerated successfully.",
       "growthBlockRegenerated": "Growth block regenerated successfully.",
       "assetGenerated": "Asset generated successfully.",
       "savedCloud": "Project saved to your account.",
@@ -760,6 +1063,7 @@
       "loadedCloud": "Project loaded from cloud.",
       "loadedLocal": "Project loaded from local storage.",
       "blockCopied": "{platform} block copied to clipboard.",
+      "channelCardCopied": "{channel} card copied to clipboard.",
       "urlPrefilled": "URL prefilled from landing. Extract when ready.",
       "demoLoaded": "Sample launch kit loaded. You can edit or regenerate any block.",
       "leadsExported": "Lead CSV exported.",

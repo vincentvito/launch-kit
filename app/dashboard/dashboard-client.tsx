@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { BookOpenText, ChevronRight, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Wand2 } from 'lucide-react'
+import { BookOpenText, ChevronRight, Lock, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Wand2 } from 'lucide-react'
 import { signOut, useSession } from '@/lib/auth-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -13,9 +13,10 @@ import { createDemoSnapshot } from '@/lib/launch-kit/demo'
 import {
   PLATFORM_IDS,
   type BacklinkProspectStatus,
+  type ChannelCard,
+  type ChannelPackId,
   type ExtractedBrief,
   type GrowthBlockId,
-  type KeywordCluster,
   type LaunchAssetFormat,
   type LaunchAssetKind,
   type LaunchKit,
@@ -24,7 +25,8 @@ import {
   type ProjectSummary,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
-import { Field, SelectField, StepStatusPill } from './dashboard-ui'
+import { FREE_CHANNEL_PACK_IDS, FREE_PLATFORM_BLOCK_IDS } from '@/lib/launch-kit/plans'
+import { Field, StepStatusPill } from './dashboard-ui'
 import { editorialSerif, interfaceSans } from './dashboard-fonts'
 import {
   type DashboardStep,
@@ -39,6 +41,7 @@ import {
   buildMarkdown,
   buildPressPackHtml,
   downloadBlob,
+  formatChannelCardForCopy,
   formatOutreachPackForCopy,
   formatRedditRecommendationsForCopy,
   formatSeoPostsForCopy,
@@ -53,7 +56,7 @@ import {
 } from './dashboard-utils'
 
 const ResultAssetBrowser = dynamic(
-  () => import('./result-asset-browser').then((m) => m.ResultAssetBrowser),
+  () => import('./result-asset-browser').then((module) => module.ResultAssetBrowser),
   { ssr: false },
 )
 
@@ -64,11 +67,11 @@ type DashboardPageClientProps = {
 }
 
 function createInitialDemoSnapshot(enabled: boolean) {
-  if (!enabled || typeof window === 'undefined') {
+  if (!enabled) {
     return null
   }
 
-  return createDemoSnapshot(window.location.origin)
+  return createDemoSnapshot(typeof window === 'undefined' ? undefined : window.location.origin)
 }
 
 // react-doctor-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer
@@ -307,21 +310,24 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
   const buildGenerationFeedbackSteps = (input: GenerateContentInput) => {
     const selectedPlatformBlocks = input.selectedBlocks || []
+    const selectedChannelPacks = input.selectedChannelPackIds || []
     const selectedGrowthBlocks = input.selectedGrowthBlocks || []
 
-    if (selectedPlatformBlocks.length > 0) {
+    if (
+      selectedPlatformBlocks.length > 0 ||
+      selectedChannelPacks.length > 0 ||
+      selectedGrowthBlocks.length > 0
+    ) {
       return [
         t('generationFeedback.preparing'),
         ...selectedPlatformBlocks.map((blockId) =>
           t('generationFeedback.regeneratingBlock', { block: getPlatformOutputLabel(blockId) }),
         ),
-        t('generationFeedback.finalizing'),
-      ]
-    }
-
-    if (selectedGrowthBlocks.length > 0) {
-      return [
-        t('generationFeedback.preparing'),
+        ...selectedChannelPacks.map((channelId) =>
+          t('generationFeedback.regeneratingBlock', {
+            block: t(`results.channels.${channelId}.title`),
+          }),
+        ),
         ...selectedGrowthBlocks.map((blockId) =>
           t('generationFeedback.regeneratingBlock', { block: getGrowthOutputLabel(blockId) }),
         ),
@@ -336,17 +342,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
       t('generationFeedback.reddit'),
       t('generationFeedback.indieHackers'),
       t('generationFeedback.linkedin'),
-      t('generationFeedback.tiktok'),
-      t('generationFeedback.youtube'),
       t('generationFeedback.email'),
-      ...(input.includeGrowthAssets ?? true
-        ? [
-            t('generationFeedback.linkedinOutreach'),
-            t('generationFeedback.xOutreach'),
-            t('generationFeedback.coldEmail'),
-            t('generationFeedback.seoPosts'),
-          ]
-        : []),
       ...(input.includeMediaKit ?? true ? [t('generationFeedback.mediaKit')] : []),
       t('generationFeedback.finalizing'),
     ]
@@ -407,8 +403,11 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     }
 
     await generateContent({
+      selectedBlocks: [...FREE_PLATFORM_BLOCK_IDS],
+      selectedChannelPackIds: [...FREE_CHANNEL_PACK_IDS],
+      selectedGrowthBlocks: [],
       includeMediaKit: true,
-      includeGrowthAssets: true,
+      includeGrowthAssets: false,
     })
   }
 
@@ -459,6 +458,8 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
         body: JSON.stringify({
           brief,
           selectedBlocks: input.selectedBlocks,
+          selectedChannelPackIds: input.selectedChannelPackIds,
+          channelCardTarget: input.channelCardTarget,
           selectedGrowthBlocks: input.selectedGrowthBlocks,
           includeMediaKit,
           includeGrowthAssets,
@@ -473,7 +474,11 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
       updateKit(normalizeKit(json.launchKit, brief.language))
       setActiveStep(3)
-      if (input.selectedGrowthBlocks && input.selectedGrowthBlocks.length > 0) {
+      if (input.channelCardTarget) {
+        setSuccess(t('messages.channelCardRegenerated'))
+      } else if (input.selectedChannelPackIds && input.selectedChannelPackIds.length > 0) {
+        setSuccess(t('messages.channelPackRegenerated'))
+      } else if (input.selectedGrowthBlocks && input.selectedGrowthBlocks.length > 0) {
         setSuccess(t('messages.growthBlockRegenerated'))
       } else if (input.selectedBlocks && input.selectedBlocks.length > 0) {
         setSuccess(t('messages.blockRegenerated'))
@@ -721,6 +726,77 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
   }
 
+  const copyChannelCard = async (channelId: ChannelPackId, cardId: string) => {
+    if (!kit) {
+      return
+    }
+
+    const card = kit.channelPacks[channelId].cards.find((item) => item.id === cardId)
+    if (!card) {
+      return
+    }
+
+    await navigator.clipboard.writeText(
+      formatChannelCardForCopy(channelId, card, {
+        cta: t('output.copyCtaPrefix'),
+        proofPoint: t('output.proofPointLabel'),
+        socialContract: t('output.socialContractLabel'),
+      }),
+    )
+    setSuccess(t('messages.channelCardCopied', { channel: kit.channelPacks[channelId].label }))
+  }
+
+  const updateChannelCard = (
+    channelId: ChannelPackId,
+    cardId: string,
+    changes: Pick<ChannelCard, 'title' | 'body' | 'cta'>,
+  ) => {
+    setKit((current) => {
+      if (!current) {
+        return current
+      }
+
+      return normalizeKit(
+        {
+          ...current,
+          channelPacks: {
+            ...current.channelPacks,
+            [channelId]: {
+              ...current.channelPacks[channelId],
+              cards: current.channelPacks[channelId].cards.map((card) =>
+                card.id === cardId
+                  ? {
+                      ...card,
+                      ...changes,
+                    }
+                  : card,
+              ),
+            },
+          },
+        },
+        current.language,
+      )
+    })
+  }
+
+  const regenerateChannelCard = async (channelId: ChannelPackId, cardId: string) => {
+    if (!brief) {
+      return
+    }
+
+    await generateContent({
+      selectedBlocks: [],
+      selectedChannelPackIds: [channelId],
+      channelCardTarget: {
+        channelId,
+        cardId,
+      },
+      selectedGrowthBlocks: [],
+      includeMediaKit: false,
+      includeGrowthAssets: false,
+    })
+  }
+
   const copyGrowthBlock = async (blockId: GrowthBlockId) => {
     if (!kit) {
       return
@@ -788,78 +864,6 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
       return {
         ...current,
         [field]: value,
-      }
-    })
-  }
-
-  const setKeywordClusterField = (
-    clusterId: string,
-    field: keyof KeywordCluster,
-    value: string | string[],
-  ) => {
-    setBrief((current) => {
-      if (!current) {
-        return current
-      }
-
-      return {
-        ...current,
-        keywordResearch: {
-          ...current.keywordResearch,
-          clusters: current.keywordResearch.clusters.map((cluster) => {
-            if (cluster.id !== clusterId) {
-              return cluster
-            }
-
-            return {
-              ...cluster,
-              [field]: value,
-            } as KeywordCluster
-          }),
-        },
-      }
-    })
-  }
-
-  const addKeywordCluster = () => {
-    setBrief((current) => {
-      if (!current) {
-        return current
-      }
-
-      const nextIndex = current.keywordResearch.clusters.length + 1
-      return {
-        ...current,
-        keywordResearch: {
-          ...current.keywordResearch,
-          clusters: [
-            ...current.keywordResearch.clusters,
-            {
-              id: `kw-custom-${Date.now()}-${nextIndex}`,
-              topic: '',
-              intent: 'informational',
-              priority: 'medium',
-              keywords: [],
-              contentAngles: [],
-            },
-          ],
-        },
-      }
-    })
-  }
-
-  const removeKeywordCluster = (clusterId: string) => {
-    setBrief((current) => {
-      if (!current) {
-        return current
-      }
-
-      return {
-        ...current,
-        keywordResearch: {
-          ...current.keywordResearch,
-          clusters: current.keywordResearch.clusters.filter((cluster) => cluster.id !== clusterId),
-        },
       }
     })
   }
@@ -1200,6 +1204,14 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
           </Link>
 
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="hidden border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 sm:inline-flex"
+            >
+              <Link href="/pricing">{t('plans.paywall.cta')}</Link>
+            </Button>
             {session ? (
               <>
                 <div className="hidden items-center gap-2 rounded-full border border-violet-100 bg-violet-50/60 px-2 py-1.5 sm:flex">
@@ -1488,6 +1500,12 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             multiline
                           />
                           <Field
+                            label={t('fields.voiceGuide')}
+                            value={brief.voiceGuide}
+                            onChange={(value) => setBriefField('voiceGuide', value)}
+                            multiline
+                          />
+                          <Field
                             label={t('fields.cta')}
                             value={brief.cta}
                             onChange={(value) => setBriefField('cta', value)}
@@ -1696,6 +1714,11 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                         }}
                         onGenerateAsset={(templateId, format) => void onGenerateAsset(templateId, format)}
                         generatingAssetKey={generatingAssetKey}
+                        onCopyChannelCard={(channelId, cardId) => void copyChannelCard(channelId, cardId)}
+                        onUpdateChannelCard={updateChannelCard}
+                        onRegenerateChannelCard={(channelId, cardId) =>
+                          void regenerateChannelCard(channelId, cardId)
+                        }
                         onCopyPlatformBlock={(blockId) => void copyBlock(blockId)}
                         onRegeneratePlatformBlock={(blockId) => void onRegenerateBlock(blockId)}
                         onCopyGrowthBlock={(blockId) => void copyGrowthBlock(blockId)}
@@ -1752,6 +1775,11 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             notes: t('output.notesLabel'),
                             subject: t('output.subjectLabel'),
                             outline: t('output.outlineLabel'),
+                            format: t('output.formatLabel'),
+                            stage: t('output.stageLabel'),
+                            proofPoint: t('output.proofPointLabel'),
+                            socialContract: t('output.socialContractLabel'),
+                            emptyChannelPack: t('growth.outputs.emptyChannelPack'),
                             redditEngagement: t('output.reddit.engagementTitle'),
                             redditSelfPromotion: t('output.reddit.selfPromotionTitle'),
                             redditReason: t('output.reddit.reasonLabel'),
@@ -1860,6 +1888,12 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                           multiline
                         />
                         <Field
+                          label={t('fields.voiceGuide')}
+                          value={brief.voiceGuide}
+                          onChange={(value) => setBriefField('voiceGuide', value)}
+                          multiline
+                        />
+                        <Field
                           label={t('fields.targetUsers')}
                           value={brief.targetUsers.join('\n')}
                           onChange={(value) => setBriefField('targetUsers', splitEditableLines(value))}
@@ -1909,111 +1943,27 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-violet-100 bg-white p-3">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
-                            {t('utility.seoAnalysisTitle')}
-                          </p>
-                          <p className="text-xs text-zinc-600">{t('growth.keywordResearch.description')}</p>
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <span className="rounded-xl border border-amber-200 bg-white p-2 text-amber-700">
+                            <Lock className="size-4" />
+                          </span>
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                              {t('plans.badges.premium')}
+                            </p>
+                            <h3 className={`${editorialSerif.className} mt-1 text-xl leading-tight text-zinc-900`}>
+                              {t('utility.seoAnalysisTitle')}
+                            </h3>
+                            <p className="mt-1 text-sm leading-relaxed text-zinc-600">
+                              {t('plans.paywall.utilitySeoDescription')}
+                            </p>
+                          </div>
                         </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={addKeywordCluster}
-                          className="border-violet-200 text-violet-700 hover:bg-violet-50"
-                        >
-                          {t('growth.keywordResearch.addCluster')}
+                        <Button asChild className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800">
+                          <Link href="/pricing">{t('plans.paywall.cta')}</Link>
                         </Button>
-                      </div>
-
-                      <Field
-                        label={t('growth.keywordResearch.notes')}
-                        value={brief.keywordResearch.notes}
-                        onChange={(value) =>
-                          setBriefField('keywordResearch', {
-                            ...brief.keywordResearch,
-                            notes: value,
-                          })
-                        }
-                        multiline
-                      />
-
-                      <div className="mt-3 space-y-3">
-                        {brief.keywordResearch.clusters.length > 0 ? (
-                          brief.keywordResearch.clusters.map((cluster) => (
-                            <div key={cluster.id} className="rounded-xl border border-violet-200 bg-violet-50/35 p-3">
-                              <div className="mb-2 flex items-center justify-between gap-2">
-                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-violet-700">
-                                  {t('growth.keywordResearch.clusterLabel')}
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => removeKeywordCluster(cluster.id)}
-                                  className="text-xs font-medium text-rose-600 hover:text-rose-700"
-                                >
-                                  {t('growth.keywordResearch.removeCluster')}
-                                </button>
-                              </div>
-
-                              <Field
-                                label={t('growth.keywordResearch.topic')}
-                                value={cluster.topic}
-                                onChange={(value) => setKeywordClusterField(cluster.id, 'topic', value)}
-                              />
-
-                              <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                                <SelectField
-                                  label={t('growth.keywordResearch.intent')}
-                                  value={cluster.intent}
-                                  onChange={(value) => setKeywordClusterField(cluster.id, 'intent', value)}
-                                  options={[
-                                    { value: 'informational', label: t('growth.keywordResearch.intents.informational') },
-                                    { value: 'commercial', label: t('growth.keywordResearch.intents.commercial') },
-                                    { value: 'transactional', label: t('growth.keywordResearch.intents.transactional') },
-                                    { value: 'navigational', label: t('growth.keywordResearch.intents.navigational') },
-                                  ]}
-                                />
-                                <SelectField
-                                  label={t('growth.keywordResearch.priority')}
-                                  value={cluster.priority}
-                                  onChange={(value) => setKeywordClusterField(cluster.id, 'priority', value)}
-                                  options={[
-                                    { value: 'high', label: t('growth.keywordResearch.priorities.high') },
-                                    { value: 'medium', label: t('growth.keywordResearch.priorities.medium') },
-                                    { value: 'low', label: t('growth.keywordResearch.priorities.low') },
-                                  ]}
-                                />
-                              </div>
-
-                              <Field
-                                label={t('growth.keywordResearch.keywords')}
-                                value={cluster.keywords.join('\n')}
-                                onChange={(value) =>
-                                  setKeywordClusterField(cluster.id, 'keywords', splitEditableLines(value))
-                                }
-                                onBlur={(value) => setKeywordClusterField(cluster.id, 'keywords', splitLines(value))}
-                                multiline
-                              />
-                              <Field
-                                label={t('growth.keywordResearch.contentAngles')}
-                                value={cluster.contentAngles.join('\n')}
-                                onChange={(value) =>
-                                  setKeywordClusterField(cluster.id, 'contentAngles', splitEditableLines(value))
-                                }
-                                onBlur={(value) =>
-                                  setKeywordClusterField(cluster.id, 'contentAngles', splitLines(value))
-                                }
-                                multiline
-                              />
-                            </div>
-                          ))
-                        ) : (
-                          <p className="rounded-xl border border-violet-100 bg-violet-50 px-3 py-2 text-sm text-violet-700">
-                            {t('growth.keywordResearch.empty')}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>

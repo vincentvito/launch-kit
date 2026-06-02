@@ -14,17 +14,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String             @id
+  name           String
+  email          String
+  emailVerified  Boolean            @default(false)
+  image          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  sessions       Session[]
+  accounts       Account[]
   launchProjects LaunchProject[]
-  launchProfile UserLaunchProfile?
+  launchProfile  UserLaunchProfile?
+  plan           UserPlan?
+  usageEvents    UsageEvent[]
+  launchJobs     LaunchJob[]
 
   @@unique([email])
   @@map("user")
@@ -78,6 +81,15 @@ model Verification {
   @@map("verification")
 }
 
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rate_limit")
+}
+
 model LaunchProject {
   id        String   @id @default(cuid())
   userId    String
@@ -96,20 +108,20 @@ model LaunchProject {
 }
 
 model UserLaunchProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  founderName   String?
-  founderBio    String?
-  companyName   String?
-  companyBio    String?
-  website       String?
-  email         String?
-  contactPhone  String?
-  socialX       String?
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  founderName    String?
+  founderBio     String?
+  companyName    String?
+  companyBio     String?
+  website        String?
+  email          String?
+  contactPhone   String?
+  socialX        String?
   socialLinkedIn String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("user_launch_profile")
 }
@@ -117,7 +129,80 @@ model UserLaunchProfile {
 model WaitlistEntry {
   id        String   @id @default(cuid())
   email     String   @unique
+  source    String?
+  referrer  String?
+  userAgent String?
+  ipHash    String?
   createdAt DateTime @default(now())
 
   @@map("waitlist_entry")
+}
+
+model UserPlan {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   String    @default("free")
+  status                 String    @default("active")
+  provider               String?
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  currentPeriodEnd       DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([plan])
+  @@index([status])
+  @@index([providerCustomerId])
+  @@index([providerSubscriptionId])
+  @@map("user_plan")
+}
+
+model UsageEvent {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  subjectKey   String
+  action       String
+  amount       Int      @default(1)
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([subjectKey])
+  @@index([action])
+  @@index([createdAt])
+  @@map("usage_event")
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+  @@map("rate_limit_bucket")
+}
+
+model LaunchJob {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  subjectKey  String
+  action      String
+  status      String    @default("queued")
+  inputJson   String
+  resultJson  String?
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([subjectKey])
+  @@index([action])
+  @@index([status])
+  @@index([createdAt])
+  @@map("launch_job")
 }

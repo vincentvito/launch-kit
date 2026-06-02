@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import LaunchUrlHandoff from '@/components/landing/launch-url-handoff'
 import {
   DEMO_BRIEF,
-  DEMO_KIT,
   getDemoPreviewBlocks,
 } from '@/lib/launch-kit/demo'
 
@@ -27,10 +26,11 @@ const interfaceSans = Space_Grotesk({
 })
 
 const toneByPlatform: Record<string, string> = {
+  product_hunt: 'from-amber-500/15 to-orange-100/35',
   hacker_news: 'from-violet-500/15 to-violet-100/40',
   reddit: 'from-fuchsia-500/12 to-fuchsia-100/35',
   linkedin: 'from-indigo-500/12 to-indigo-100/35',
-  tiktok: 'from-purple-500/15 to-pink-100/35',
+  email_announcement: 'from-emerald-500/12 to-teal-100/35',
 }
 
 const panelSlots = [
@@ -61,14 +61,6 @@ const launchSurfaceLogos = [
     name: 'LinkedIn',
     src: '/brand-logos/linkedin.svg',
   },
-  {
-    name: 'TikTok',
-    src: '/brand-logos/tiktok.svg',
-  },
-  {
-    name: 'YouTube',
-    src: '/brand-logos/youtube.svg',
-  },
 ] as const
 
 // react-doctor-disable-next-line react-doctor/no-giant-component
@@ -76,11 +68,20 @@ export default async function LandingPage() {
   const t = await getTranslations('Landing')
   const previewBlocks = getDemoPreviewBlocks()
   const voiceByPlatform: Record<string, string> = {
+    product_hunt: t('proof.voice.productHunt'),
     hacker_news: t('proof.voice.hackerNews'),
     reddit: t('proof.voice.reddit'),
     linkedin: t('proof.voice.linkedin'),
-    tiktok: t('proof.voice.tiktok'),
+    email_announcement: t('proof.voice.email'),
   }
+  const growthAutomationItems = [
+    t('media.items.seoActions'),
+    t('media.items.productDemo'),
+    t('media.items.prospectLists'),
+    t('media.items.outreachVariants'),
+    t('media.items.socialContent'),
+    t('media.items.reviewQueue'),
+  ]
 
   return (
     <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
@@ -113,6 +114,9 @@ export default async function LandingPage() {
             <a href="#media" className="text-sm text-zinc-600 transition hover:text-violet-700">
               {t('nav.media')}
             </a>
+            <Link href="/pricing" className="text-sm text-zinc-600 transition hover:text-violet-700">
+              {t('nav.pricing')}
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
@@ -336,11 +340,12 @@ export default async function LandingPage() {
               <GeneratedItem label="Product Hunt" value={t('generated.items.productHunt')} />
               <GeneratedItem label="Hacker News" value={t('generated.items.hn')} />
               <GeneratedItem label="Reddit" value={t('generated.items.reddit')} />
+              <GeneratedItem label="X" value={t('generated.items.x')} />
               <GeneratedItem label="Indie Hackers" value={t('generated.items.indie')} />
               <GeneratedItem label="LinkedIn" value={t('generated.items.linkedin')} />
-              <GeneratedItem label="TikTok / YouTube" value={t('generated.items.video')} />
+              <GeneratedItem label="Premium short-form" value={t('generated.items.video')} />
               <GeneratedItem label="Email" value={t('generated.items.email')} />
-              <GeneratedItem label="Press Kit" value={t('generated.items.press')} />
+              <GeneratedItem label="Media kit" value={t('generated.items.press')} />
             </ul>
           </article>
 
@@ -352,7 +357,7 @@ export default async function LandingPage() {
             <p className="mt-3 text-zinc-600">{t('media.description')}</p>
 
             <ul className="mt-6 space-y-2 text-sm text-zinc-700">
-              {DEMO_KIT.mediaKit.keyVisualsChecklist.map((item) => (
+              {growthAutomationItems.map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <Check className="mt-0.5 size-4 shrink-0 text-violet-600" />
                   <span>{item}</span>

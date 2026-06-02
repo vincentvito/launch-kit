@@ -1,9 +1,16 @@
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import {
+  assertTrustedRequestOrigin,
+  launchApiErrorResponse,
+  launchApiRouteErrorResponse,
+  privateJsonResponse,
+  readJsonBody,
+} from '@/lib/launch-kit/api-guard'
+import { consumeRateLimit, getRateLimitPolicy } from '@/lib/launch-kit/rate-limit'
+import { getClientIp, getSafeReferrer, getSafeUserAgent, getSubjectKey, hashIdentifier } from '@/lib/launch-kit/security'
 
 export const runtime = 'nodejs'
 
-// Throwaway/disposable email providers we don't want clogging the waitlist.
 const DISPOSABLE_DOMAINS = new Set([
   '10minutemail.com', '10minutemail.net', 'guerrillamail.com', 'guerrillamail.net',
   'sharklasers.com', 'guerrillamailblock.com', 'mailinator.com', 'mailinator.net',
@@ -14,43 +21,62 @@ const DISPOSABLE_DOMAINS = new Set([
   'discard.email', 'getairmail.com', 'maileater.com', 'spamgourmet.com',
 ])
 
-// A real human can't fill and submit the form faster than this; bots can.
 const MIN_SUBMIT_MS = 2000
 
 export async function POST(request: Request) {
+  try {
+    assertTrustedRequestOrigin(request)
+  } catch (error) {
+    return launchApiErrorResponse(error)
+  }
+
   let body: unknown
 
   try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+    body = await readJsonBody(request, { maxBytes: 16 * 1024 })
+  } catch (error) {
+    return launchApiErrorResponse(error)
   }
 
   const fields = (typeof body === 'object' && body !== null ? body : {}) as Record<string, unknown>
-
-  // Honeypot: a field hidden from humans. If it's filled, it's a bot — return a
-  // fake success so the bot has no signal that it was rejected.
   const honeypot = typeof fields.company === 'string' ? fields.company.trim() : ''
   if (honeypot) {
-    return NextResponse.json({ ok: true })
+    return privateJsonResponse({ ok: true })
   }
 
-  // Timing trap: submissions faster than a human could type are bots. Same
-  // silent-success treatment. Skipped when no timestamp was sent (elapsed 0).
   const elapsedMs = typeof fields.elapsedMs === 'number' ? fields.elapsedMs : 0
   if (elapsedMs > 0 && elapsedMs < MIN_SUBMIT_MS) {
-    return NextResponse.json({ ok: true })
+    return privateJsonResponse({ ok: true })
   }
 
   const email = typeof fields.email === 'string' ? fields.email.trim().toLowerCase() : ''
+  const source = typeof fields.source === 'string' ? fields.source.trim().slice(0, 120) : ''
 
   if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'A valid email is required.' }, { status: 400 })
+    return privateJsonResponse({ error: 'A valid email is required.' }, { status: 400 })
+  }
+
+  const rateLimit = await consumeRateLimit({
+    subjectKey: getSubjectKey(request),
+    action: 'waitlist_signup',
+    policy: getRateLimitPolicy('waitlist_signup', false),
+  })
+
+  if (!rateLimit.ok) {
+    return privateJsonResponse(
+      { error: 'Too many signup attempts. Try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.max(1, Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 1000))),
+        },
+      },
+    )
   }
 
   const domain = email.slice(email.lastIndexOf('@') + 1)
   if (DISPOSABLE_DOMAINS.has(domain)) {
-    return NextResponse.json(
+    return privateJsonResponse(
       { error: 'Please use a permanent email address.' },
       { status: 400 },
     )
@@ -59,12 +85,27 @@ export async function POST(request: Request) {
   try {
     await prisma.waitlistEntry.upsert({
       where: { email },
-      create: { email },
-      update: {},
+      create: {
+        email,
+        source: source || null,
+        referrer: getSafeReferrer(request) || null,
+        userAgent: getSafeUserAgent(request) || null,
+        ipHash: hashIdentifier(getClientIp(request)),
+      },
+      update: {
+        source: source || undefined,
+        referrer: getSafeReferrer(request) || undefined,
+        userAgent: getSafeUserAgent(request) || undefined,
+        ipHash: hashIdentifier(getClientIp(request)),
+      },
     })
-  } catch {
-    return NextResponse.json({ error: 'Could not save your email. Try again.' }, { status: 500 })
+  } catch (error) {
+    return launchApiRouteErrorResponse(
+      error,
+      'Could not save your email. Try again.',
+      'waitlist_signup_failed',
+    )
   }
 
-  return NextResponse.json({ ok: true })
+  return privateJsonResponse({ ok: true })
 }

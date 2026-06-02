@@ -20,6 +20,45 @@ export const GROWTH_BLOCK_IDS = [
 
 export type GrowthBlockId = (typeof GROWTH_BLOCK_IDS)[number]
 
+export const CHANNEL_PACK_IDS = [
+  'x',
+  'linkedin',
+  'threads',
+  'reddit',
+  'indie_hackers',
+  'instagram',
+  'tiktok',
+  'youtube_shorts',
+] as const
+
+export type ChannelPackId = (typeof CHANNEL_PACK_IDS)[number]
+export type ChannelCardStage = 'pre_launch' | 'launch_day' | 'follow_up' | 'evergreen'
+
+export type ChannelCard = {
+  id: string
+  title: string
+  body: string
+  cta: string
+  proofPoint: string
+  stage: ChannelCardStage
+  format: string
+  socialContractNote: string
+  qualityChecks: string[]
+}
+
+export type ChannelPack = {
+  id: ChannelPackId
+  label: string
+  notes: string
+  cards: ChannelCard[]
+  redditRecommendations?: RedditRecommendations
+}
+
+export type ChannelCardTarget = {
+  channelId: ChannelPackId
+  cardId: string
+}
+
 export type SubredditRecommendation = {
   name: string
   url: string
@@ -92,6 +131,7 @@ export type ExtractedBrief = {
   valueProps: string[]
   keyClaims: string[]
   proofPoints: string[]
+  voiceGuide: string
   cta: string
   language: string
   sourceHighlights: string[]
@@ -346,7 +386,7 @@ export type BacklinkEmailJob = {
   subject: string
   bodyPreview: string
   createdAt: string
-  completedAt: string
+  completedAt?: string
 }
 
 export type SeoGrowthState = {
@@ -366,6 +406,7 @@ export type LaunchKit = {
   generatedAt: string
   language: string
   platformBlocks: Record<PlatformBlockId, PlatformBlock>
+  channelPacks: Record<ChannelPackId, ChannelPack>
   mediaKit: MediaKit
   assetLibrary: AssetLibrary
   growthAssets: GrowthAssets
@@ -408,6 +449,17 @@ export const GROWTH_BLOCK_LABELS: Record<GrowthBlockId, string> = {
   x_outreach: 'X Cold Outreach',
   cold_email_outreach: 'Cold Outreach Email',
   seo_posts: 'SEO Blog Post Packs',
+}
+
+export const CHANNEL_PACK_LABELS: Record<ChannelPackId, string> = {
+  x: 'X',
+  linkedin: 'LinkedIn',
+  threads: 'Threads',
+  reddit: 'Reddit',
+  indie_hackers: 'Indie Hackers',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  youtube_shorts: 'YouTube Shorts',
 }
 
 export const DEFAULT_LAUNCH_ASSET_TEMPLATES: LaunchAssetTemplate[] = [

@@ -1,7 +1,9 @@
 import {
+  CHANNEL_PACK_IDS,
   PLATFORM_IDS,
   PLATFORM_LABELS,
   type LaunchProjectSnapshot,
+  type PlatformBlockId,
   type RedditRecommendations,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
@@ -22,6 +24,8 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   lines.push(`**Positioning**: ${project.brief.positioning}`)
   lines.push('')
   lines.push(`**ICP**: ${project.brief.icp}`)
+  lines.push('')
+  lines.push(`**Voice Guide**: ${project.brief.voiceGuide}`)
   lines.push('')
   lines.push('**Pain Points**')
   for (const value of project.brief.painPoints) {
@@ -74,6 +78,10 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   lines.push('')
 
   for (const blockId of PLATFORM_IDS) {
+    if (shouldSkipPlatformBlockInExport(blockId, project)) {
+      continue
+    }
+
     const block = project.kit.platformBlocks[blockId]
     lines.push(`### ${PLATFORM_LABELS[blockId]}`)
     lines.push('')
@@ -88,6 +96,40 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
 
     if (blockId === 'reddit' && block.redditRecommendations) {
       appendRedditRecommendationsMarkdown(lines, block.redditRecommendations)
+    }
+  }
+
+  lines.push('## Native Channel Packs')
+  lines.push('')
+  for (const channelId of CHANNEL_PACK_IDS) {
+    const pack = project.kit.channelPacks[channelId]
+    if (!pack.cards.length) {
+      continue
+    }
+
+    lines.push(`### ${pack.label}`)
+    lines.push(pack.notes || '')
+    lines.push('')
+
+    for (const card of pack.cards) {
+      lines.push(`#### ${channelId === 'x' ? card.format : card.title}`)
+      lines.push(`- Format: ${card.format}`)
+      lines.push(`- Stage: ${card.stage}`)
+      if (card.proofPoint) {
+        lines.push(`- Proof Point: ${card.proofPoint}`)
+      }
+      lines.push('')
+      lines.push(card.body)
+      lines.push('')
+      lines.push(`**CTA**: ${card.cta}`)
+      if (card.socialContractNote) {
+        lines.push(`**Social Contract**: ${card.socialContractNote}`)
+      }
+      lines.push('')
+    }
+
+    if (channelId === 'reddit' && pack.redditRecommendations) {
+      appendRedditRecommendationsMarkdown(lines, pack.redditRecommendations)
     }
   }
 
@@ -154,7 +196,7 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   lines.push('')
   lines.push(`- Leads: ${project.kit.prospecting.leads.length}`)
   lines.push(`- Personalized outreach items: ${project.kit.prospecting.personalizedOutreach.length}`)
-  lines.push(`- Email jobs (stub): ${project.kit.prospecting.emailJobs.length}`)
+  lines.push(`- Email jobs: ${project.kit.prospecting.emailJobs.length}`)
   lines.push(`- Last scrape at: ${project.kit.prospecting.lastScrapeAt || 'N/A'}`)
   lines.push(`- Last email build at: ${project.kit.prospecting.lastEmailBuildAt || 'N/A'}`)
   lines.push('')
@@ -227,6 +269,23 @@ function appendSubredditRecommendationMarkdown(
     lines.push(`  Posting guidance: ${recommendation.postingGuidance}`)
   }
   lines.push('')
+}
+
+function shouldSkipPlatformBlockInExport(
+  blockId: PlatformBlockId,
+  project: LaunchProjectSnapshot,
+): boolean {
+  if (
+    blockId !== 'reddit' &&
+    blockId !== 'indie_hackers' &&
+    blockId !== 'linkedin' &&
+    blockId !== 'tiktok' &&
+    blockId !== 'youtube_shorts'
+  ) {
+    return false
+  }
+
+  return project.kit.channelPacks[blockId].cards.length > 0
 }
 
 export function renderPressPackHtml(project: LaunchProjectSnapshot): string {

@@ -1,7 +1,12 @@
 import {
+  CHANNEL_PACK_LABELS,
   DEFAULT_LAUNCH_ASSET_TEMPLATES,
   PLATFORM_IDS,
   PLATFORM_LABELS,
+  type ChannelCard,
+  type ChannelCardStage,
+  type ChannelPack,
+  type ChannelPackId,
   type ExtractedBrief,
   type LaunchKit,
   type LaunchProjectSnapshot,
@@ -18,40 +23,42 @@ function buildDemoBrief(sourceUrl: string): ExtractedBrief {
     sourceUrl,
     productName: 'Launch Kit',
     positioning:
-      'Launch Kit turns one product URL into platform-native launch copy, a press-ready media kit, SEO strategy, and outreach controls for founders shipping without a full marketing team.',
+      'Launch Kit turns one product URL into focused launch copy, subreddit guidance, an email announcement, and a lightweight media kit, with Premium growth work available from the same brief.',
     targetUsers: [
       'Solo SaaS founders preparing a public launch',
       'Indie hackers shipping frequent product updates',
-      'Small startup teams coordinating content, press, and outreach',
+      'Small startup teams coordinating launch copy, email, and press basics',
     ],
     icp:
-      'Founders and lean product teams who need a repeatable launch workflow that keeps one narrative consistent while adapting delivery across communities, SEO, and outreach.',
+      'Founders and lean product teams who need a repeatable launch workflow that keeps one narrative consistent while adapting delivery across launch communities and social channels.',
     painPoints: [
       'Rewriting the same product story for every launch channel',
       'Losing voice quality when one generic post is reused everywhere',
-      'Splitting launch copy, media assets, SEO planning, and prospecting across too many tools',
+      'Scattering launch copy, subreddit research, email drafts, and press basics across too many tabs',
     ],
     valueProps: [
       'Extracts an editable product brief from one URL',
-      'Generates channel-ready launch assets for social, community, video, email, press, SEO, and outreach',
-      'Keeps exports, prospecting, and simulated outreach in one dashboard',
+      'Generates core launch copy for Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, and email',
+      'Keeps copy blocks, markdown export, and press pack export in one focused dashboard',
     ],
     keyClaims: [
-      'One URL becomes a full multi-channel launch kit',
+      'One URL becomes a useful free launch kit',
       'Every output respects the social contract of its destination channel',
-      'SEO and outreach channel views include analysis, blog strategy, backlinks, and tracking',
+      'Premium unlocks SEO, backlinks, outreach, product demo beats, and creative assets from the same brief',
     ],
     proofPoints: [
-      'Generates 8 launch channels plus media kit and growth assets from one structured brief',
+      'Generates core launch channels plus a lightweight media kit from one structured brief',
       'Includes per-tab regenerate controls, markdown export, and print-ready press pack output',
       'Ships with zero-config fallbacks so a fresh clone can demo the workflow without external services',
     ],
+    voiceGuide:
+      'Use a founder-to-founder voice that is sharp, practical, and candid about launch work. Keep the writing specific to the channel, avoid generic AI phrases and inflated proof, and make every output feel like it was written by someone who understands each community.',
     cta: 'Try Launch Kit with your product URL',
     language: 'en',
     sourceHighlights: [
-      'One URL, every launch channel.',
+      'One URL, one focused launch kit.',
       'Review generated content, regenerate tabs, and export your kit.',
-      'SEO, prospecting, and outreach execution controls live in dedicated channel views.',
+      'Premium growth surfaces stay separate until the launch story is clear.',
     ],
     detectedImageUrls: [`${sourceUrl}/globe.svg`, `${sourceUrl}/window.svg`],
     crawlPages: [
@@ -120,13 +127,40 @@ function buildDemoBrief(sourceUrl: string): ExtractedBrief {
 
 export const DEMO_BRIEF: ExtractedBrief = buildDemoBrief(DEMO_SOURCE_URL)
 
+function demoCard(
+  id: string,
+  stage: ChannelCardStage,
+  format: string,
+  title: string,
+  body: string,
+  cta: string,
+  socialContractNote: string,
+  proofPoint = 'Launch Kit demo generates core launch copy, subreddit guidance, and media kit assets from one source brief.',
+): ChannelCard {
+  return {
+    id,
+    stage,
+    format,
+    title,
+    body,
+    cta,
+    proofPoint,
+    socialContractNote,
+    qualityChecks: [
+      'Use only sourced proof or clearly mark proof to add.',
+      'Keep the founder role transparent.',
+      'Avoid fake metrics and generic launch hype.',
+    ],
+  }
+}
+
 const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
   product_hunt: {
     id: 'product_hunt',
     label: PLATFORM_LABELS.product_hunt,
-    title: 'Launch Kit - One URL, every launch channel',
+    title: 'Launch Kit - One URL to a focused launch kit',
     body:
-      'Launch Kit turns one product URL into a complete launch system: Product Hunt copy, Show HN, Reddit, Indie Hackers, LinkedIn, short-form video scripts, email, press assets, SEO strategy, and outreach controls.\n\nInstead of starting from a blank page for every channel, founders review one extracted brief and generate platform-native assets from the same source narrative.',
+      'Launch Kit turns one product URL into the launch work founders need first: Product Hunt copy, Show HN, Reddit, X, LinkedIn, Indie Hackers, an email announcement, subreddit guidance, and a lightweight media kit.\n\nPremium unlocks SEO, backlinks, outreach, product demo beats, and creative assets once the launch story is clear.',
     cta: 'Try Launch Kit with your product URL',
     notes: 'Maker-friendly and outcome-led, with the full workflow visible.',
   },
@@ -135,7 +169,7 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
     label: PLATFORM_LABELS.hacker_news,
     title: 'Show HN: Launch Kit - URL to launch assets for founders',
     body:
-      'I built Launch Kit because launch prep kept turning into repetitive rewriting work.\n\nThe flow is intentionally simple: paste a product URL, review the extracted brief, then generate drafts for Product Hunt, HN, Reddit, Indie Hackers, LinkedIn, short video, email, press, SEO, and outreach.\n\nWould appreciate feedback on the extraction quality, per-channel voice, and whether the SEO and outreach channel views feel useful or too much.',
+      'I built Launch Kit because launch prep kept turning into repetitive rewriting work.\n\nThe flow is intentionally simple: paste a product URL, review the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a lightweight media kit.\n\nSEO, backlinks, outreach, product demo beats, and creative assets are Premium because they are higher-leverage growth work.\n\nWould appreciate feedback on the extraction quality and per-channel voice.',
     cta: 'Try it and share blunt feedback',
     notes: 'Humble, specific, and feedback-oriented for HN.',
   },
@@ -144,7 +178,7 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
     label: PLATFORM_LABELS.reddit,
     title: 'Built a launch dashboard that rewrites one product URL for each channel',
     body:
-      'I kept seeing the same launch problem: the product story is one thing, but every community expects a different style.\n\nLaunch Kit extracts a brief from a URL and generates drafts for launch communities, social, video, email, press, SEO, and backlink outreach. The goal is not to spam every channel, but to stop pretending one generic announcement fits everywhere.\n\nIf you launch products, which output would you trust least: HN, Reddit, LinkedIn, SEO, or outreach?',
+      'I kept seeing the same launch problem: the product story is one thing, but every community expects a different style.\n\nLaunch Kit extracts a brief from a URL and generates the core launch copy founders usually need first: Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a light media kit.\n\nThe goal is not to spam every channel. It is to stop pretending one generic announcement fits everywhere.\n\nIf you launch products, which output would you trust least: HN, Reddit, LinkedIn, or email?',
     cta: 'Share what would make this more useful',
     notes: 'Transparent and discussion-first, with a direct community question.',
     redditRecommendations: {
@@ -195,45 +229,222 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
     label: PLATFORM_LABELS.indie_hackers,
     title: 'I turned my launch checklist into a URL-to-launch-kit workflow',
     body:
-      'Launch Kit is my attempt to make launch prep less fragmented.\n\nWhat it does: extracts a product brief from a URL, generates channel-native launch copy, creates a media kit, suggests SEO/blog strategy, and helps organize outreach prospects.\n\nThe opinion: founders should keep one source narrative, then adapt the delivery to each channel instead of rewriting from scratch.\n\nNext experiment: improving the SEO/backlink workflow without making the dashboard feel heavy.',
+      'Launch Kit is my attempt to make launch prep less fragmented.\n\nWhat it does: extracts a product brief from a URL, generates the core launch copy, recommends Reddit angles, and creates a lightweight media kit.\n\nThe opinion: founders should keep one source narrative, then adapt the delivery to each launch room instead of rewriting from scratch.\n\nNext experiment: keeping Premium growth work useful without making the free launch kit feel heavy.',
     cta: 'Follow the build and test the sample kit',
     notes: 'Build-in-public structure with product opinion and next experiment.',
   },
   linkedin: {
     id: 'linkedin',
     label: PLATFORM_LABELS.linkedin,
-    title: 'Launch Kit helps founders turn one product URL into a complete launch system',
+    title: 'Launch Kit helps founders turn one product URL into a focused launch kit',
     body:
-      'Launch day should not be eight blank documents and a scattered asset folder.\n\nLaunch Kit extracts one structured product brief, then generates platform-native assets for community launches, social posts, short-form video, email announcements, press packs, SEO planning, and outreach workflows.\n\nThe result: one narrative, adapted to each channel, with exports in the same dashboard.',
+      'Launch day should not be eight blank documents and a scattered asset folder.\n\nLaunch Kit extracts one structured product brief, then generates the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a lightweight media kit.\n\nThe result: one narrative, adapted to each channel, with exports in the same dashboard. Premium adds SEO, backlinks, outreach, demo beats, and creative when the story is ready.',
     cta: 'Try it on your next product launch',
     notes: 'Professional and systems-oriented for LinkedIn.',
   },
   tiktok: {
     id: 'tiktok',
     label: PLATFORM_LABELS.tiktok,
-    title: 'TikTok Script: One URL to launch kit',
+    title: 'TikTok Script: Premium video beats from the launch brief',
     body:
-      'Hook (0-2s): Launching should not mean rewriting your story ten times.\nRetention beat (3-7s): I paste one product URL into Launch Kit and it extracts the audience, pains, value props, proof, and CTA.\nStory beat (8-18s): Then it generates Product Hunt, HN, Reddit, LinkedIn, video, email, press, SEO, and outreach assets.\nClose (19-24s): One brief. Every launch channel. Less copy chaos.',
-    cta: 'Try Launch Kit with your URL',
-    notes: 'Fast visual beats with a clear before/after workflow.',
+      'Hook (0-2s): Launching should not mean rewriting your story ten times.\nRetention beat (3-7s): First, Launch Kit turns one URL into the core launch kit.\nStory beat (8-18s): Premium then turns the confirmed story into short-form hooks, scenes, and creative beats.\nClose (19-24s): Prove the message first. Make the media second.',
+    cta: 'Unlock Premium video beats',
+    notes: 'Fast visual beats with a clear upgrade path.',
   },
   youtube_shorts: {
     id: 'youtube_shorts',
     label: PLATFORM_LABELS.youtube_shorts,
-    title: 'YouTube Shorts Script: Stop launching from blank pages',
+    title: 'YouTube Shorts Script: Free launch kit to walkthrough beats',
     body:
-      'Open: Most product launches start with the same problem: one story, too many channels.\nMiddle: Launch Kit reads your product URL, builds an editable brief, and turns it into launch copy, press assets, SEO strategy, and outreach workflows.\nProof beat: The sample dashboard shows real generated blocks, exports, and SEO/outreach controls.\nEnd: Start with one URL. Leave with a launch kit.',
+      'Open: Most product launches start with the same problem: one story, too many channels.\nMiddle: Launch Kit reads your product URL, builds an editable brief, and turns it into launch copy, subreddit guidance, email, and media kit basics.\nPremium beat: Reuse that confirmed story for walkthrough scenes and ad-ready creative.\nEnd: Start with one URL. Leave with a launch kit.',
     cta: 'Open the sample Launch Kit dashboard',
     notes: 'Narrative rhythm designed for a concise product walkthrough.',
   },
   email_announcement: {
     id: 'email_announcement',
     label: PLATFORM_LABELS.email_announcement,
-    title: 'Subject: Launch Kit turns one URL into your full launch system',
+    title: 'Subject: Launch Kit turns one URL into a focused launch kit',
     body:
-      'Hi there,\n\nLaunch Kit is built for founders who want launch day to feel organized instead of fragmented.\n\nPaste your product URL, confirm the extracted brief, then generate launch-ready assets for Product Hunt, HN, Reddit, Indie Hackers, LinkedIn, short-form video, email, press, SEO, and outreach.\n\nIf you usually rewrite the same story channel by channel, this gives you one narrative system and a real dashboard to work from.',
+      'Hi there,\n\nLaunch Kit is built for founders who want launch day to feel organized instead of fragmented.\n\nPaste your product URL, confirm the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and media kit basics.\n\nIf you usually rewrite the same story channel by channel, this gives you one narrative system and a real dashboard to work from.',
     cta: 'Try Launch Kit with your product URL',
     notes: 'Clear value summary with workflow and low-friction CTA.',
+  },
+}
+
+const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
+  x: {
+    id: 'x',
+    label: CHANNEL_PACK_LABELS.x,
+    notes: 'Public X content for build-in-public, launch, lessons, threads, and replies. DMs stay in outbound outreach.',
+    cards: [
+      demoCard(
+        'x-build-in-public',
+        'pre_launch',
+        'Build-in-public update',
+        'Building Launch Kit in public',
+        'I thought Launch Kit would mostly be a copy generator.\n\nThe harder problem was messier: founders usually have one true product story, but every launch channel punishes a different kind of laziness.\n\nSo the product now starts with one URL, turns it into an editable brief, then adapts the story for each room.',
+        'Follow the build or try the sample dashboard',
+        'X works best when the post feels like a lived build, launch, or distribution lesson.',
+      ),
+      demoCard(
+        'x-launch-post',
+        'launch_day',
+        'Launch post',
+        'Launch Kit is live',
+        'I got tired of launch prep turning into eight blank docs and a half-remembered product story.\n\nSo I built Launch Kit.\n\nPaste one product URL, review the extracted brief, then generate native drafts for Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a media kit.\n\nThe goal is not more posts. It is fewer lazy translations.',
+        'Try Launch Kit with your product URL',
+        'Keep the launch direct and useful without pretending one post fits every channel.',
+      ),
+      demoCard(
+        'x-lesson-post',
+        'evergreen',
+        'Lesson post',
+        'The lesson behind Launch Kit',
+        'Launch lesson: the same message can be true and still feel wrong in the wrong room.\n\nHN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\nLaunch Kit exists because distribution is translation, not copy-paste.',
+        'Share the channel you distrust most',
+        'A useful X lesson should make the audience want to reply with their own experience.',
+      ),
+      demoCard(
+        'x-short-thread',
+        'launch_day',
+        'Short thread',
+        'Why I built Launch Kit',
+        '1/ I used to think launches failed because the announcement was weak.\n\n2/ Now I think a lot of them fail because the same story gets pasted into rooms with different rules.\n\n3/ HN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\n4/ I built Launch Kit around that idea: keep one narrative, adapt the delivery.\n\n5/ The part I am still testing is where automation helps and where the founder has to stay close to the story.',
+        'Open the sample launch kit',
+        'Threads should build a clear argument with each post earning the next one.',
+      ),
+      demoCard(
+        'x-reply-prompts',
+        'follow_up',
+        'Reply prompts',
+        'X reply prompts',
+        'Reply prompts:\n- Which launch channel would you trust least with template-generated copy?\n- What proof would make a launch-content tool credible?\n- Where does your launch prep usually get messy?\n- Would you rather get one polished draft or five rough options?',
+        'Reply with the channel you distrust most',
+        'Reply prompts should invite useful disagreement, not engagement bait.',
+      ),
+    ],
+  },
+  linkedin: {
+    id: 'linkedin',
+    label: CHANNEL_PACK_LABELS.linkedin,
+    notes: 'Founder-led professional posts with lessons, proof, and practical operator framing.',
+    cards: [
+      demoCard(
+        'linkedin-founder-launch',
+        'launch_day',
+        'Founder launch post',
+        'Launch Kit turns one URL into a focused launch kit',
+        DEMO_BLOCKS.linkedin.body,
+        'Try it on your next product launch',
+        'LinkedIn expects a professional but human post with a clear operator lesson.',
+      ),
+      demoCard(
+        'linkedin-lesson',
+        'evergreen',
+        'Lesson post',
+        'One story, different rooms',
+        'A launch message can be accurate and still fail because it ignores the room.\n\nProduct Hunt needs a crisp promise. HN needs humility. Reddit needs context. LinkedIn needs the business reason it matters.\n\nLaunch Kit is built around that constraint: one source narrative, different delivery by channel.',
+        'Tell me which channel is hardest to write for',
+        'Use a practical insight instead of a polished announcement.',
+      ),
+      demoCard(
+        'linkedin-proof',
+        'follow_up',
+        'Proof post',
+        'What the Launch Kit demo includes',
+        'The current Launch Kit demo generates the core launch channels, subreddit guidance, a media kit, markdown export, and press pack export from one structured brief.\n\nThe next quality bar is sharper channel-native output: X timeline posts, cautious Reddit variants, and a clearer Premium path for growth assets.',
+        'Open the sample dashboard',
+        'Proof should stay specific to observed product capabilities, not invented traction.',
+      ),
+      demoCard(
+        'linkedin-follow-up',
+        'follow_up',
+        'Follow-up post',
+        'The next Launch Kit experiment',
+        'Next experiment for Launch Kit: make the generated content less like generic launch copy and more like a real founder showing up in each channel.\n\nThat means build-in-public posts for X, discussion-first Reddit drafts, visual creative briefs for Instagram, and scripts that work for short video.',
+        'Share the output you would improve first',
+        'Follow-up posts should show what changed and invite concrete feedback.',
+      ),
+    ],
+  },
+  threads: {
+    id: 'threads',
+    label: CHANNEL_PACK_LABELS.threads,
+    notes: 'Casual, conversational posts that feel easy to reply to.',
+    cards: [
+      demoCard('threads-launch-story', 'launch_day', 'Casual launch story', 'Launch Kit on Threads', 'Launch prep kept turning into too many docs, so I built Launch Kit.\n\nOne URL becomes an editable brief, then channel-native launch drafts, subreddit guidance, email copy, and a media kit.\n\nThe useful part is not writing more. It is writing for the room.', 'Try it with your product URL', 'Threads should feel conversational and low-pressure.'),
+      demoCard('threads-build-note', 'pre_launch', 'Build note', 'What changed in Launch Kit', 'Working on making Launch Kit less generic by giving each social channel its own content pack.\n\nX gets build-in-public posts. Reddit gets cautious and self-promo versions. Instagram and short video get creative briefs, not just captions.', 'Follow the next build note', 'Build notes should sound like progress, not a press release.'),
+      demoCard('threads-question', 'follow_up', 'Reply-driving question', 'Which channel is hardest?', 'Question for anyone who has launched a product: which channel is hardest to write for without sounding awkward?\n\nFor me it is Reddit, because the difference between useful context and self-promo is very real.', 'Reply with the hardest channel', 'Threads posts should leave an obvious opening for replies.'),
+      demoCard('threads-follow-up', 'follow_up', 'Follow-up post', 'What I learned from launch copy', 'The more I test launch drafts, the more convinced I am that the product narrative should be stable and the delivery should change.\n\nSame story. Different room. Different proof. Different ask.', 'Try the sample launch kit', 'Keep follow-up posts short and grounded in learning.'),
+    ],
+  },
+  reddit: {
+    id: 'reddit',
+    label: CHANNEL_PACK_LABELS.reddit,
+    notes: 'Use the cautious version for discussion-first communities and the self-promo version only where rules explicitly allow it.',
+    cards: [
+      demoCard(
+        'reddit-cautious-discussion',
+        'pre_launch',
+        'Cautious discussion post',
+        'How do you adapt launch copy without sounding generic?',
+        'I am trying to understand how other founders handle launch copy across different communities.\n\nThe product story may be the same, but HN, Reddit, LinkedIn, Product Hunt, and short video all seem to expect a different tone and level of proof.\n\nI am building a tool around this problem, but I am more interested in the workflow question: how do you decide what changes by channel, and what should stay consistent?',
+        'Share your launch-copy workflow',
+        'Lead with the discussion and avoid dropping a link unless it is explicitly allowed.',
+      ),
+      demoCard(
+        'reddit-self-promo-launch',
+        'launch_day',
+        'Self-promo launch post',
+        'I built Launch Kit: one product URL to channel-native launch assets',
+        DEMO_BLOCKS.reddit.body,
+        'Try it and tell me which output feels weakest',
+        'Use only in communities that allow self-promotion; disclose that you built it.',
+      ),
+    ],
+    redditRecommendations: DEMO_BLOCKS.reddit.redditRecommendations,
+  },
+  indie_hackers: {
+    id: 'indie_hackers',
+    label: CHANNEL_PACK_LABELS.indie_hackers,
+    notes: 'Build-in-public posts with tradeoffs, experiments, proof, and next steps.',
+    cards: [
+      demoCard('indie-hackers-founder-launch', 'launch_day', 'Founder launch story', DEMO_BLOCKS.indie_hackers.title, DEMO_BLOCKS.indie_hackers.body, DEMO_BLOCKS.indie_hackers.cta, 'Indie Hackers rewards transparent founder context and next experiments.'),
+      demoCard('indie-hackers-lesson', 'evergreen', 'Build lesson', 'The build lesson behind Launch Kit', 'The lesson so far: launch copy is less about writing one perfect announcement and more about translating the same narrative for different trust norms.\n\nI am now treating each platform as a separate product surface.', 'Follow the next experiment', 'Share a real build lesson, not just product positioning.'),
+      demoCard('indie-hackers-proof', 'follow_up', 'Proof and learnings', 'Early proof from the Launch Kit demo', 'The demo now creates core launch channels, subreddit guidance, media kit, markdown export, and press pack export from one brief.\n\nThe open question is quality: which generated output would founders actually trust enough to publish?', 'Try the sample and critique one tab', 'Use product proof only; do not invent traction.'),
+      demoCard('indie-hackers-next-experiment', 'follow_up', 'Next experiment', 'Next experiment: native channel packs', 'Next experiment: replacing single generic social drafts with full native channel packs.\n\nX gets build-in-public. Reddit gets cautious and self-promo versions. Instagram and short video get creative briefs. Outreach moves to its own area.', 'Tell me which channel to improve first', 'Make the experiment specific enough for other builders to react.'),
+    ],
+  },
+  instagram: {
+    id: 'instagram',
+    label: CHANNEL_PACK_LABELS.instagram,
+    notes: 'Visual-first captions and creative briefs; no actual media is generated in this pass.',
+    cards: [
+      demoCard('instagram-carousel-brief', 'launch_day', 'Carousel creative brief', 'Launch Kit carousel', 'Slide 1: Launch day should not be eight blank docs.\nSlide 2: Paste one product URL.\nSlide 3: Review the extracted brief.\nSlide 4: Generate native drafts for each channel.\nSlide 5: Export the kit and keep iterating.\nCaption: Built for founders who want launch prep to feel organized.', 'Try Launch Kit with your URL', 'Instagram needs visual structure before caption polish.'),
+      demoCard('instagram-caption', 'launch_day', 'Launch caption', 'Launch Kit caption', 'Launch Kit turns one product URL into platform-native launch copy, subreddit guidance, email, and a media kit.\n\nPremium can turn the confirmed story into visual-first creative later.', 'Open the sample dashboard', 'Caption should support real screenshots or founder footage.'),
+      demoCard('instagram-story-sequence', 'follow_up', 'Story sequence', 'Launch Kit stories', 'Story 1: Poll - which launch channel is hardest?\nStory 2: Show the URL to brief workflow.\nStory 3: Show generated channel tabs.\nStory 4: Ask for one output to critique.', 'Vote in the poll or try the sample', 'Stories should invite lightweight interaction.'),
+      demoCard('instagram-reel-brief', 'evergreen', 'Reel creative brief', 'Launch Kit Reel brief', 'Hook overlay: Launch copy should not start from eight blank pages.\nShot 1: Founder opening the product URL.\nShot 2: Brief extraction.\nShot 3: Channel cards.\nShot 4: Export/share moment.', 'Try it with your product URL', 'Reels need a visible workflow and a clear first beat.'),
+    ],
+  },
+  tiktok: {
+    id: 'tiktok',
+    label: CHANNEL_PACK_LABELS.tiktok,
+    notes: 'Founder-led short-video scripts with hook, beats, proof slot, and comment prompt.',
+    cards: [
+      demoCard('tiktok-founder-script', 'launch_day', 'Founder video script', DEMO_BLOCKS.tiktok.title, DEMO_BLOCKS.tiktok.body, DEMO_BLOCKS.tiktok.cta, 'TikTok needs a fast hook and visible transformation.'),
+      demoCard('tiktok-problem-script', 'evergreen', 'Problem to fix script', 'TikTok: one story, too many channels', 'Hook: Your launch copy is probably not one post.\nBeat 1: Show Product Hunt, HN, Reddit, LinkedIn, and email tabs.\nBeat 2: Explain that each channel has a different social contract.\nBeat 3: Show Launch Kit turning one URL into adapted drafts.\nClose: Try it with your URL.', 'Comment with the hardest channel', 'Short video scripts need a concrete visual sequence.'),
+      demoCard('tiktok-comment-prompt', 'follow_up', 'Comment prompt', 'TikTok comment prompt', 'Comment prompt: Which launch channel would you never trust a generic draft for?\n\nI am using the answers to improve Launch Kit channel packs.', 'Comment with the channel', 'Comment prompts should gather useful product feedback.'),
+    ],
+  },
+  youtube_shorts: {
+    id: 'youtube_shorts',
+    label: CHANNEL_PACK_LABELS.youtube_shorts,
+    notes: 'Concise Shorts scripts with product-motion beats and evidence-only claims.',
+    cards: [
+      demoCard('youtube-shorts-founder-script', 'launch_day', 'Founder Shorts script', DEMO_BLOCKS.youtube_shorts.title, DEMO_BLOCKS.youtube_shorts.body, DEMO_BLOCKS.youtube_shorts.cta, 'Shorts need a direct hook, clear middle, and visible product moment.'),
+      demoCard('youtube-shorts-demo-script', 'evergreen', 'Product demo script', 'YouTube Shorts product demo', 'Open: I wanted launch prep in one workspace.\nMiddle: Paste a URL, confirm the brief, then review channel-native cards, subreddit guidance, email, and media kit basics.\nProof beat: The sample dashboard includes export and per-tab regeneration.\nEnd: One URL. Focused launch kit.', 'Open the sample dashboard', 'Product demos should show the workflow, not just describe it.'),
+      demoCard('youtube-shorts-follow-up', 'follow_up', 'Follow-up Shorts script', 'YouTube Shorts follow-up', 'Open: The first version wrote one draft per channel.\nMiddle: The next version turns social channels into full native content packs.\nProof beat: X, Reddit, LinkedIn, Instagram, TikTok, and Shorts now each get their own formats.\nEnd: Better drafts for the actual room.', 'Try the updated demo', 'Follow-up videos should show what changed.'),
+    ],
   },
 }
 
@@ -429,7 +640,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         listIds: ['demo-list-high-value'],
         customizedEmailSubject: 'Practical launch workflow idea for GrowthMentor',
         customizedEmailBody:
-          'Hi Content Team,\n\nI found GrowthMentor while researching startup growth workflows. Launch Kit turns one product URL into launch assets, SEO content strategy, and outreach controls for lean teams.\n\nA practical guest article could show how founders adapt one product story for Product Hunt, HN, Reddit, LinkedIn, SEO, and backlinks.\n\nHappy to send a tight outline.',
+          'Hi Content Team,\n\nI found GrowthMentor while researching startup growth workflows. Launch Kit turns one product URL into a focused launch kit, then Premium adds SEO content strategy, backlink planning, and reviewed outreach drafts for lean teams.\n\nA practical guest article could show how founders adapt one product story for Product Hunt, HN, Reddit, LinkedIn, SEO, and backlinks.\n\nHappy to send a tight outline.',
         source: 'demo-seed',
         discoveredAt: DEMO_TIMESTAMP,
         lastContactedAt: '',
@@ -469,25 +680,26 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
     generatedAt: DEMO_TIMESTAMP,
     language: 'en',
     platformBlocks: DEMO_BLOCKS,
+    channelPacks: DEMO_CHANNEL_PACKS,
     mediaKit: {
       founderCompanyBio:
-        'Launch Kit is built for founders and small teams that need a practical launch workflow without assembling copy docs, media assets, SEO planning, and outreach tools by hand.',
+        'Launch Kit is built for founders and small teams that need a practical launch workflow without assembling copy docs, subreddit research, email drafts, and press basics by hand.',
       productOneLiner:
-        'Launch Kit turns one product URL into platform-tailored launch content, a media kit, SEO strategy, and outreach controls.',
+        'Launch Kit turns one product URL into platform-tailored launch content, subreddit guidance, email, and a lightweight media kit.',
       boilerplate:
-        'Launch Kit is a launch-content and growth workspace for founders and lean startup teams. It extracts a structured brief from a product URL, generates channel-native launch copy, creates press-ready assets, and supports SEO and outreach planning from the same source narrative.',
+        'Launch Kit is a focused launch-content workspace for founders and lean startup teams. It extracts a structured brief from a product URL, generates channel-native launch copy, recommends subreddit angles, creates an email announcement, and packages a lightweight media kit. Premium adds SEO, backlinks, outreach, product demo beats, and creative assets from the same source narrative.',
       pressRelease:
-        'Launch Kit today introduced a guided workflow that converts a single product URL into a complete multi-channel launch system. The app generates platform-specific copy for Product Hunt, Hacker News, Reddit, Indie Hackers, LinkedIn, short-form video, and email, plus a media kit, SEO blog strategy, backlink prospecting, and exportable launch materials.',
+        'Launch Kit today introduced a guided workflow that converts a single product URL into a focused launch kit. The app generates platform-specific copy for Product Hunt, Hacker News, Reddit, X, Indie Hackers, LinkedIn, and email, plus subreddit recommendations, a lightweight media kit, markdown export, and press pack export.',
       keyVisualsChecklist: [
         'Dashboard screenshot with generated output tabs',
         'Brief extraction and editing workflow',
-        'SEO and backlink workspace screenshot',
+        'Subreddit recommendation cards',
         'Press pack export preview',
         'Logo and social preview image',
         'Example launch channel collage',
       ],
       screenshotsAndLogos:
-        'Use dashboard screenshots, output tab previews, SEO workspace captures, and the Launch Kit sparkle mark for launch submissions and press coverage.',
+        'Use dashboard screenshots, output tab previews, subreddit recommendation cards, and the Launch Kit sparkle mark for launch submissions and press coverage.',
       contactDetails:
         `Website: ${sourceUrl}\nContact details: Not detected in the source website evidence.`,
     },
@@ -501,13 +713,13 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         channel: 'linkedin',
         notes: 'Use concise workflow framing with a founder-to-founder tone.',
         personalizationTemplate:
-          'Hi {{firstName}} - noticed {{company}} is preparing launches in {{category}}. Launch Kit turns one product URL into channel-ready launch assets.',
+          'Hi {{firstName}} - noticed {{company}} is preparing launches in {{category}}. Launch Kit turns one product URL into a focused launch kit.',
         variants: [
           {
             id: 'linkedin-v1',
             title: 'Founder workflow',
             message:
-              'Hi {{firstName}}, Launch Kit helps founders turn one product URL into Product Hunt, HN, Reddit, LinkedIn, video, email, press, SEO, and outreach assets from one brief.',
+              'Hi {{firstName}}, Launch Kit helps founders turn one product URL into Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one brief.',
             cta: 'Want a sample kit for your product page?',
           },
           {
@@ -521,7 +733,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             id: 'linkedin-v3',
             title: 'Growth workflow angle',
             message:
-              'Launch Kit now combines launch copy, press assets, SEO strategy, backlink prospecting, and simulated outreach controls in one dashboard.',
+              'Launch Kit starts with the free launch kit, then Premium adds SEO, backlink planning, outreach drafts, demo beats, and creative assets from the same brief.',
             cta: 'Should I send the sample dashboard?',
           },
         ],
@@ -530,7 +742,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         channel: 'x',
         notes: 'Short, direct founder DM style.',
         personalizationTemplate:
-          'Hey {{firstName}} - Launch Kit turns one URL into launch copy, media assets, SEO strategy, and outreach workflows.',
+          'Hey {{firstName}} - Launch Kit turns one URL into a focused launch kit, with Premium growth assets when ready.',
         variants: [
           {
             id: 'x-v1',
@@ -543,14 +755,14 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             id: 'x-v2',
             title: 'Demo angle',
             message:
-              'I made the sample dashboard self-hosted: Product Hunt, HN, Reddit, LinkedIn, video, email, press, SEO, and backlinks from one Launch Kit brief.',
+              'I made the sample dashboard self-hosted: Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit from one Launch Kit brief.',
             cta: 'Want the link?',
           },
           {
             id: 'x-v3',
             title: 'Outcome angle',
             message:
-              'One product URL -> one editable brief -> every launch channel and growth asset. That is the Launch Kit workflow.',
+              'One product URL -> one editable brief -> core launch copy first, Premium growth assets later. That is the Launch Kit workflow.',
             cta: 'Can I run it on your product page?',
           },
         ],
@@ -564,9 +776,9 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
           {
             id: 'email-v1',
             title: 'Concise intro',
-            subject: 'One URL to a complete launch kit',
+            subject: 'One URL to a focused launch kit',
             message:
-              'Hi {{firstName}},\n\nLaunch Kit helps founders generate Product Hunt, HN, Reddit, LinkedIn, video, email, press, SEO, and outreach assets from one product URL.',
+              'Hi {{firstName}},\n\nLaunch Kit helps founders generate Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one product URL.',
             cta: 'Want me to generate a sample kit for your product page?',
           },
           {
@@ -574,7 +786,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             title: 'Pain-point opener',
             subject: 'If launch copy is slowing the release',
             message:
-              'Hi {{firstName}},\n\nMany teams lose momentum rewriting the same product story for every channel. Launch Kit extracts one brief, then adapts copy and growth assets for each destination.',
+              'Hi {{firstName}},\n\nMany teams lose momentum rewriting the same product story for every channel. Launch Kit extracts one brief, adapts the core launch copy, and keeps Premium growth work separate until the message is clear.',
             cta: 'Open to a quick walkthrough this week?',
           },
           {
@@ -582,7 +794,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             title: 'SEO growth opener',
             subject: 'Launch content plus SEO/backlink planning',
             message:
-              'Hi {{firstName}},\n\nLaunch Kit pairs launch-channel copy with SEO analysis, blog strategy, backlink prospects, and simulated outreach controls so the launch story can keep compounding after launch day.',
+              'Hi {{firstName}},\n\nLaunch Kit pairs a focused free launch kit with Premium SEO analysis, blog strategy, backlink prospects, and reviewed outreach drafts so the launch story can keep compounding after launch day.',
             cta: 'Should I send the sample dashboard?',
           },
         ],
@@ -602,7 +814,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             'How to export and reuse the kit',
           ],
           draft:
-            'A product launch kit is the working set of copy, media, SEO, and outreach assets a team needs before announcing a product. Launch Kit builds that system from one URL and one editable brief.',
+            'A product launch kit is the working set of copy, subreddit guidance, email, press basics, and exportable materials a team needs before announcing a product. Launch Kit builds that kit from one URL and one editable brief.',
           cta: 'Try Launch Kit with your product URL.',
         },
         {
@@ -611,7 +823,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
           keywordTopic: 'Channel-specific launch copy',
           title: 'How to Adapt One Product Launch Story for Every Channel',
           metaDescription:
-            'A practical guide to rewriting one product narrative for Product Hunt, HN, Reddit, LinkedIn, video, email, and press.',
+            'A practical guide to rewriting one product narrative for Product Hunt, HN, Reddit, X, LinkedIn, email, and press.',
           outline: [
             'Why generic launch copy underperforms',
             'Social contracts by channel',
@@ -675,10 +887,10 @@ export function createDemoSnapshot(sourceUrl = DEMO_SOURCE_URL): LaunchProjectSn
 
 export function getDemoPreviewBlocks(): PlatformBlock[] {
   const previewOrder: PlatformBlockId[] = [
+    'product_hunt',
     'hacker_news',
     'reddit',
     'linkedin',
-    'tiktok',
   ]
 
   return previewOrder.map((blockId) => DEMO_KIT.platformBlocks[blockId])

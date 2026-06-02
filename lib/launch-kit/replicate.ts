@@ -259,19 +259,31 @@ async function pollReplicatePrediction(
 
 function extractReplicateOutputUrl(output: unknown): string {
   if (typeof output === 'string') {
-    return output
+    return output.startsWith('http') ? output : ''
   }
 
   if (Array.isArray(output)) {
-    const firstUrl = output.find((item) => typeof item === 'string' && item.startsWith('http'))
-    return typeof firstUrl === 'string' ? firstUrl : ''
+    for (const item of output) {
+      const url = extractReplicateOutputUrl(item)
+      if (url) {
+        return url
+      }
+    }
+    return ''
   }
 
   if (output && typeof output === 'object') {
     const record = output as Record<string, unknown>
-    const url = record.url || record.output || record.video || record.image
-    if (typeof url === 'string') {
-      return url
+    const directUrl = record.url || record.uri || record.path || record.download_url
+    if (typeof directUrl === 'string' && directUrl.startsWith('http')) {
+      return directUrl
+    }
+
+    for (const key of ['output', 'video', 'image', 'images', 'videos', 'files']) {
+      const url = extractReplicateOutputUrl(record[key])
+      if (url) {
+        return url
+      }
     }
   }
 
