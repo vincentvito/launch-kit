@@ -1,8 +1,7 @@
 import { PrismaClient } from './generated/prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { getDatabaseProvider, getDatabaseUrl } from '@/lib/database-provider'
+import { getDatabaseUrl } from '@/lib/database-provider'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -10,9 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const url = getDatabaseUrl()
-  const adapter = getDatabaseProvider(url) === 'postgresql'
-    ? createPostgresAdapter(url)
-    : new PrismaBetterSqlite3({ url })
+  const adapter = createPostgresAdapter(url)
 
   return new PrismaClient({ adapter })
 }

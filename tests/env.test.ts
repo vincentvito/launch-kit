@@ -9,6 +9,7 @@ import {
 
 const keys = [
   'DATABASE_URL',
+  'DIRECT_URL',
   'BETTER_AUTH_SECRET',
   'NEXT_PUBLIC_APP_URL',
   'BETTER_AUTH_URL',
@@ -52,6 +53,7 @@ describe('env helpers', () => {
 
   it('reports production readiness checks from environment values', () => {
     process.env.DATABASE_URL = 'postgresql://user:pass@example.com:5432/app'
+    process.env.DIRECT_URL = 'postgresql://user:pass@example.com:5432/app'
     process.env.BETTER_AUTH_SECRET = 'super-secret-value-that-is-long-enough'
     process.env.NEXT_PUBLIC_APP_URL = 'https://launch.example.com'
     process.env.BETTER_AUTH_URL = 'https://launch.example.com'
@@ -65,6 +67,7 @@ describe('env helpers', () => {
     const checks = getProductionReadinessChecks()
 
     expect(checks.find((check) => check.key === 'DATABASE_URL')?.ok).toBe(true)
+    expect(checks.find((check) => check.key === 'DIRECT_URL')?.ok).toBe(true)
     expect(checks.find((check) => check.key === 'BETTER_AUTH_SECRET')?.ok).toBe(true)
     expect(checks.find((check) => check.key === 'NEXT_PUBLIC_APP_URL')?.ok).toBe(true)
     expect(checks.find((check) => check.key === 'BETTER_AUTH_URL')?.ok).toBe(true)
@@ -83,6 +86,7 @@ describe('env helpers', () => {
   it('fails fast for production runtime when required env is missing', () => {
     process.env.VERCEL_ENV = 'production'
     process.env.DATABASE_URL = 'file:./dev.db'
+    process.env.DIRECT_URL = 'file:./dev.db'
     process.env.BETTER_AUTH_SECRET = 'replace-me-with-openssl-rand-base64-32'
     process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
     process.env.BETTER_AUTH_URL = 'http://localhost:3000'
@@ -122,11 +126,13 @@ describe('env helpers', () => {
 
   it('requires production database and URL values to use deploy-safe schemes', () => {
     process.env.DATABASE_URL = 'mysql://user:pass@example.com:3306/app'
+    process.env.DIRECT_URL = 'mysql://user:pass@example.com:3306/app'
     process.env.NEXT_PUBLIC_APP_URL = 'http://launch.example.com'
     process.env.BETTER_AUTH_URL = 'https://localhost:3000'
 
     const checks = getProductionReadinessChecks()
     expect(checks.find((check) => check.key === 'DATABASE_URL')?.ok).toBe(false)
+    expect(checks.find((check) => check.key === 'DIRECT_URL')?.ok).toBe(false)
     expect(checks.find((check) => check.key === 'NEXT_PUBLIC_APP_URL')?.ok).toBe(false)
     expect(checks.find((check) => check.key === 'BETTER_AUTH_URL')?.ok).toBe(false)
   })
@@ -147,6 +153,7 @@ describe('env helpers', () => {
   it('allows explicit production readiness bypasses for build tooling only', () => {
     process.env.VERCEL_ENV = 'production'
     process.env.DATABASE_URL = 'file:./dev.db'
+    process.env.DIRECT_URL = 'file:./dev.db'
     process.env.NEXT_PHASE = 'phase-production-build'
 
     expect(() => assertProductionReady()).not.toThrow()

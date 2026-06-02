@@ -1,6 +1,6 @@
 # ClickStudio Starter
 
-The standard Next.js starter for every ClickStudio project. Auth, i18n, database, and UI components — wired up so a fresh clone runs with **zero external services**.
+The standard Next.js starter for every ClickStudio project. Auth, i18n, database, and UI components — wired for Supabase Postgres in local development and production.
 
 > **Building with an AI agent?** Read [`AGENTS.md`](./AGENTS.md) first. It's the source of truth for stack, conventions, and what not to do.
 
@@ -13,7 +13,7 @@ The standard Next.js starter for every ClickStudio project. Auth, i18n, database
 | [TypeScript](https://www.typescriptlang.org) | 5 | Types |
 | [Tailwind CSS](https://tailwindcss.com) | 4 | Styling |
 | [shadcn/ui](https://ui.shadcn.com) | — | Components |
-| [Prisma](https://www.prisma.io) | 7 | ORM (SQLite default, Postgres-ready) |
+| [Prisma](https://www.prisma.io) | 7 | ORM (Postgres/Supabase) |
 | [Better Auth](https://www.better-auth.com) | 1.4 | Auth (email/password + optional Google OAuth) |
 | [next-intl](https://next-intl.dev) | 4 | i18n (EN/ES included) |
 | [Lucide](https://lucide.dev) | — | Icons |
@@ -28,7 +28,7 @@ cp .env.example .env
 npm run dev
 ```
 
-That's it. Open <http://localhost:3000>. SQLite is created automatically on first run; no database server needed.
+Set `DATABASE_URL` and `DIRECT_URL` in `.env` before running `npm run dev`. Open <http://localhost:3000> after migrations finish.
 
 ## Scripts
 
@@ -40,14 +40,15 @@ That's it. Open <http://localhost:3000>. SQLite is created automatically on firs
 | `npm run lint` | ESLint |
 | `npm run preflight:production` | Check required production env and provider readiness |
 | `npm run db:studio` | Open Prisma Studio |
-| `npm run db:reset` | Wipe and re-seed the local SQLite DB |
+| `npm run db:reset` | Reset the configured Postgres database |
 
 ## Environment
 
-See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
+See [`.env.example`](./.env.example). Database vars must point at the same Postgres database:
 
 - `WAITING_LIST_ENABLED` — set to `true` in production to show a waitlist page at `/` instead of the full landing page. Leave unset locally so the landing page renders by default.
-- `DATABASE_URL` — defaults to `file:./dev.db` (SQLite). Production preflight requires a `postgres://` or `postgresql://` URL.
+- `DATABASE_URL` — pooled Supabase/Postgres runtime URL. For Supabase, use the transaction pooler on port `6543` with `pgbouncer=true&connection_limit=1`.
+- `DIRECT_URL` — direct/session Supabase/Postgres URL for Prisma migrations. For Supabase, use port `5432`; set this in Vercel too because `npm run build` runs `prisma migrate deploy`.
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
 - `OPENAI_API_KEY` — optional for Launch Kit AI generation. If omitted, Launch Kit returns template-based fallback content.
@@ -65,12 +66,8 @@ See [`.env.example`](./.env.example). The defaults work as-is. Notable vars:
 
 ## Going to Production
 
-SQLite is for local dev only. Before deploying:
-
-1. Switch Prisma to Postgres (see [`AGENTS.md`](./AGENTS.md) → "Switching SQLite → Postgres").
-   Production preflight verifies both `prisma/schema.prisma` and `prisma/migrations/migration_lock.toml` are set to `postgresql`, not just that `DATABASE_URL` points at Postgres.
-   The app runtime selects the Prisma adapter and Better Auth adapter provider from `DATABASE_URL`, so local SQLite remains zero-config while production Postgres uses `@prisma/adapter-pg`.
-2. Set all env vars in Vercel (or your platform of choice).
+1. Set `DATABASE_URL` and `DIRECT_URL` in Vercel. `DATABASE_URL` may use the Supabase pooler; `DIRECT_URL` must be the direct/session connection used by Prisma migrations.
+2. Set the required auth, app URL, AI, billing, and optional OAuth env vars.
 3. Run `npm run preflight:production`.
 4. `npm run build && npm run start`.
 

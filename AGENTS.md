@@ -17,7 +17,7 @@ This is the **ClickStudio standard starter**. Every new ClickStudio app begins h
 | Components | **shadcn/ui** + Radix primitives | Add components with `npx shadcn@latest add <name>`. |
 | Icons | **lucide-react** | Don't add another icon library. |
 | ORM | **Prisma 7** | Schema in `prisma/schema.prisma`. |
-| Database | **SQLite** (default) → **Postgres** (production) | Switch via `provider` in schema + `DATABASE_URL`. The `pg` driver and `@prisma/adapter-pg` are pre-installed for the production switch. |
+| Database | **Postgres / Supabase** | `DATABASE_URL` is the runtime URL; `DIRECT_URL` is the migration URL. |
 | Auth | **better-auth** | With Prisma adapter. Email/password + Google OAuth (optional). |
 | i18n | **next-intl** | Cookie-based locale; messages in `messages/<locale>.json`. |
 | Lint | **ESLint** with `eslint-config-next` | |
@@ -39,9 +39,9 @@ If a task seems to require something off this list, **stop and ask** instead of 
 
 ---
 
-## Zero-Config Startup (the contract)
+## Startup Contract
 
-A fresh clone must run with nothing more than:
+A fresh clone needs Supabase/Postgres env vars before booting:
 
 ```bash
 npm install
@@ -50,29 +50,26 @@ npm run dev
 ```
 
 That means:
-- **No external services required to boot.** SQLite is the default DB; the file is created on first migrate by the `dev` script.
+- **Postgres is required.** Set `DATABASE_URL` and `DIRECT_URL` in `.env`. For Supabase, use the pooled transaction URL for `DATABASE_URL` and the direct/session URL for `DIRECT_URL`.
 - **No login required to view the app.** Landing, changelog, and dashboard render. Login only fails gracefully if Google OAuth isn't configured.
 - **Optional waiting list mode.** Set `WAITING_LIST_ENABLED=true` to show the waitlist page at `/` instead of the full landing page. Unset or `false` shows the normal landing page. Signups are stored in `waitlist_entry` via `POST /api/waitlist`.
 - **Production access controls.** `LAUNCH_KIT_PUBLIC_FREE_ENABLED` controls anonymous free generation, `LAUNCH_KIT_ADMIN_EMAILS` grants manual premium/admin access, `RATE_LIMIT_*` overrides persisted API rate limits, and billing can run in admin-granted manual mode with `BILLING_PROVIDER=manual` plus a strong `BILLING_ADMIN_TOKEN` until Stripe env vars are set.
 - **Billing hooks.** Stripe-ready routes use `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; manual entitlement updates use `BILLING_ADMIN_TOKEN`.
 - **Outbound outreach delivery.** `OUTREACH_EMAIL_WEBHOOK_URL` and `OUTREACH_EMAIL_WEBHOOK_TOKEN` can connect the reviewed outreach flow to a real delivery service. Leave unset to keep no-delivery tracking.
 - **`postinstall` runs `prisma generate`** so the generated client is always present after install.
-- **`predev`/`prebuild` is folded into `dev`/`build`** as `prisma migrate deploy && next ...` — keeps the SQLite file in sync with the schema.
+- **`predev`/`prebuild` is folded into `dev`/`build`** as `prisma migrate deploy && next ...` — keeps the configured Postgres database in sync with the schema.
 
 If you change any of these guarantees, update this file and the README in the same PR.
 
 ---
 
-## Switching SQLite → Postgres
+## Database URLs
 
-When a project graduates to Postgres:
+Use Postgres everywhere:
 
-1. Edit `prisma/schema.prisma` → `datasource.provider = "postgresql"`.
-2. Edit `prisma/migrations/migration_lock.toml` → `provider = "postgresql"`.
-3. Delete `prisma/migrations/*` and run `npx prisma migrate dev --name init` against the Postgres DB.
-4. Set `DATABASE_URL` to the Postgres connection string in `.env`.
-
-The runtime database adapter and Better Auth Prisma adapter provider are selected from `DATABASE_URL`, so no code edit is needed for the SQLite/Postgres switch. The `pg` driver and `@prisma/adapter-pg` package are intentionally kept installed so this is friction-free.
+1. `DATABASE_URL` is used by the app runtime. With Supabase, use the transaction pooler on port `6543` and include `pgbouncer=true&connection_limit=1`.
+2. `DIRECT_URL` is used by Prisma migrations. With Supabase, use the direct/session connection on port `5432`.
+3. `prisma/schema.prisma` and `prisma/migrations/migration_lock.toml` must stay on `postgresql`.
 
 ---
 
@@ -100,4 +97,4 @@ The runtime database adapter and Better Auth Prisma adapter provider are selecte
 
 ## Deployment
 
-Default target is **Vercel**. The build command is `npm run build` (which runs `prisma migrate deploy` first). For Postgres-backed deploys, set `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_APP_URL` in the Vercel project. SQLite is **not** suitable for Vercel production — switch to Postgres first.
+Default target is **Vercel**. The build command is `npm run build` (which runs `prisma migrate deploy` first). Set `DATABASE_URL`, `DIRECT_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_APP_URL` in the Vercel project.

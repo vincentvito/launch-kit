@@ -146,6 +146,7 @@ export function getRateLimitSalt(): string {
 
 export function getProductionReadinessChecks(): EnvCheck[] {
   const databaseUrl = process.env.DATABASE_URL || ''
+  const directUrl = process.env.DIRECT_URL || ''
   const betterAuthSecret = process.env.BETTER_AUTH_SECRET || ''
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
   const authUrl = process.env.BETTER_AUTH_URL || ''
@@ -166,6 +167,11 @@ export function getProductionReadinessChecks(): EnvCheck[] {
       key: 'DATABASE_URL',
       ok: isPostgresDatabaseUrl(databaseUrl),
       message: 'Use a postgres:// or postgresql:// DATABASE_URL for production.',
+    },
+    {
+      key: 'DIRECT_URL',
+      ok: isPostgresDatabaseUrl(directUrl),
+      message: 'Set DIRECT_URL to the direct Postgres connection for Prisma migrations.',
     },
     {
       key: 'PRISMA_SCHEMA_PROVIDER',

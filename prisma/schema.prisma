@@ -1,8 +1,6 @@
 // ClickStudio starter — Prisma schema
-// Defaults to SQLite so a fresh clone runs with zero database setup.
-// Switch `provider` to "postgresql" (and set DATABASE_URL accordingly) when
-// the project is ready for a real database. The pg adapter and driver are
-// kept as dependencies so that switch is a one-line change.
+// This app is configured for Postgres/Supabase in local development and
+// production. Set DATABASE_URL for runtime and DIRECT_URL for migrations.
 
 generator client {
   provider = "prisma-client"

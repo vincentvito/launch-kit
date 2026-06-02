@@ -1,7 +1,22 @@
-export type DatabaseProvider = 'sqlite' | 'postgresql'
+export type DatabaseProvider = 'postgresql'
 
-export function getDatabaseUrl(value = process.env.DATABASE_URL): string {
-  return value?.trim() || 'file:./dev.db'
+export function getDatabaseUrl(value?: string): string {
+  const hasExplicitValue = arguments.length > 0
+  const databaseUrl = value?.trim()
+  if (databaseUrl && isPostgresDatabaseUrl(databaseUrl)) {
+    return databaseUrl
+  }
+
+  const directUrl = process.env.DIRECT_URL?.trim()
+  if (!hasExplicitValue && directUrl && isPostgresDatabaseUrl(directUrl)) {
+    return directUrl
+  }
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required and must be a postgres:// or postgresql:// URL.')
+  }
+
+  throw new Error('Unsupported DATABASE_URL. Use postgres:// or postgresql://.')
 }
 
 export function getDatabaseProvider(databaseUrl = getDatabaseUrl()): DatabaseProvider {
@@ -11,11 +26,7 @@ export function getDatabaseProvider(databaseUrl = getDatabaseUrl()): DatabasePro
     return 'postgresql'
   }
 
-  if (normalizedUrl.startsWith('file:') || normalizedUrl === ':memory:') {
-    return 'sqlite'
-  }
-
-  throw new Error('Unsupported DATABASE_URL. Use file: for local SQLite or postgres:// / postgresql:// for production.')
+  throw new Error('Unsupported DATABASE_URL. Use postgres:// or postgresql://.')
 }
 
 export function isPostgresDatabaseUrl(databaseUrl: string): boolean {
