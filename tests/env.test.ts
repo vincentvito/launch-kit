@@ -73,11 +73,11 @@ describe('env helpers', () => {
     expect(checks.find((check) => check.key === 'GOOGLE_OAUTH')?.ok).toBe(true)
   })
 
-  it('fails production readiness until Prisma is switched from SQLite to Postgres', () => {
+  it('passes production readiness for the Postgres Prisma schema and migration lock', () => {
     const checks = getProductionReadinessChecks()
 
-    expect(checks.find((check) => check.key === 'PRISMA_SCHEMA_PROVIDER')?.ok).toBe(false)
-    expect(checks.find((check) => check.key === 'PRISMA_MIGRATION_PROVIDER')?.ok).toBe(false)
+    expect(checks.find((check) => check.key === 'PRISMA_SCHEMA_PROVIDER')?.ok).toBe(true)
+    expect(checks.find((check) => check.key === 'PRISMA_MIGRATION_PROVIDER')?.ok).toBe(true)
   })
 
   it('fails fast for production runtime when required env is missing', () => {

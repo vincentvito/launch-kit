@@ -54,6 +54,7 @@ export default async function WaitingListPage() {
       submit: t('form.submit'),
       helper: t('form.helper'),
       invalidEmail: t('form.invalidEmail'),
+      error: t('form.error'),
       stats: [
         { n: t('form.stats.launchChannels.n'), label: t('form.stats.launchChannels.label') },
         { n: t('form.stats.seo.n'), label: t('form.stats.seo.label') },

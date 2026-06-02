@@ -1,8 +1,8 @@
 -- AlterTable
-ALTER TABLE "waitlist_entry" ADD COLUMN "ipHash" TEXT;
-ALTER TABLE "waitlist_entry" ADD COLUMN "referrer" TEXT;
-ALTER TABLE "waitlist_entry" ADD COLUMN "source" TEXT;
-ALTER TABLE "waitlist_entry" ADD COLUMN "userAgent" TEXT;
+ALTER TABLE "waitlist_entry" ADD COLUMN IF NOT EXISTS "ipHash" TEXT;
+ALTER TABLE "waitlist_entry" ADD COLUMN IF NOT EXISTS "referrer" TEXT;
+ALTER TABLE "waitlist_entry" ADD COLUMN IF NOT EXISTS "source" TEXT;
+ALTER TABLE "waitlist_entry" ADD COLUMN IF NOT EXISTS "userAgent" TEXT;
 
 -- CreateTable
 CREATE TABLE "user_plan" (
@@ -13,9 +13,9 @@ CREATE TABLE "user_plan" (
     "provider" TEXT,
     "providerCustomerId" TEXT,
     "providerSubscriptionId" TEXT,
-    "currentPeriodEnd" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "currentPeriodEnd" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "user_plan_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -27,7 +27,7 @@ CREATE TABLE "usage_event" (
     "action" TEXT NOT NULL,
     "amount" INTEGER NOT NULL DEFAULT 1,
     "metadataJson" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "usage_event_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -35,8 +35,8 @@ CREATE TABLE "usage_event" (
 CREATE TABLE "rate_limit_bucket" (
     "key" TEXT NOT NULL PRIMARY KEY,
     "count" INTEGER NOT NULL DEFAULT 0,
-    "resetAt" DATETIME NOT NULL,
-    "updatedAt" DATETIME NOT NULL
+    "resetAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -49,9 +49,9 @@ CREATE TABLE "launch_job" (
     "inputJson" TEXT NOT NULL,
     "resultJson" TEXT,
     "error" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "completedAt" DATETIME,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "completedAt" TIMESTAMP(3),
     CONSTRAINT "launch_job_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 

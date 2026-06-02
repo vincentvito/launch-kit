@@ -11,6 +11,18 @@ import { getClientIp, getSafeReferrer, getSafeUserAgent, getSubjectKey, hashIden
 
 export const runtime = 'nodejs'
 
+const DISPOSABLE_DOMAINS = new Set([
+  '10minutemail.com', '10minutemail.net', 'guerrillamail.com', 'guerrillamail.net',
+  'sharklasers.com', 'guerrillamailblock.com', 'mailinator.com', 'mailinator.net',
+  'yopmail.com', 'yopmail.net', 'tempmail.com', 'temp-mail.org', 'tempmail.net',
+  'getnada.com', 'nada.email', 'trashmail.com', 'trashmail.net', 'throwawaymail.com',
+  'maildrop.cc', 'mailnesia.com', 'mintemail.com', 'mohmal.com', 'dispostable.com',
+  'fakeinbox.com', 'spam4.me', 'tmpmail.org', 'mailcatch.com', 'emailondeck.com',
+  'discard.email', 'getairmail.com', 'maileater.com', 'spamgourmet.com',
+])
+
+const MIN_SUBMIT_MS = 2000
+
 export async function POST(request: Request) {
   try {
     assertTrustedRequestOrigin(request)
@@ -26,14 +38,19 @@ export async function POST(request: Request) {
     return launchApiErrorResponse(error)
   }
 
-  const email =
-    typeof body === 'object' && body !== null && 'email' in body && typeof body.email === 'string'
-      ? body.email.trim().toLowerCase()
-      : ''
-  const source =
-    typeof body === 'object' && body !== null && 'source' in body && typeof body.source === 'string'
-      ? body.source.trim().slice(0, 120)
-      : ''
+  const fields = (typeof body === 'object' && body !== null ? body : {}) as Record<string, unknown>
+  const honeypot = typeof fields.company === 'string' ? fields.company.trim() : ''
+  if (honeypot) {
+    return privateJsonResponse({ ok: true })
+  }
+
+  const elapsedMs = typeof fields.elapsedMs === 'number' ? fields.elapsedMs : 0
+  if (elapsedMs > 0 && elapsedMs < MIN_SUBMIT_MS) {
+    return privateJsonResponse({ ok: true })
+  }
+
+  const email = typeof fields.email === 'string' ? fields.email.trim().toLowerCase() : ''
+  const source = typeof fields.source === 'string' ? fields.source.trim().slice(0, 120) : ''
 
   if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return privateJsonResponse({ error: 'A valid email is required.' }, { status: 400 })
@@ -54,6 +71,14 @@ export async function POST(request: Request) {
           'Retry-After': String(Math.max(1, Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 1000))),
         },
       },
+    )
+  }
+
+  const domain = email.slice(email.lastIndexOf('@') + 1)
+  if (DISPOSABLE_DOMAINS.has(domain)) {
+    return privateJsonResponse(
+      { error: 'Please use a permanent email address.' },
+      { status: 400 },
     )
   }
 

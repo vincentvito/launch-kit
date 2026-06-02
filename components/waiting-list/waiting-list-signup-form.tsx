@@ -1,6 +1,6 @@
 'use client'
 
-import { type FormEvent, useReducer } from 'react'
+import { type FormEvent, useReducer, useState } from 'react'
 import { ArrowRight, MailIcon } from '@/components/waiting-list/icons'
 import styles from '@/components/waiting-list/waiting-list.module.css'
 
@@ -13,10 +13,11 @@ export type WaitingListSignupLabels = {
   submit: string
   helper: string
   invalidEmail: string
+  error: string
   stats: WaitingListSignupStatLabel[]
 }
 
-type Status = 'idle' | 'error'
+type Status = 'idle' | 'loading' | 'error'
 type SignupState = {
   email: string
   status: Status
@@ -26,6 +27,8 @@ type SignupState = {
 type SignupAction =
   | { type: 'email'; email: string }
   | { type: 'invalid'; errorText: string }
+  | { type: 'loading' }
+  | { type: 'server-error'; errorText: string }
   | { type: 'stop-shake' }
   | { type: 'reset' }
 
@@ -45,8 +48,12 @@ function signupReducer(state: SignupState, action: SignupAction): SignupState {
     }
   }
 
-  if (action.type === 'invalid') {
+  if (action.type === 'invalid' || action.type === 'server-error') {
     return { ...state, errorText: action.errorText, status: 'error', shake: true }
+  }
+
+  if (action.type === 'loading') {
+    return { ...state, status: 'loading' }
   }
 
   if (action.type === 'stop-shake') {
@@ -67,10 +74,12 @@ export default function WaitingListSignupForm({
     signupReducer,
     initialSignupState,
   )
+  const [mountedAt] = useState(() => Date.now())
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = email.trim()
+    const honeypot = (new FormData(e.currentTarget).get('company') as string) ?? ''
 
     if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
       dispatch({ type: 'invalid', errorText: labels.invalidEmail })
@@ -78,17 +87,52 @@ export default function WaitingListSignupForm({
       return
     }
 
-    void fetch('/api/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: trimmed }),
-    }).catch(() => undefined)
-    onSampleUnlocked(trimmed)
+    dispatch({ type: 'loading' })
+
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: trimmed,
+          company: honeypot,
+          elapsedMs: Date.now() - mountedAt,
+        }),
+      })
+
+      if (!response.ok) {
+        let text = labels.error
+        try {
+          const data = (await response.json()) as { error?: string }
+          if (data.error) {
+            text = data.error
+          }
+        } catch {
+          text = labels.error
+        }
+        dispatch({ type: 'server-error', errorText: text })
+        setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
+        return
+      }
+
+      onSampleUnlocked(trimmed)
+    } catch {
+      dispatch({ type: 'server-error', errorText: labels.error })
+      setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
+    }
   }
 
   return (
     <>
       <form className={`${styles.form} ${shake ? styles.shake : ''}`} onSubmit={submit} noValidate>
+        <input
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+        />
         <div className={styles.inputWrap}>
           <span className={styles.inputIcon}>
             <MailIcon size={18} />
@@ -96,17 +140,26 @@ export default function WaitingListSignupForm({
           <input
             type="email"
             value={email}
-            onChange={(e) => {
-              dispatch({ type: 'email', email: e.target.value })
+            onChange={(event) => {
+              dispatch({ type: 'email', email: event.target.value })
             }}
             placeholder={labels.placeholder}
             autoComplete="email"
             aria-label="email"
           />
         </div>
-        <button type="submit" className={styles.cta}>
-          <span>{labels.submit}</span>
-          <ArrowRight size={18} />
+        <button type="submit" className={styles.cta} disabled={status === 'loading'}>
+          {status === 'loading' ? (
+            <span className={styles.ctaLoading}>
+              <span className={styles.spinner} />
+              {labels.submit}
+            </span>
+          ) : (
+            <>
+              <span>{labels.submit}</span>
+              <ArrowRight size={18} />
+            </>
+          )}
         </button>
       </form>
 
