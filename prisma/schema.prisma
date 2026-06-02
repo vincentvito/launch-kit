@@ -82,7 +82,8 @@ model Verification {
 }
 
 model RateLimit {
-  key         String @id
+  id          String @id
+  key         String @unique
   count       Int
   lastRequest BigInt
 

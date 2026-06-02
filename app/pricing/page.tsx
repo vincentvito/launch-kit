@@ -88,6 +88,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             price={t('plans.premium.price')}
             cadence={t('plans.premium.cadence')}
             description={t('plans.premium.description')}
+            badge={t('plans.premium.badge')}
             cta={t('plans.premium.cta')}
             href="/billing/checkout"
             items={premiumItems}
@@ -138,6 +139,7 @@ function PlanPanel({
   price,
   cadence,
   description,
+  badge,
   cta,
   href,
   items,
@@ -147,6 +149,7 @@ function PlanPanel({
   price: string
   cadence: string
   description: string
+  badge?: string
   cta: string
   href: string
   items: string[]
@@ -190,7 +193,7 @@ function PlanPanel({
         {isPremium ? (
           <span className="relative inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800 shadow-sm shadow-violet-500/10">
             <TrendingUp className="size-3.5" />
-            Growth plan
+            {badge}
           </span>
         ) : null}
       </div>

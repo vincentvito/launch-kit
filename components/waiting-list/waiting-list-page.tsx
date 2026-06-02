@@ -15,48 +15,11 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains',
 })
 
-// Founder-pain confessions for the right-side marquee feed. No names or
-// handles — these are anonymous, relatable launch pains, not fabricated
-// testimonials. `c` only sets the tag accent hue.
-const PAIN_POSTS = [
-  { text: 'spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.', c: 268, tag: 'rewriting hell' },
-  { text: 'one generic post reused everywhere. the voice dies the second i copy-paste it.', c: 252, tag: 'voice' },
-  { text: 'x thread, reddit post, subreddit list, launch email — all in different docs. why.', c: 280, tag: 'tool sprawl' },
-  { text: 'PH tomorrow. HN draft? not written. press blurb? lmao. wish me luck.', c: 30, tag: 'launch day' },
-  { text: "writing 'professional' LinkedIn copy drains the will to live out of me.", c: 200, tag: 'linkedin' },
-  { text: "what do you mean reddit doesn't want my polished landing-page copy.", c: 320, tag: 'reddit' },
-  { text: 'which subreddit can i post in without getting instantly roasted or removed?', c: 180, tag: 'subreddits' },
-  { text: 'showHN draft attempt #4. still sounds like a corporate brochure.', c: 60, tag: 'hacker news' },
-  { text: 'rewrote the same product story 9 times for 9 channels today. 9.', c: 110, tag: 'rewriting hell' },
-  { text: 'product ready. launch copy not ready. one human. one weekend. send help.', c: 8, tag: 'alone' },
-  { text: 'i love coding. i love shipping. i HATE writing launch copy.', c: 340, tag: 'copy' },
-  { text: 'i need useful launch copy first, not another giant growth dashboard.', c: 90, tag: 'focus' },
-  { text: 'indie hackers wants the build-in-public story. linkedin wants polish. same product.', c: 220, tag: 'indie hackers' },
-  { text: 'basic launch kit first. fancy ads and demo scripts can wait until the copy works.', c: 160, tag: 'scope' },
-  { text: 'x wants a sharp hook. reddit wants context. linkedin wants polish. same product.', c: 140, tag: 'platform fit' },
-  { text: 'every community has its own unwritten rules and i learn them the hard way each launch.', c: 40, tag: 'social contract' },
-  { text: 'premium growth work is useful, but only after the launch story is clear.', c: 290, tag: 'growth' },
-  { text: 'one URL, one story, ten platforms. there has to be a better way to do this.', c: 250, tag: 'one brief' },
-]
-
-const PAIN_ROWS = [
-  { id: 'early-launch-pains', speed: 75, dir: 1, items: PAIN_POSTS.slice(0, 8) },
-  { id: 'platform-voice-pains', speed: 95, dir: -1, items: PAIN_POSTS.slice(4, 12) },
-  { id: 'solo-founder-pains', speed: 65, dir: 1, items: PAIN_POSTS.slice(8, 16) },
-  { id: 'media-social-pains', speed: 110, dir: -1, items: [...PAIN_POSTS.slice(12), ...PAIN_POSTS.slice(0, 4)] },
-]
-
-const TICKER = [
-  'one product URL · launch content generated',
-  'free launch kit · one structured brief',
-  'Product Hunt · Hacker News · Reddit · Indie Hackers',
-  'X · LinkedIn · Email · Media Kit',
-  'subreddit picks · where to post',
-  'premium · SEO · backlinks · outreach',
-  'premium · product demo · creative assets',
-  'founder-to-founder · no fluff',
-  'review it · then post',
-]
+type PainPost = {
+  text: string
+  c: number
+  tag: string
+}
 
 // Decorative starfield. Generated on the server only (this is a server
 // component, so it never re-renders on the client → no hydration mismatch).
@@ -71,7 +34,21 @@ const STARS = Array.from({ length: 70 }, (_, index) => ({
 
 export default async function WaitingListPage() {
   const t = await getTranslations('WaitingList')
+  const painPosts = t.raw('painPosts') as PainPost[]
+  const painRows = [
+    { id: 'early-launch-pains', speed: 75, dir: 1, items: painPosts.slice(0, 8) },
+    { id: 'platform-voice-pains', speed: 95, dir: -1, items: painPosts.slice(4, 12) },
+    { id: 'solo-founder-pains', speed: 65, dir: 1, items: painPosts.slice(8, 16) },
+    { id: 'media-social-pains', speed: 110, dir: -1, items: [...painPosts.slice(12), ...painPosts.slice(0, 4)] },
+  ]
   const labels = {
+    hero: {
+      eyebrow: t('hero.eyebrow'),
+      titleLine1: t('hero.titleLine1'),
+      titleLine2: t('hero.titleLine2'),
+      description: t('hero.description'),
+      descriptionEmphasis: t('hero.descriptionEmphasis'),
+    },
     form: {
       placeholder: t('form.placeholder'),
       submit: t('form.submit'),
@@ -144,17 +121,17 @@ export default async function WaitingListPage() {
             </svg>
           </div>
           <span className={styles.logoWord}>
-            ship<span className={styles.accent}>daddy</span>
+            {t('nav.logoPrefix')}<span className={styles.accent}>{t('nav.logoSuffix')}</span>
           </span>
         </div>
         <nav className={styles.topnav}>
           <span className={styles.pill}>
-            <span className={styles.dot} /> pre-launch · waitlist open
+            <span className={styles.dot} /> {t('nav.prelaunch')}
           </span>
         </nav>
       </header>
 
-      <WaitingListExperience painRows={PAIN_ROWS} ticker={TICKER} labels={labels} />
+      <WaitingListExperience painRows={painRows} ticker={t.raw('ticker') as string[]} labels={labels} />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -53,7 +54,11 @@ import {
   splitLines,
   writeGuestProjects,
 } from './dashboard-utils'
-import { ResultAssetBrowser } from './result-asset-browser'
+
+const ResultAssetBrowser = dynamic(
+  () => import('./result-asset-browser').then((module) => module.ResultAssetBrowser),
+  { ssr: false },
+)
 
 type DashboardPageClientProps = {
   initialUrlParam: string

@@ -106,14 +106,52 @@
     },
     "nav": {
       "brand": "Launch Kit",
-      "sub": "Motor editorial de lanzamientos para builders"
+      "sub": "Motor editorial de lanzamientos para builders",
+      "logoPrefix": "ship",
+      "logoSuffix": "daddy",
+      "prelaunch": "pre-launch · waitlist abierta"
     },
     "hero": {
       "badge": "Proximamente",
       "title": "Copy de launch day,",
       "titleHighlight": "antes del launch day",
-      "description": "Estamos dando los ultimos retoques a Launch Kit. Unete a la lista de espera para acceso anticipado cuando abramos."
+      "description": "Deja de adivinar que escribir primero. Shipdaddy convierte una URL en copy de lanzamiento, guia de subreddits, email de anuncio y media kit que puedes usar hoy.",
+      "descriptionEmphasis": "Premium desbloquea SEO, outreach, demos y assets creativos.",
+      "titleLine1": "lanza en todas partes.",
+      "titleLine2": "desde una URL.",
+      "eyebrow": "tu launch kit enfocado"
     },
+    "painPosts": [
+      { "text": "pase 6 horas escribiendo el mismo launch post para 8 plataformas. alguien salve mi dia.", "c": 268, "tag": "reescritura" },
+      { "text": "un post generico reutilizado en todas partes. la voz muere cuando lo copio y pego.", "c": 252, "tag": "voz" },
+      { "text": "thread de x, post de reddit, lista de subreddits, email de launch — todo en docs distintos. por que.", "c": 280, "tag": "tool sprawl" },
+      { "text": "PH manana. draft para HN? no escrito. blurb de prensa? lmao. deseenme suerte.", "c": 30, "tag": "launch day" },
+      { "text": "escribir copy 'profesional' para LinkedIn me deja sin energia.", "c": 200, "tag": "linkedin" },
+      { "text": "como que reddit no quiere mi copy pulido de landing page.", "c": 320, "tag": "reddit" },
+      { "text": "en que subreddit puedo publicar sin que me borren al instante?", "c": 180, "tag": "subreddits" },
+      { "text": "intento #4 de draft para showHN. todavia suena a brochure corporativo.", "c": 60, "tag": "hacker news" },
+      { "text": "reescribi la misma historia de producto 9 veces para 9 canales hoy. 9.", "c": 110, "tag": "reescritura" },
+      { "text": "producto listo. copy de launch no listo. una persona. un fin de semana.", "c": 8, "tag": "solo" },
+      { "text": "amo codear. amo shippear. ODIO escribir launch copy.", "c": 340, "tag": "copy" },
+      { "text": "necesito copy util primero, no otro dashboard gigante de growth.", "c": 90, "tag": "focus" },
+      { "text": "indie hackers quiere historia build-in-public. linkedin quiere polish. mismo producto.", "c": 220, "tag": "indie hackers" },
+      { "text": "launch kit basico primero. ads y demo scripts pueden esperar hasta que el copy funcione.", "c": 160, "tag": "scope" },
+      { "text": "x quiere un hook filoso. reddit quiere contexto. linkedin quiere polish. mismo producto.", "c": 140, "tag": "platform fit" },
+      { "text": "cada comunidad tiene reglas no escritas y las aprendo a golpes en cada launch.", "c": 40, "tag": "contrato social" },
+      { "text": "el growth premium sirve, pero solo despues de aclarar la historia del launch.", "c": 290, "tag": "growth" },
+      { "text": "una URL, una historia, diez plataformas. tiene que haber una mejor forma.", "c": 250, "tag": "un brief" }
+    ],
+    "ticker": [
+      "una URL de producto · contenido de launch generado",
+      "launch kit gratis · un brief estructurado",
+      "Product Hunt · Hacker News · Reddit · Indie Hackers",
+      "X · LinkedIn · Email · Media Kit",
+      "subreddits sugeridos · donde publicar",
+      "premium · SEO · backlinks · outreach",
+      "premium · product demo · assets creativos",
+      "founder-to-founder · sin fluff",
+      "revisalo · luego publica"
+    ],
     "form": {
       "placeholder": "founder@tustartup.com",
       "submit": "Ver muestra",
@@ -328,6 +366,7 @@
       },
       "premium": {
         "name": "Drive More Traffic",
+        "badge": "Plan de growth",
         "price": "$29",
         "cadence": "por mes",
         "description": "Convierte el mismo brief en un sistema repetible de growth.",

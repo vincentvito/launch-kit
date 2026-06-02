@@ -118,7 +118,8 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
               className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40 dark:border-zinc-700 dark:bg-zinc-950"
               type="password"
               autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
-              minLength={8}
+              minLength={10}
+              maxLength={128}
               required
             />
           </label>

@@ -1,14 +1,18 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { Sparkle } from '@/components/waiting-list/icons'
-import WaitingListSampleDashboard, {
-  type WaitingListSampleLabels,
-} from '@/components/waiting-list/waiting-list-sample-dashboard'
+import type { WaitingListSampleLabels } from '@/components/waiting-list/waiting-list-sample-dashboard'
 import WaitingListSignupForm, {
   type WaitingListSignupLabels,
 } from '@/components/waiting-list/waiting-list-signup-form'
 import styles from '@/components/waiting-list/waiting-list.module.css'
+
+const WaitingListSampleDashboard = dynamic(
+  () => import('@/components/waiting-list/waiting-list-sample-dashboard'),
+  { ssr: false },
+)
 
 type PainPost = {
   text: string
@@ -26,6 +30,13 @@ type PainRow = {
 export type WaitingListLabels = {
   form: WaitingListSignupLabels
   sample: WaitingListSampleLabels
+  hero: {
+    eyebrow: string
+    titleLine1: string
+    titleLine2: string
+    description: string
+    descriptionEmphasis: string
+  }
 }
 
 export default function WaitingListExperience({
@@ -49,19 +60,18 @@ export default function WaitingListExperience({
         <section className={styles.left}>
           <div className={styles.eyebrow}>
             <Sparkle size={12} />
-            <span>your focused launch kit</span>
+            <span>{labels.hero.eyebrow}</span>
             <Sparkle size={12} />
           </div>
 
           <h1 className={styles.headline}>
-            <span className={styles.hlLine}>launch everywhere.</span>
-            <span className={`${styles.hlLine} ${styles.hlAccent}`}>from one URL.</span>
+            <span className={styles.hlLine}>{labels.hero.titleLine1}</span>
+            <span className={`${styles.hlLine} ${styles.hlAccent}`}>{labels.hero.titleLine2}</span>
           </h1>
 
           <p className={styles.lede}>
-            Stop guessing what to write first. Shipdaddy turns one URL into the launch copy,
-            subreddit guidance, email announcement, and media kit you can use today.{' '}
-            <span className={styles.ledeEm}>Premium unlocks SEO, outreach, demos, and creative assets.</span>
+            {labels.hero.description}{' '}
+            <span className={styles.ledeEm}>{labels.hero.descriptionEmphasis}</span>
           </p>
 
           <WaitingListSignupForm labels={labels.form} onSampleUnlocked={setSampleEmail} />

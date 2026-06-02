@@ -106,14 +106,52 @@
     },
     "nav": {
       "brand": "Launch Kit",
-      "sub": "Editorial launch engine for builders"
+      "sub": "Editorial launch engine for builders",
+      "logoPrefix": "ship",
+      "logoSuffix": "daddy",
+      "prelaunch": "pre-launch · waitlist open"
     },
     "hero": {
       "badge": "Coming soon",
       "title": "Launch day copy,",
       "titleHighlight": "before launch day",
-      "description": "We are putting the finishing touches on Launch Kit. Join the waitlist for early access when we open the doors."
+      "description": "Stop guessing what to write first. Shipdaddy turns one URL into the launch copy, subreddit guidance, email announcement, and media kit you can use today.",
+      "descriptionEmphasis": "Premium unlocks SEO, outreach, demos, and creative assets.",
+      "titleLine1": "launch everywhere.",
+      "titleLine2": "from one URL.",
+      "eyebrow": "your focused launch kit"
     },
+    "painPosts": [
+      { "text": "spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.", "c": 268, "tag": "rewriting hell" },
+      { "text": "one generic post reused everywhere. the voice dies the second i copy-paste it.", "c": 252, "tag": "voice" },
+      { "text": "x thread, reddit post, subreddit list, launch email — all in different docs. why.", "c": 280, "tag": "tool sprawl" },
+      { "text": "PH tomorrow. HN draft? not written. press blurb? lmao. wish me luck.", "c": 30, "tag": "launch day" },
+      { "text": "writing 'professional' LinkedIn copy drains the will to live out of me.", "c": 200, "tag": "linkedin" },
+      { "text": "what do you mean reddit doesn't want my polished landing-page copy.", "c": 320, "tag": "reddit" },
+      { "text": "which subreddit can i post in without getting instantly roasted or removed?", "c": 180, "tag": "subreddits" },
+      { "text": "showHN draft attempt #4. still sounds like a corporate brochure.", "c": 60, "tag": "hacker news" },
+      { "text": "rewrote the same product story 9 times for 9 channels today. 9.", "c": 110, "tag": "rewriting hell" },
+      { "text": "product ready. launch copy not ready. one human. one weekend. send help.", "c": 8, "tag": "alone" },
+      { "text": "i love coding. i love shipping. i HATE writing launch copy.", "c": 340, "tag": "copy" },
+      { "text": "i need useful launch copy first, not another giant growth dashboard.", "c": 90, "tag": "focus" },
+      { "text": "indie hackers wants the build-in-public story. linkedin wants polish. same product.", "c": 220, "tag": "indie hackers" },
+      { "text": "basic launch kit first. fancy ads and demo scripts can wait until the copy works.", "c": 160, "tag": "scope" },
+      { "text": "x wants a sharp hook. reddit wants context. linkedin wants polish. same product.", "c": 140, "tag": "platform fit" },
+      { "text": "every community has its own unwritten rules and i learn them the hard way each launch.", "c": 40, "tag": "social contract" },
+      { "text": "premium growth work is useful, but only after the launch story is clear.", "c": 290, "tag": "growth" },
+      { "text": "one URL, one story, ten platforms. there has to be a better way to do this.", "c": 250, "tag": "one brief" }
+    ],
+    "ticker": [
+      "one product URL · launch content generated",
+      "free launch kit · one structured brief",
+      "Product Hunt · Hacker News · Reddit · Indie Hackers",
+      "X · LinkedIn · Email · Media Kit",
+      "subreddit picks · where to post",
+      "premium · SEO · backlinks · outreach",
+      "premium · product demo · creative assets",
+      "founder-to-founder · no fluff",
+      "review it · then post"
+    ],
     "form": {
       "placeholder": "founder@yourstartup.com",
       "submit": "View sample",
@@ -328,6 +366,7 @@
       },
       "premium": {
         "name": "Drive More Traffic",
+        "badge": "Growth plan",
         "price": "$29",
         "cadence": "per month",
         "description": "Turn the same brief into a repeatable growth system.",
