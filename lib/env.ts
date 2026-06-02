@@ -43,7 +43,6 @@ export function getAllowedOrigins(): string[] {
   const configuredOrigins = [
     process.env.BETTER_AUTH_URL,
     process.env.NEXT_PUBLIC_APP_URL,
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
   ].filter((value): value is string => Boolean(value))
 
   if (isProductionRuntime()) {

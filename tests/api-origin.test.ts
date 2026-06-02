@@ -43,6 +43,32 @@ describe('api origin guard', () => {
     ).toThrow(LaunchApiError)
   })
 
+  it('rejects same-origin production requests when app env points elsewhere', () => {
+    process.env.VERCEL_ENV = 'production'
+    process.env.NEXT_PUBLIC_APP_URL = 'https://configured.example'
+    process.env.BETTER_AUTH_URL = 'https://configured.example'
+
+    expect(() =>
+      assertTrustedRequestOrigin(new Request('https://preview.example/api/test', {
+        method: 'POST',
+        headers: { origin: 'https://preview.example' },
+      })),
+    ).toThrow(LaunchApiError)
+  })
+
+  it('rejects Vercel branch URLs unless explicitly configured', () => {
+    process.env.VERCEL_ENV = 'preview'
+    process.env.NEXT_PUBLIC_APP_URL = 'https://launch.example'
+    process.env.BETTER_AUTH_URL = 'https://launch.example'
+
+    expect(() =>
+      assertTrustedRequestOrigin(new Request('https://launch.example/api/test', {
+        method: 'POST',
+        headers: { origin: 'https://branch-preview.vercel.app' },
+      })),
+    ).toThrow(LaunchApiError)
+  })
+
   it('requires an origin header for production mutating requests', () => {
     process.env.VERCEL_ENV = 'production'
     process.env.NEXT_PUBLIC_APP_URL = 'https://launch.example'
