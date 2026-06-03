@@ -29,6 +29,7 @@ import {
   createEmptyProspectingState,
   createEmptySeoGrowthState,
   normalizeRedditRecommendations,
+  sanitizeXPostBody,
 } from '@/lib/launch-kit/normalizers'
 import {
   FREE_CHANNEL_PACK_IDS,
@@ -1553,7 +1554,7 @@ function mergeChannelPacks(
 
       next[channelId] = {
         ...existingPack,
-        notes: rawPack?.notes?.trim() || existingPack.notes || normalizedPack.notes,
+        notes: modelString(rawPack?.notes) || existingPack.notes || normalizedPack.notes,
         cards: hasExistingCard
           ? existingPack.cards.map((card) =>
               card.id === channelCardTarget.cardId ? regeneratedCard : card,
@@ -1594,7 +1595,7 @@ function normalizeChannelPack(
   return {
     id: channelId,
     label: CHANNEL_PACK_LABELS[channelId],
-    notes: raw?.notes?.trim() || fallback.notes,
+    notes: modelString(raw?.notes) || fallback.notes,
     cards: cards.length > 0 ? cards : fallback.cards,
     ...(channelId === 'reddit'
       ? {
@@ -1613,19 +1614,22 @@ function normalizeChannelCard(
   fallback: ChannelCard,
 ): ChannelCard {
   const stage = isChannelCardStage(raw?.stage) ? raw.stage : fallback.stage
+  const qualityChecks = modelStringArray(raw?.qualityChecks, 6)
+  const format = modelString(raw?.format) || fallback.format
+  const title = channelId === 'x' ? fallback.title : modelString(raw?.title) || fallback.title
+  const rawBody = modelString(raw?.body) || fallback.body
+  const body = channelId === 'x' ? sanitizeXPostBody(rawBody, title, format) : rawBody
 
   return {
-    id: raw?.id?.trim() || fallback.id,
-    title: raw?.title?.trim() || fallback.title,
-    body: raw?.body?.trim() || fallback.body,
-    cta: raw?.cta?.trim() || fallback.cta,
-    proofPoint: raw?.proofPoint?.trim() || fallback.proofPoint,
+    id: modelString(raw?.id) || fallback.id,
+    title,
+    body,
+    cta: modelString(raw?.cta) || fallback.cta,
+    proofPoint: modelString(raw?.proofPoint) || fallback.proofPoint,
     stage,
-    format: raw?.format?.trim() || fallback.format,
-    socialContractNote: raw?.socialContractNote?.trim() || fallback.socialContractNote,
-    qualityChecks: Array.isArray(raw?.qualityChecks) && raw.qualityChecks.length > 0
-      ? raw.qualityChecks.map((item) => item.trim()).filter(Boolean).slice(0, 6)
-      : fallback.qualityChecks,
+    format,
+    socialContractNote: modelString(raw?.socialContractNote) || fallback.socialContractNote,
+    qualityChecks: qualityChecks.length > 0 ? qualityChecks : fallback.qualityChecks,
   }
 }
 
@@ -1839,6 +1843,21 @@ function isChannelCardStage(value: unknown): value is ChannelCardStage {
   )
 }
 
+function modelString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function modelStringArray(value: unknown, maxItems: number): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map(modelString)
+    .filter(Boolean)
+    .slice(0, maxItems)
+}
+
 function normalizeBlock(
   blockId: PlatformBlockId,
   raw: RawPlatformBlock | undefined,
@@ -1847,10 +1866,10 @@ function normalizeBlock(
   return {
     id: blockId,
     label: PLATFORM_LABELS[blockId],
-    title: raw?.title?.trim() || `${brief.productName} on ${PLATFORM_LABELS[blockId]}`,
-    body: raw?.body?.trim() || fallbackBlockBody(blockId, brief),
-    cta: raw?.cta?.trim() || brief.cta,
-    notes: raw?.notes?.trim() || 'Generated from your product brief and adapted to this platform.',
+    title: modelString(raw?.title) || `${brief.productName} on ${PLATFORM_LABELS[blockId]}`,
+    body: modelString(raw?.body) || fallbackBlockBody(blockId, brief),
+    cta: modelString(raw?.cta) || brief.cta,
+    notes: modelString(raw?.notes) || 'Generated from your product brief and adapted to this platform.',
     ...(blockId === 'reddit'
       ? {
           redditRecommendations: normalizeRedditRecommendations(
@@ -1863,37 +1882,39 @@ function normalizeBlock(
 }
 
 function normalizeMediaKit(raw: ModelOutput['mediaKit'], brief: ExtractedBrief): MediaKit {
+  const keyVisualsChecklist = modelStringArray(raw?.keyVisualsChecklist, 12)
+
   return {
     founderCompanyBio:
-      raw?.founderCompanyBio?.trim() ||
+      modelString(raw?.founderCompanyBio) ||
       `${brief.productName} is built for ${brief.targetUsers[0] || 'teams'} and positioned around ${brief.positioning || 'a clearer product launch story'}.`,
-    productOneLiner: raw?.productOneLiner?.trim() || brief.positioning,
+    productOneLiner: modelString(raw?.productOneLiner) || brief.positioning,
     boilerplate:
-      raw?.boilerplate?.trim() ||
+      modelString(raw?.boilerplate) ||
       `${brief.productName} helps ${brief.targetUsers[0] || 'teams'} ${(
         brief.valueProps[0] ||
         brief.positioning ||
         'solve a specific workflow problem'
       ).toLowerCase()}.`,
     pressRelease:
-      raw?.pressRelease?.trim() ||
+      modelString(raw?.pressRelease) ||
       `Today, ${brief.productName} announced a focused way for ${brief.targetUsers.join(', ') || 'teams'} to ${(
         brief.valueProps[0] ||
         brief.positioning ||
         'move from problem to outcome faster'
       ).toLowerCase()}.`,
     keyVisualsChecklist:
-      raw?.keyVisualsChecklist?.filter(Boolean).slice(0, 12) || [
+      keyVisualsChecklist.length > 0 ? keyVisualsChecklist : [
         'Primary logo (light and dark variants)',
         'Product screenshots (home, key workflow, results)',
         'Founder headshot',
         'Social preview image',
       ],
     screenshotsAndLogos:
-      raw?.screenshotsAndLogos?.trim() ||
+      modelString(raw?.screenshotsAndLogos) ||
       'Provide landscape and portrait screenshots plus SVG/PNG logos for platform submissions and media coverage.',
     contactDetails:
-      raw?.contactDetails?.trim() ||
+      modelString(raw?.contactDetails) ||
       `Website: ${brief.sourceUrl}\nContact details: Not detected in the source website evidence.`,
   }
 }
@@ -1947,18 +1968,19 @@ function normalizeOutreachPack(
   const fallback = fallbackOutreachPack(channel, brief)
   const variants: OutreachVariant[] = []
 
-  for (const [index, rawVariant] of (raw?.variants || []).entries()) {
-    const message = rawVariant.message?.trim() || ''
+  const rawVariants = Array.isArray(raw?.variants) ? raw.variants : []
+  for (const [index, rawVariant] of rawVariants.entries()) {
+    const message = modelString(rawVariant?.message)
     if (!message) {
       continue
     }
 
     variants.push({
       id: `${channel}-variant-${index + 1}`,
-      title: rawVariant.title?.trim() || `Variant ${index + 1}`,
-      subject: channel === 'email' ? (rawVariant.subject?.trim() || `Idea for ${brief.productName}`) : undefined,
+      title: modelString(rawVariant?.title) || `Variant ${index + 1}`,
+      subject: channel === 'email' ? (modelString(rawVariant?.subject) || `Idea for ${brief.productName}`) : undefined,
       message,
-      cta: rawVariant.cta?.trim() || brief.cta,
+      cta: modelString(rawVariant?.cta) || brief.cta,
     })
   }
 
@@ -1966,9 +1988,9 @@ function normalizeOutreachPack(
 
   return {
     channel,
-    notes: raw?.notes?.trim() || fallback.notes,
+    notes: modelString(raw?.notes) || fallback.notes,
     personalizationTemplate:
-      raw?.personalizationTemplate?.trim() || fallback.personalizationTemplate,
+      modelString(raw?.personalizationTemplate) || fallback.personalizationTemplate,
     variants: seeded,
   }
 }
@@ -1990,18 +2012,13 @@ function normalizeSeoPostPacks(
 
   const packs: SeoPostPack[] = []
   for (const [index, rawPack] of raw.entries()) {
-    const topic = rawPack?.keywordTopic?.trim() || keywordClusters[index % Math.max(1, keywordClusters.length)]?.topic || brief.productName
-    const clusterId = rawPack?.keywordClusterId?.trim() || keywordClusters[index % Math.max(1, keywordClusters.length)]?.id || `cluster-${index + 1}`
-    const title = rawPack?.title?.trim() || `How ${brief.productName} helps with ${topic}`
+    const topic = modelString(rawPack?.keywordTopic) || keywordClusters[index % Math.max(1, keywordClusters.length)]?.topic || brief.productName
+    const clusterId = modelString(rawPack?.keywordClusterId) || keywordClusters[index % Math.max(1, keywordClusters.length)]?.id || `cluster-${index + 1}`
+    const title = modelString(rawPack?.title) || `How ${brief.productName} helps with ${topic}`
     const metaDescription =
-      rawPack?.metaDescription?.trim() ||
+      modelString(rawPack?.metaDescription) ||
       `${brief.productName}: practical guidance and examples for ${topic.toLowerCase()}.`
-    const outline = Array.isArray(rawPack?.outline)
-      ? rawPack.outline
-          .map((item) => (typeof item === 'string' ? item.trim() : ''))
-          .filter(Boolean)
-          .slice(0, 8)
-      : []
+    const outline = modelStringArray(rawPack?.outline, 8)
 
     packs.push({
       id: `seo-pack-${index + 1}`,
@@ -2010,8 +2027,8 @@ function normalizeSeoPostPacks(
       title,
       metaDescription,
       outline: outline.length > 0 ? outline : ['Introduction', 'Core workflow', 'Execution steps', 'Conclusion'],
-      draft: rawPack?.draft?.trim() || `This post explains how ${brief.productName} addresses ${topic.toLowerCase()}.`,
-      cta: rawPack?.cta?.trim() || brief.cta,
+      draft: modelString(rawPack?.draft) || `This post explains how ${brief.productName} addresses ${topic.toLowerCase()}.`,
+      cta: modelString(rawPack?.cta) || brief.cta,
     })
   }
 

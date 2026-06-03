@@ -1,7 +1,10 @@
 {
-  "name": "clickstudio-starter",
+  "name": "launch-kit",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <26"
+  },
   "scripts": {
     "dev": "prisma migrate deploy && next dev",
     "build": "prisma migrate deploy && next build",
@@ -9,6 +12,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "preflight:production": "tsx scripts/production-preflight.ts",
+    "maintenance:run": "tsx scripts/launch-kit-maintenance.ts",
     "sample:assets": "tsx scripts/generate-shipdaddy-sample-assets.ts",
     "postinstall": "prisma generate",
     "db:reset": "prisma migrate reset --force",

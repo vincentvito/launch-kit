@@ -9,9 +9,9 @@ import {
   type ProspectActionType,
   type ProspectLead,
   type ProspectLeadTier,
-  type ProspectingState,
 } from '@/lib/launch-kit/types'
-import { createEmptyProspectingState } from '@/lib/launch-kit/normalizers'
+import { normalizeProspectingState as normalizeProspecting } from '@/lib/launch-kit/normalizers'
+import { normalizePublicHttpUrl } from '@/lib/launch-kit/url-safety'
 import { dedupe, escapeCsvCell } from '@/lib/launch-kit/utils'
 
 type DiscoveryEntity = {
@@ -163,7 +163,7 @@ const ACTION_LABELS: Record<ProspectActionType, string> = {
 
 export async function runProspectAction(input: {
   brief: ExtractedBrief
-  prospecting: ProspectingState | null | undefined
+  prospecting: unknown
 }) {
   const state = normalizeProspecting(input.prospecting)
   const queries = buildProspectQueries(input.brief)
@@ -223,7 +223,7 @@ export async function runProspectAction(input: {
 }
 
 export function runBuildEmailListAction(input: {
-  prospecting: ProspectingState | null | undefined
+  prospecting: unknown
 }) {
   const state = normalizeProspecting(input.prospecting)
   const now = new Date().toISOString()
@@ -273,7 +273,7 @@ export function runBuildEmailListAction(input: {
 }
 
 export function runImportEmailListAction(input: {
-  prospecting: ProspectingState | null | undefined
+  prospecting: unknown
   rawContacts: string
 }) {
   const state = normalizeProspecting(input.prospecting)
@@ -316,7 +316,7 @@ export function runImportEmailListAction(input: {
 }
 
 export function runScoreSegmentAction(input: {
-  prospecting: ProspectingState | null | undefined
+  prospecting: unknown
 }) {
   const state = normalizeProspecting(input.prospecting)
 
@@ -551,7 +551,7 @@ function buildOutreachEmailBatch(input: SendOutreachEmailInput) {
   }
 }
 
-export function exportLeadsCsv(prospecting: ProspectingState | null | undefined): string {
+export function exportLeadsCsv(prospecting: unknown): string {
   const state = normalizeProspecting(prospecting)
   const headers = [
     'name',
@@ -591,7 +591,7 @@ export function exportLeadsCsv(prospecting: ProspectingState | null | undefined)
 }
 
 export function withActionPending(
-  prospecting: ProspectingState | null | undefined,
+  prospecting: unknown,
   type: ProspectActionType,
   summary: string,
 ) {
@@ -608,23 +608,6 @@ export function withActionPending(
 
 export function actionLabel(type: ProspectActionType): string {
   return ACTION_LABELS[type]
-}
-
-function normalizeProspecting(
-  prospecting: ProspectingState | null | undefined,
-): ProspectingState {
-  const fallback = createEmptyProspectingState()
-  return {
-    ...fallback,
-    ...(prospecting || {}),
-    queryHints: Array.isArray(prospecting?.queryHints) ? prospecting.queryHints : [],
-    leads: Array.isArray(prospecting?.leads) ? prospecting.leads : [],
-    personalizedOutreach: Array.isArray(prospecting?.personalizedOutreach)
-      ? prospecting.personalizedOutreach
-      : [],
-    actionRuns: Array.isArray(prospecting?.actionRuns) ? prospecting.actionRuns : [],
-    emailJobs: Array.isArray(prospecting?.emailJobs) ? prospecting.emailJobs : [],
-  }
 }
 
 function buildProspectQueries(brief: ExtractedBrief): string[] {
@@ -875,15 +858,7 @@ function scoreToTier(score: number): ProspectLeadTier {
 }
 
 function normalizeWebsite(value: string): string {
-  try {
-    const url = new URL(value)
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      return ''
-    }
-    return `${url.protocol}//${url.hostname}`
-  } catch {
-    return ''
-  }
+  return normalizePublicHttpUrl(value, { includePath: false })
 }
 
 function sanitizeCompanyName(value: string): string {

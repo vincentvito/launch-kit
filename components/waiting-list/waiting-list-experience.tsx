@@ -8,7 +8,8 @@ import WaitingListSampleDashboard, {
 import WaitingListSignupForm, {
   type WaitingListSignupLabels,
 } from '@/components/waiting-list/waiting-list-signup-form'
-import styles from '@/components/waiting-list/waiting-list.module.css'
+import type { WaitingListSampleData } from '@/components/waiting-list/sample-data'
+import { waitingListStyles as styles } from '@/components/waiting-list/waiting-list-styles'
 
 type PainPost = {
   text: string
@@ -24,23 +25,32 @@ type PainRow = {
 }
 
 export type WaitingListLabels = {
+  hero: {
+    eyebrow: string
+    title: string
+    titleHighlight: string
+    description: string
+    descriptionHighlight: string
+  }
   form: WaitingListSignupLabels
   sample: WaitingListSampleLabels
 }
 
 export default function WaitingListExperience({
   painRows,
+  sampleData,
   ticker,
   labels,
 }: {
   painRows: PainRow[]
+  sampleData: WaitingListSampleData
   ticker: string[]
   labels: WaitingListLabels
 }) {
   const [sampleEmail, setSampleEmail] = useState('')
 
   if (sampleEmail) {
-    return <WaitingListSampleDashboard email={sampleEmail} labels={labels.sample} />
+    return <WaitingListSampleDashboard email={sampleEmail} labels={labels.sample} sampleData={sampleData} />
   }
 
   return (
@@ -49,19 +59,18 @@ export default function WaitingListExperience({
         <section className={styles.left}>
           <div className={styles.eyebrow}>
             <Sparkle size={12} />
-            <span>your focused launch kit</span>
+            <span>{labels.hero.eyebrow}</span>
             <Sparkle size={12} />
           </div>
 
           <h1 className={styles.headline}>
-            <span className={styles.hlLine}>launch everywhere.</span>
-            <span className={`${styles.hlLine} ${styles.hlAccent}`}>from one URL.</span>
+            <span className={styles.hlLine}>{labels.hero.title}</span>
+            <span className={`${styles.hlLine} ${styles.hlAccent}`}>{labels.hero.titleHighlight}</span>
           </h1>
 
           <p className={styles.lede}>
-            Stop guessing what to write first. Shipdaddy turns one URL into the launch copy,
-            subreddit guidance, email announcement, and media kit you can use today.{' '}
-            <span className={styles.ledeEm}>Premium unlocks SEO, outreach, demos, and creative assets.</span>
+            {labels.hero.description}{' '}
+            <span className={styles.ledeEm}>{labels.hero.descriptionHighlight}</span>
           </p>
 
           <WaitingListSignupForm labels={labels.form} onSampleUnlocked={setSampleEmail} />

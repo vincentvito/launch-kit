@@ -1,21 +1,30 @@
 import {
+  getJsonObjectField,
   launchApiErrorResponse,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
-import { requireServerSession } from '@/lib/launch-kit/auth'
 import { getUserLaunchProfile, upsertUserLaunchProfile } from '@/lib/launch-kit/projects'
-import type { MediaKitContact } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await requireServerSession()
-    const profile = await getUserLaunchProfile(session.user.id)
+    const access = await requireLaunchApiAccess(request, {
+      action: 'profile_read',
+      feature: 'free',
+      rateLimitAction: 'project_read',
+    })
+    if (!access.session) {
+      return privateJsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const profile = await getUserLaunchProfile(access.session.user.id)
+    await recordLaunchApiUsage(access, 'profile_read')
     return privateJsonResponse({ profile })
   } catch (error) {
     return launchApiRouteErrorResponse(
@@ -33,12 +42,16 @@ export async function POST(request: Request) {
       feature: 'free',
       rateLimitAction: 'project_write',
     })
-    const session = await requireServerSession()
-    const body = await readJsonBody<{
-      profile?: Partial<MediaKitContact>
-    }>(request, { maxBytes: 64 * 1024 })
+    if (!access.session) {
+      return privateJsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    const profile = await upsertUserLaunchProfile(session.user.id, body.profile || {})
+    const body = await readTrustedJsonBody(request, { maxBytes: 64 * 1024 })
+
+    const profile = await upsertUserLaunchProfile(
+      access.session.user.id,
+      getJsonObjectField(body, 'profile') || {},
+    )
     await recordLaunchApiUsage(access, 'profile_save')
     return privateJsonResponse({ profile })
   } catch (error) {

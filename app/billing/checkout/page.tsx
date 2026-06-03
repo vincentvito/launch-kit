@@ -20,11 +20,13 @@ export default function BillingCheckoutPage() {
         })
         const json = (await response.json()) as { url?: string; error?: string }
 
-        if (!response.ok || !json.url) {
+        const redirectUrl = getSafeBillingRedirectUrl(json.url)
+
+        if (!response.ok || !redirectUrl) {
           throw new Error(json.error || t('unavailable'))
         }
 
-        window.location.href = json.url
+        window.location.href = redirectUrl
       } catch (checkoutError) {
         if (mounted) {
           setError(checkoutError instanceof Error ? checkoutError.message : t('unavailable'))
@@ -60,4 +62,25 @@ export default function BillingCheckoutPage() {
       </div>
     </main>
   )
+}
+
+function getSafeBillingRedirectUrl(value?: string): string {
+  if (!value) {
+    return ''
+  }
+
+  try {
+    const url = new URL(value, window.location.origin)
+    const hostname = url.hostname.toLowerCase()
+    if (url.origin === window.location.origin) {
+      return url.toString()
+    }
+    if (url.protocol === 'https:' && (hostname === 'stripe.com' || hostname.endsWith('.stripe.com'))) {
+      return url.toString()
+    }
+  } catch {
+    return ''
+  }
+
+  return ''
 }

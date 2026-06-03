@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getReadinessPayload } from '@/lib/health'
 
 export const runtime = 'nodejs'
+export const maxDuration = 10
 
 export async function GET() {
   const payload = await getReadinessPayload()

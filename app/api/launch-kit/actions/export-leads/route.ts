@@ -1,31 +1,29 @@
 import { NextResponse } from 'next/server'
 import {
+  getJsonObjectField,
+  getJsonStringField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { exportLeadsCsv } from '@/lib/launch-kit/prospecting'
-import type { ProspectingState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      prospecting?: ProspectingState
-      projectName?: string
-      download?: boolean
-    }>(request)
+    const body = await readTrustedJsonBody(request)
 
     const access = await requireLaunchApiAccess(request, {
       action: 'export_leads',
       feature: 'premium',
       rateLimitAction: 'export',
     })
-    const csv = exportLeadsCsv(body.prospecting)
-    const filename = `${slugify(body.projectName || 'launch-kit-leads')}.csv`
+    const csv = exportLeadsCsv(getJsonObjectField(body, 'prospecting'))
+    const filename = `${slugify(getJsonStringField(body, 'projectName') || 'launch-kit-leads')}.csv`
     await recordLaunchApiUsage(access, 'export_leads')
 
     if (body.download === false) {

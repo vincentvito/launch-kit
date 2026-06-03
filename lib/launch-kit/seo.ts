@@ -9,6 +9,7 @@ import {
   type WebsiteSeoCheck,
 } from '@/lib/launch-kit/types'
 import { normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
+import { normalizePublicHttpUrl } from '@/lib/launch-kit/url-safety'
 import { dedupe, escapeCsvCell } from '@/lib/launch-kit/utils'
 
 type BacklinkDiscoveryEntity = {
@@ -39,8 +40,8 @@ type DeliveryState = {
 }
 
 type SendBacklinkEmailInput = {
-  seoGrowth: SeoGrowthState | null | undefined
-  prospectIds?: string[]
+  seoGrowth: unknown
+  prospectIds?: unknown
 }
 
 const MAX_BLOG_POSTS = 12
@@ -157,7 +158,7 @@ const MOCK_BACKLINK_SITES = [
 
 export function runWebsiteSeoAnalysisAction(input: {
   brief: ExtractedBrief
-  seoGrowth: SeoGrowthState | null | undefined
+  seoGrowth: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
   const clusters = input.brief.keywordResearch.clusters
@@ -188,7 +189,7 @@ export function runWebsiteSeoAnalysisAction(input: {
 
 export function runBlogStrategyAction(input: {
   brief: ExtractedBrief
-  seoGrowth: SeoGrowthState | null | undefined
+  seoGrowth: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
   const now = new Date().toISOString()
@@ -209,7 +210,7 @@ export function runBlogStrategyAction(input: {
 
 export async function runBacklinkProspectAction(input: {
   brief: ExtractedBrief
-  seoGrowth: SeoGrowthState | null | undefined
+  seoGrowth: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
   const queries = buildBacklinkQueries(input.brief)
@@ -253,13 +254,13 @@ export async function runBacklinkProspectAction(input: {
 }
 
 export function runAddBacklinkProspectsToListAction(input: {
-  seoGrowth: SeoGrowthState | null | undefined
-  prospectIds?: string[]
-  listName?: string
+  seoGrowth: unknown
+  prospectIds?: unknown
+  listName?: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
-  const selectedIds = new Set((input.prospectIds || []).filter(Boolean))
-  const name = input.listName?.trim() || 'Selected backlink prospects'
+  const selectedIds = new Set(safeStringList(input.prospectIds))
+  const name = safeInputString(input.listName) || 'Selected backlink prospects'
   const now = new Date().toISOString()
   const slug = slugify(name)
   const existingList = state.prospectLists.find((list) => slugify(list.name) === slug)
@@ -311,17 +312,18 @@ export function runAddBacklinkProspectsToListAction(input: {
 }
 
 export function runUpdateBacklinkProspectStatusAction(input: {
-  seoGrowth: SeoGrowthState | null | undefined
-  prospectId?: string
-  status?: string
+  seoGrowth: unknown
+  prospectId?: unknown
+  status?: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
   const status = normalizeBacklinkStatus(input.status)
+  const prospectId = safeInputString(input.prospectId)
 
   const next: SeoGrowthState = {
     ...state,
     backlinkProspects: state.backlinkProspects.map((prospect) =>
-      prospect.id === input.prospectId ? { ...prospect, status } : prospect,
+      prospect.id === prospectId ? { ...prospect, status } : prospect,
     ),
   }
 
@@ -333,11 +335,11 @@ export function runUpdateBacklinkProspectStatusAction(input: {
 
 export function runPersonalizeBacklinkEmailsAction(input: {
   brief: ExtractedBrief
-  seoGrowth: SeoGrowthState | null | undefined
-  prospectIds?: string[]
+  seoGrowth: unknown
+  prospectIds?: unknown
 }) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
-  const selected = new Set((input.prospectIds || []).filter(Boolean))
+  const selected = new Set(safeStringList(input.prospectIds))
   const targets = selected.size
     ? state.backlinkProspects.filter((prospect) => selected.has(prospect.id))
     : state.backlinkProspects.slice(0, 12)
@@ -446,7 +448,7 @@ export function runSendBacklinkEmailAction(input: SendBacklinkEmailInput & {
 
 function buildBacklinkEmailBatch(input: SendBacklinkEmailInput) {
   const state = normalizeSeoGrowthState(input.seoGrowth)
-  const selected = new Set((input.prospectIds || []).filter(Boolean))
+  const selected = new Set(safeStringList(input.prospectIds))
   const targets = (selected.size
     ? state.backlinkProspects.filter((prospect) => selected.has(prospect.id))
     : state.backlinkProspects
@@ -475,7 +477,7 @@ function buildBacklinkEmailBatch(input: SendBacklinkEmailInput) {
 }
 
 export function exportBacklinkProspectsCsv(
-  seoGrowth: SeoGrowthState | null | undefined,
+  seoGrowth: unknown,
 ): string {
   const state = normalizeSeoGrowthState(seoGrowth)
   const headers = [
@@ -1001,9 +1003,10 @@ function nextContactStatus(status: BacklinkProspectStatus): BacklinkProspectStat
   return status
 }
 
-function normalizeBacklinkStatus(status: string | undefined): BacklinkProspectStatus {
-  return BACKLINK_STATUSES.includes(status as BacklinkProspectStatus)
-    ? (status as BacklinkProspectStatus)
+function normalizeBacklinkStatus(status: unknown): BacklinkProspectStatus {
+  const normalized = safeInputString(status)
+  return BACKLINK_STATUSES.includes(normalized as BacklinkProspectStatus)
+    ? (normalized as BacklinkProspectStatus)
     : 'new'
 }
 
@@ -1040,15 +1043,7 @@ function scoreContactability(entity: BacklinkDiscoveryEntity): number {
 }
 
 function normalizeWebsite(value: string): string {
-  try {
-    const url = new URL(value)
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      return ''
-    }
-    return `${url.protocol}//${url.hostname}${url.pathname === '/' ? '' : url.pathname}`
-  } catch {
-    return ''
-  }
+  return normalizePublicHttpUrl(value)
 }
 
 function domainFromWebsite(website: string): string {
@@ -1068,6 +1063,21 @@ function sanitizeTitle(value: string): string {
 
 function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'item'
+}
+
+function safeInputString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function safeStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.flatMap((item) => {
+    const cleaned = safeInputString(item)
+    return cleaned ? [cleaned] : []
+  })
 }
 
 function clamp(value: number, min: number, max: number): number {

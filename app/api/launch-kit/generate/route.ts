@@ -5,7 +5,7 @@ import {
   parseSelectedChannelPackIds,
   parseSelectedGrowthBlockIds,
 } from '@/lib/launch-kit/generator'
-import { normalizeBrief } from '@/lib/launch-kit/normalizers'
+import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 import {
   isFreeChannelCard,
   isPremiumChannelPack,
@@ -13,33 +13,27 @@ import {
   isPremiumPlatformBlock,
 } from '@/lib/launch-kit/plans'
 import {
+  getJsonObjectField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { completeLaunchJob, createLaunchJob } from '@/lib/launch-kit/jobs'
-import type { ExtractedBrief, LaunchKit } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   let jobId: string | undefined
 
   try {
-    const body = await readJsonBody<{
-      brief?: ExtractedBrief
-      selectedBlocks?: unknown
-      selectedChannelPackIds?: unknown
-      channelCardTarget?: unknown
-      selectedGrowthBlocks?: unknown
-      includeMediaKit?: boolean
-      includeGrowthAssets?: boolean
-      existingKit?: LaunchKit | null
-    }>(request, { maxBytes: 2 * 1024 * 1024 })
+    const body = await readTrustedJsonBody(request, { maxBytes: 2 * 1024 * 1024 })
+    const requestedBrief = getJsonObjectField(body, 'brief')
+    const existingKitInput = getJsonObjectField(body, 'existingKit')
 
-    if (!body.brief) {
+    if (!requestedBrief) {
       return privateJsonResponse({ error: 'Brief is required.' }, { status: 400 })
     }
 
@@ -70,7 +64,7 @@ export async function POST(request: Request) {
       rateLimitAction: wantsPremium ? 'generate_premium' : 'generate_free',
     })
 
-    const brief = normalizeBrief(body.brief)
+    const brief = normalizeBrief(requestedBrief)
     const job = await createLaunchJob({
       userId: access.session?.user.id,
       subjectKey: access.subjectKey,
@@ -94,7 +88,7 @@ export async function POST(request: Request) {
       includeMediaKit: typeof body.includeMediaKit === 'boolean' ? body.includeMediaKit : true,
       includeGrowthAssets:
         typeof body.includeGrowthAssets === 'boolean' ? body.includeGrowthAssets : true,
-      existingKit: body.existingKit ?? null,
+      existingKit: existingKitInput ? normalizeKit(existingKitInput, brief.language) : undefined,
     })
     await recordLaunchApiUsage(access, wantsPremium ? 'generate_premium' : 'generate_free', {
       productName: brief.productName,

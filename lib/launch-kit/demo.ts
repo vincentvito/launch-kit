@@ -15,7 +15,21 @@ import {
   type SeoGrowthState,
 } from '@/lib/launch-kit/types'
 
-export const DEMO_SOURCE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+const LOCAL_DEMO_SOURCE_URL = 'http://localhost:3000'
+
+export function getDemoSourceUrl(value = process.env.NEXT_PUBLIC_APP_URL): string {
+  try {
+    const url = new URL(value || LOCAL_DEMO_SOURCE_URL)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return LOCAL_DEMO_SOURCE_URL
+    }
+    return url.origin
+  } catch {
+    return LOCAL_DEMO_SOURCE_URL
+  }
+}
+
+export const DEMO_SOURCE_URL = getDemoSourceUrl()
 const DEMO_TIMESTAMP = '2026-05-21T08:00:00.000Z'
 
 function buildDemoBrief(sourceUrl: string): ExtractedBrief {

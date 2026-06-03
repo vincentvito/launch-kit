@@ -5,11 +5,11 @@ import {
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
-import { requireServerSession } from '@/lib/launch-kit/auth'
 import { renderLaunchKitMarkdown } from '@/lib/launch-kit/exporters'
 import { getLaunchProject } from '@/lib/launch-kit/projects'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 type RouteParams = {
   params: Promise<{ id: string }>
@@ -22,9 +22,12 @@ export async function GET(request: Request, { params }: RouteParams) {
       feature: 'free',
       rateLimitAction: 'export',
     })
+    if (!access.session) {
+      return privateJsonResponse({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
-    const session = await requireServerSession()
-    const project = await getLaunchProject(session.user.id, id)
+    const project = await getLaunchProject(access.session.user.id, id)
 
     if (!project) {
       return privateJsonResponse({ error: 'Project not found.' }, { status: 404 })

@@ -820,7 +820,7 @@ function AssetLibraryPanel({
                     variant="outline"
                     className="border-violet-200 text-violet-700 hover:bg-violet-50"
                   >
-                    <a href={generatedAsset.outputUrl} target="_blank" rel="noreferrer">
+                    <a href={generatedAsset.outputUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-1.5 size-3.5" />
                       {t('results.assets.actions.openOutput')}
                     </a>
@@ -1697,14 +1697,18 @@ function BacklinkChannelPanel({
                   </td>
                   <td className="px-3 py-2 align-top">
                     <p className="font-medium text-zinc-900">{prospect.title}</p>
-                    <a
-                      href={prospect.website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-violet-700 hover:underline"
-                    >
-                      {prospect.domain || prospect.website}
-                    </a>
+                    {prospect.website ? (
+                      <a
+                        href={prospect.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-violet-700 hover:underline"
+                      >
+                        {prospect.domain || prospect.website}
+                      </a>
+                    ) : (
+                      <p className="text-xs text-zinc-500">{prospect.domain || prospect.title}</p>
+                    )}
                     <p className="mt-1 line-clamp-2 text-xs text-zinc-600">{prospect.scrapedSummary}</p>
                   </td>
                   <td className="px-3 py-2 align-top">
@@ -1864,7 +1868,7 @@ function TrafficPlaybookPanel({
             variant="outline"
             className="shrink-0 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
           >
-            <Link href={websiteUrl} target="_blank" rel="noreferrer">
+            <Link href={websiteUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="mr-1.5 size-3.5" />
               {t('results.marketplaces.openWebsite')}
             </Link>
@@ -2233,7 +2237,7 @@ function SubredditRecommendationList({
             <a
               href={recommendation.url}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:text-violet-900"
             >
               {recommendation.name}

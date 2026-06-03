@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getAllowedOrigins, isProductionRuntime, isPublicFreeGenerationEnabled } from '@/lib/env'
+import {
+  getAllowedOrigins,
+  isProductionRuntime,
+  isPublicFreeGenerationEnabled,
+  ProductionReadinessError,
+} from '@/lib/env'
 import { getLaunchEntitlement, type LaunchEntitlement } from '@/lib/launch-kit/entitlements'
 import { consumeRateLimit, getRateLimitPolicy, type RateLimitResult } from '@/lib/launch-kit/rate-limit'
 import { getSubjectKey } from '@/lib/launch-kit/security'
 import { recordUsageEvent } from '@/lib/launch-kit/usage'
-import { logServerError } from '@/lib/observability'
+import { assertOrLogProductionReadiness, logServerError } from '@/lib/observability'
 
 type SessionLike = Awaited<ReturnType<typeof auth.api.getSession>>
 
@@ -36,12 +41,12 @@ export class LaunchApiError extends Error {
   }
 }
 
-export async function readJsonBody<T>(
+export async function readJsonBody(
   request: Request,
   options: {
     maxBytes?: number
   } = {},
-): Promise<T> {
+): Promise<Record<string, unknown>> {
   const contentType = request.headers.get('content-type') || ''
 
   if (!contentType.toLowerCase().includes('application/json')) {
@@ -49,13 +54,28 @@ export async function readJsonBody<T>(
   }
 
   try {
-    return JSON.parse(await readTextBody(request, options)) as T
+    const parsed = JSON.parse(await readTextBody(request, options))
+    if (!isJsonRecord(parsed)) {
+      throw new LaunchApiError(400, 'invalid_json', 'JSON body must be an object.')
+    }
+
+    return parsed
   } catch (error) {
     if (error instanceof LaunchApiError) {
       throw error
     }
     throw new LaunchApiError(400, 'invalid_json', 'Invalid request body.')
   }
+}
+
+export async function readTrustedJsonBody(
+  request: Request,
+  options: {
+    maxBytes?: number
+  } = {},
+): Promise<Record<string, unknown>> {
+  assertTrustedRequestOrigin(request)
+  return readJsonBody(request, options)
 }
 
 export async function readTextBody(
@@ -99,6 +119,61 @@ export async function readTextBody(
   return new TextDecoder().decode(concatChunks(chunks, totalBytes))
 }
 
+export function isJsonRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+export function getJsonObjectField(
+  record: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> | null {
+  const value = record[key]
+  return isJsonRecord(value) ? value : null
+}
+
+export function getJsonStringField(
+  record: Record<string, unknown>,
+  key: string,
+  options: {
+    maxLength?: number
+    trim?: boolean
+  } = {},
+): string {
+  const value = record[key]
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  const trimmed = options.trim === false ? value : value.trim()
+  return typeof options.maxLength === 'number' ? trimmed.slice(0, options.maxLength) : trimmed
+}
+
+export function getJsonStringArrayField(
+  record: Record<string, unknown>,
+  key: string,
+  options: {
+    maxLength?: number
+  } = {},
+): string[] {
+  const value = record[key]
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.flatMap((item) => {
+    if (typeof item !== 'string') {
+      return []
+    }
+
+    const trimmed = item.trim()
+    if (!trimmed) {
+      return []
+    }
+
+    return [typeof options.maxLength === 'number' ? trimmed.slice(0, options.maxLength) : trimmed]
+  })
+}
+
 function concatChunks(chunks: Uint8Array[], totalBytes: number): Uint8Array {
   const buffer = new Uint8Array(totalBytes)
   let offset = 0
@@ -112,6 +187,8 @@ function concatChunks(chunks: Uint8Array[], totalBytes: number): Uint8Array {
 }
 
 export async function getRequestSession(request: Request) {
+  assertOrLogProductionReadiness()
+
   return auth.api.getSession({
     headers: request.headers,
   })
@@ -121,6 +198,7 @@ export async function requireLaunchApiAccess(
   request: Request,
   options: LaunchApiAccessOptions,
 ): Promise<LaunchApiAccess> {
+  assertOrLogProductionReadiness()
   assertTrustedRequestOrigin(request)
 
   const session = await getRequestSession(request)
@@ -255,6 +333,15 @@ export function launchApiErrorResponse(error: unknown): NextResponse {
     )
   }
 
+  if (error instanceof ProductionReadinessError) {
+    return markPrivateNoStore(
+      NextResponse.json(
+        { error: 'Service is not ready for production.', code: 'production_not_ready' },
+        { status: 503 },
+      ),
+    )
+  }
+
   return markPrivateNoStore(
     NextResponse.json({ error: 'Unexpected server error.' }, { status: 500 }),
   )
@@ -276,6 +363,7 @@ export function launchApiRouteErrorResponse(
 ): NextResponse {
   if (
     error instanceof LaunchApiError ||
+    error instanceof ProductionReadinessError ||
     (error instanceof Error && error.message === 'UNAUTHORIZED')
   ) {
     return launchApiErrorResponse(error)

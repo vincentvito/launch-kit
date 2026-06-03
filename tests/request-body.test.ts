@@ -20,7 +20,7 @@ async function expectLaunchApiError(
 
 describe('readJsonBody', () => {
   it('parses a valid JSON request body', async () => {
-    const body = await readJsonBody<{ name: string }>(
+    const body = await readJsonBody(
       new Request('https://launch.example/api/test', {
         method: 'POST',
         headers: { 'content-type': 'application/json; charset=utf-8' },

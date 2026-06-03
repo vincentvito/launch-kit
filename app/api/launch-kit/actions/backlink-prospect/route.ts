@@ -1,24 +1,23 @@
 import {
+  getJsonObjectField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { normalizeBrief, normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
 import { runBacklinkProspectAction } from '@/lib/launch-kit/seo'
-import type { ExtractedBrief, SeoGrowthState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      brief?: Partial<ExtractedBrief>
-      seoGrowth?: Partial<SeoGrowthState>
-    }>(request)
+    const body = await readTrustedJsonBody(request)
+    const briefInput = getJsonObjectField(body, 'brief')
 
-    if (!body.brief) {
+    if (!briefInput) {
       return privateJsonResponse({ error: 'Brief is required.' }, { status: 400 })
     }
 
@@ -28,8 +27,8 @@ export async function POST(request: Request) {
       rateLimitAction: 'premium_action',
     })
     const result = await runBacklinkProspectAction({
-      brief: normalizeBrief(body.brief),
-      seoGrowth: normalizeSeoGrowthState(body.seoGrowth),
+      brief: normalizeBrief(briefInput),
+      seoGrowth: normalizeSeoGrowthState(getJsonObjectField(body, 'seoGrowth')),
     })
     await recordLaunchApiUsage(access, 'backlink_prospect')
 

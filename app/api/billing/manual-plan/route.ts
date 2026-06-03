@@ -1,16 +1,29 @@
 import { launchApiErrorResponse, privateJsonResponse, readJsonBody } from '@/lib/launch-kit/api-guard'
+import { isManualBillingConfigured } from '@/lib/billing'
 import { setManualLaunchPlan } from '@/lib/launch-kit/entitlements'
 import type { LaunchPlan } from '@/lib/launch-kit/entitlements'
 import { consumeRateLimit, getRateLimitPolicy } from '@/lib/launch-kit/rate-limit'
 import { getSubjectKey } from '@/lib/launch-kit/security'
+import { assertOrLogProductionReadiness } from '@/lib/observability'
 import { verifyBearerToken } from '@/lib/secure-token'
 
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
 const MANUAL_PLANS = new Set<LaunchPlan>(['free', 'premium', 'admin'])
 const MANUAL_STATUSES = new Set(['manual', 'active', 'trialing', 'past_due', 'canceled', 'inactive'])
 
 export async function POST(request: Request) {
+  try {
+    assertOrLogProductionReadiness()
+  } catch (error) {
+    return launchApiErrorResponse(error)
+  }
+
+  if (!isManualBillingConfigured()) {
+    return privateJsonResponse({ error: 'Manual billing is not enabled.' }, { status: 404 })
+  }
+
   const rateLimit = await consumeRateLimit({
     subjectKey: getSubjectKey(request),
     action: 'billing_admin',

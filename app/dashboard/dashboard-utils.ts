@@ -202,18 +202,27 @@ export function readGuestProjects(): LaunchProjectSnapshot[] {
     return []
   }
 
-  const raw = window.localStorage.getItem(GUEST_PROJECTS_KEY)
+  let raw: string | null
+  try {
+    raw = window.localStorage.getItem(GUEST_PROJECTS_KEY)
+  } catch {
+    return []
+  }
+
   if (!raw) {
     return []
   }
 
   try {
-    const parsed = JSON.parse(raw) as LaunchProjectSnapshot[]
+    const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) {
       return []
     }
 
-    return parsed.map((snapshot) => normalizeSnapshot(snapshot))
+    return parsed.flatMap((snapshot, index) => {
+      const normalized = normalizeSnapshot(snapshot, index)
+      return normalized ? [normalized] : []
+    })
   } catch {
     return []
   }
@@ -224,21 +233,38 @@ export function writeGuestProjects(projects: LaunchProjectSnapshot[]) {
     return
   }
 
-  window.localStorage.setItem(GUEST_PROJECTS_KEY, JSON.stringify(projects.slice(0, 40)))
+  try {
+    window.localStorage.setItem(GUEST_PROJECTS_KEY, JSON.stringify(projects.slice(0, 40)))
+  } catch {
+    return
+  }
 }
 
-function normalizeSnapshot(snapshot: LaunchProjectSnapshot): LaunchProjectSnapshot {
+function normalizeSnapshot(snapshot: unknown, index: number): LaunchProjectSnapshot | null {
+  if (!isRecord(snapshot)) {
+    return null
+  }
+
+  const name = safeString(snapshot.name) || 'Untitled project'
+  const sourceUrl = safeString(snapshot.sourceUrl)
+  const language = safeString(snapshot.language) || 'en'
   const brief = normalizeBrief(snapshot.brief, {
-    sourceUrl: snapshot.sourceUrl,
-    language: snapshot.language,
-    productName: snapshot.name,
+    sourceUrl,
+    language,
+    productName: name,
   })
-  const kit = normalizeKit(snapshot.kit, snapshot.language || brief.language)
+  const kit = normalizeKit(snapshot.kit, language || brief.language)
+  const now = new Date().toISOString()
+
   return {
-    ...snapshot,
+    id: safeString(snapshot.id) || `guest-project-${index + 1}`,
+    name,
+    sourceUrl,
     brief,
     kit,
-    language: snapshot.language || brief.language,
+    language: language || brief.language,
+    createdAt: safeString(snapshot.createdAt) || now,
+    updatedAt: safeString(snapshot.updatedAt) || now,
   }
 }
 
@@ -280,8 +306,14 @@ export function downloadBlob(blob: Blob, filename: string) {
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = filename
-  anchor.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1200)
+  document.body.appendChild(anchor)
+
+  try {
+    anchor.click()
+  } finally {
+    document.body.removeChild(anchor)
+    setTimeout(() => URL.revokeObjectURL(url), 1200)
+  }
 }
 
 export type ExportLabels = {
@@ -704,4 +736,12 @@ function escapeHtml(input: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;')
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function safeString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
 }

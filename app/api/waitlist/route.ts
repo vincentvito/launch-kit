@@ -8,10 +8,18 @@ import {
 } from '@/lib/launch-kit/api-guard'
 import { consumeRateLimit, getRateLimitPolicy } from '@/lib/launch-kit/rate-limit'
 import { getClientIp, getSafeReferrer, getSafeUserAgent, getSubjectKey, hashIdentifier } from '@/lib/launch-kit/security'
+import { assertOrLogProductionReadiness } from '@/lib/observability'
 
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
 export async function POST(request: Request) {
+  try {
+    assertOrLogProductionReadiness()
+  } catch (error) {
+    return launchApiErrorResponse(error)
+  }
+
   try {
     assertTrustedRequestOrigin(request)
   } catch (error) {

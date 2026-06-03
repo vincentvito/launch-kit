@@ -1,16 +1,25 @@
-import { applyStripeEvent } from '@/lib/billing'
+import { applyStripeEvent, InvalidStripeEventError, parseStripeEventPayload } from '@/lib/billing'
 import {
   internalServerErrorResponse,
   launchApiErrorResponse,
   privateJsonResponse,
   readTextBody,
 } from '@/lib/launch-kit/api-guard'
+import { assertOrLogProductionReadiness } from '@/lib/observability'
 import { verifyStripeWebhookSignature } from '@/lib/stripe-webhook'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
+
 const MAX_STRIPE_WEBHOOK_BYTES = 256 * 1024
 
 export async function POST(request: Request) {
+  try {
+    assertOrLogProductionReadiness()
+  } catch (error) {
+    return launchApiErrorResponse(error)
+  }
+
   let payload: string
 
   try {
@@ -30,11 +39,14 @@ export async function POST(request: Request) {
     return privateJsonResponse({ error: 'Invalid webhook signature.' }, { status: 400 })
   }
 
-  let event: Parameters<typeof applyStripeEvent>[0]
+  let event: ReturnType<typeof parseStripeEventPayload>
 
   try {
-    event = JSON.parse(payload) as Parameters<typeof applyStripeEvent>[0]
-  } catch {
+    event = parseStripeEventPayload(payload)
+  } catch (error) {
+    if (!(error instanceof InvalidStripeEventError)) {
+      return internalServerErrorResponse(error, 'Webhook failed.', 'stripe_webhook_failed')
+    }
     return privateJsonResponse({ error: 'Invalid webhook payload.' }, { status: 400 })
   }
 

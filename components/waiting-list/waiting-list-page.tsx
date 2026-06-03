@@ -1,7 +1,8 @@
 import { JetBrains_Mono, Manrope } from 'next/font/google'
 import { getTranslations } from 'next-intl/server'
+import { readWaitingListSampleData } from '@/components/waiting-list/sample-data'
 import WaitingListExperience from '@/components/waiting-list/waiting-list-experience'
-import styles from '@/components/waiting-list/waiting-list.module.css'
+import { waitingListStyles as styles } from '@/components/waiting-list/waiting-list-styles'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -15,48 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains',
 })
 
-// Founder-pain confessions for the right-side marquee feed. No names or
-// handles — these are anonymous, relatable launch pains, not fabricated
-// testimonials. `c` only sets the tag accent hue.
-const PAIN_POSTS = [
-  { text: 'spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.', c: 268, tag: 'rewriting hell' },
-  { text: 'one generic post reused everywhere. the voice dies the second i copy-paste it.', c: 252, tag: 'voice' },
-  { text: 'x thread, reddit post, subreddit list, launch email — all in different docs. why.', c: 280, tag: 'tool sprawl' },
-  { text: 'PH tomorrow. HN draft? not written. press blurb? lmao. wish me luck.', c: 30, tag: 'launch day' },
-  { text: "writing 'professional' LinkedIn copy drains the will to live out of me.", c: 200, tag: 'linkedin' },
-  { text: "what do you mean reddit doesn't want my polished landing-page copy.", c: 320, tag: 'reddit' },
-  { text: 'which subreddit can i post in without getting instantly roasted or removed?', c: 180, tag: 'subreddits' },
-  { text: 'showHN draft attempt #4. still sounds like a corporate brochure.', c: 60, tag: 'hacker news' },
-  { text: 'rewrote the same product story 9 times for 9 channels today. 9.', c: 110, tag: 'rewriting hell' },
-  { text: 'product ready. launch copy not ready. one human. one weekend. send help.', c: 8, tag: 'alone' },
-  { text: 'i love coding. i love shipping. i HATE writing launch copy.', c: 340, tag: 'copy' },
-  { text: 'i need useful launch copy first, not another giant growth dashboard.', c: 90, tag: 'focus' },
-  { text: 'indie hackers wants the build-in-public story. linkedin wants polish. same product.', c: 220, tag: 'indie hackers' },
-  { text: 'basic launch kit first. fancy ads and demo scripts can wait until the copy works.', c: 160, tag: 'scope' },
-  { text: 'x wants a sharp hook. reddit wants context. linkedin wants polish. same product.', c: 140, tag: 'platform fit' },
-  { text: 'every community has its own unwritten rules and i learn them the hard way each launch.', c: 40, tag: 'social contract' },
-  { text: 'premium growth work is useful, but only after the launch story is clear.', c: 290, tag: 'growth' },
-  { text: 'one URL, one story, ten platforms. there has to be a better way to do this.', c: 250, tag: 'one brief' },
-]
+type PainPost = {
+  text: string
+  c: number
+  tag: string
+}
 
-const PAIN_ROWS = [
-  { id: 'early-launch-pains', speed: 75, dir: 1, items: PAIN_POSTS.slice(0, 8) },
-  { id: 'platform-voice-pains', speed: 95, dir: -1, items: PAIN_POSTS.slice(4, 12) },
-  { id: 'solo-founder-pains', speed: 65, dir: 1, items: PAIN_POSTS.slice(8, 16) },
-  { id: 'media-social-pains', speed: 110, dir: -1, items: [...PAIN_POSTS.slice(12), ...PAIN_POSTS.slice(0, 4)] },
-]
-
-const TICKER = [
-  'one product URL · launch content generated',
-  'free launch kit · one structured brief',
-  'Product Hunt · Hacker News · Reddit · Indie Hackers',
-  'X · LinkedIn · Email · Media Kit',
-  'subreddit picks · where to post',
-  'premium · SEO · backlinks · outreach',
-  'premium · product demo · creative assets',
-  'founder-to-founder · no fluff',
-  'review it · then post',
-]
+const PAIN_ROW_LAYOUT = [
+  { id: 'early-launch-pains', speed: 75, dir: 1, start: 0, end: 8 },
+  { id: 'platform-voice-pains', speed: 95, dir: -1, start: 4, end: 12 },
+  { id: 'solo-founder-pains', speed: 65, dir: 1, start: 8, end: 16 },
+] as const
 
 // Decorative starfield. Generated on the server only (this is a server
 // component, so it never re-renders on the client → no hydration mismatch).
@@ -71,12 +41,44 @@ const STARS = Array.from({ length: 70 }, (_, index) => ({
 
 export default async function WaitingListPage() {
   const t = await getTranslations('WaitingList')
+  const painPosts = readPainPosts(t.raw('marquee.posts'))
+  const sampleData = readWaitingListSampleData(t.raw('sampleData'))
+  const ticker = readStringList(t.raw('ticker.items'))
+  const painRows = [
+    ...PAIN_ROW_LAYOUT.map((row) => ({
+      id: row.id,
+      speed: row.speed,
+      dir: row.dir,
+      items: painPosts.slice(row.start, row.end),
+    })),
+    {
+      id: 'media-social-pains',
+      speed: 110,
+      dir: -1,
+      items: [...painPosts.slice(12), ...painPosts.slice(0, 4)],
+    },
+  ]
   const labels = {
+    nav: {
+      brandPrefix: t('nav.brandPrefix'),
+      brandAccent: t('nav.brandAccent'),
+      status: t('nav.status'),
+    },
+    hero: {
+      eyebrow: t('hero.eyebrow'),
+      title: t('hero.title'),
+      titleHighlight: t('hero.titleHighlight'),
+      description: t('hero.description'),
+      descriptionHighlight: t('hero.descriptionHighlight'),
+    },
     form: {
+      emailLabel: t('form.emailLabel'),
       placeholder: t('form.placeholder'),
       submit: t('form.submit'),
+      saving: t('form.saving'),
       helper: t('form.helper'),
       invalidEmail: t('form.invalidEmail'),
+      error: t('form.error'),
       stats: [
         { n: t('form.stats.launchChannels.n'), label: t('form.stats.launchChannels.label') },
         { n: t('form.stats.seo.n'), label: t('form.stats.seo.label') },
@@ -90,6 +92,7 @@ export default async function WaitingListPage() {
       inputUrl: t('sample.inputUrl'),
       contentYouGet: t('sample.contentYouGet'),
       contentSummary: t('sample.contentSummary'),
+      contentSummaryValue: t('sample.contentSummaryValue'),
       channels: t('sample.channels'),
       generatedCopy: t('sample.generatedCopy'),
       mediaAssets: t('sample.mediaAssets'),
@@ -106,6 +109,78 @@ export default async function WaitingListPage() {
       prospects: t('sample.prospects'),
       productDemo: t('sample.productDemo'),
       fullResults: t('sample.fullResults'),
+      metrics: {
+        channelDrafts: t('sample.metrics.channelDrafts'),
+        redditTargets: t('sample.metrics.redditTargets'),
+        creativePrompts: t('sample.metrics.creativePrompts'),
+        reviewedProspects: t('sample.metrics.reviewedProspects'),
+      },
+      workflow: {
+        sourceUrl: {
+          title: t('sample.workflow.sourceUrl.title'),
+          body: t('sample.workflow.sourceUrl.body'),
+          status: t('sample.workflow.sourceUrl.status'),
+        },
+        generationProfile: {
+          title: t('sample.workflow.generationProfile.title'),
+          body: t('sample.workflow.generationProfile.body'),
+          status: t('sample.workflow.generationProfile.status'),
+        },
+        dashboardOutput: {
+          title: t('sample.workflow.dashboardOutput.title'),
+          body: t('sample.workflow.dashboardOutput.body'),
+          status: t('sample.workflow.dashboardOutput.status'),
+        },
+      },
+      navigation: {
+        launchCopy: {
+          title: t('sample.navigation.launchCopy.title'),
+          value: t('sample.navigation.launchCopy.value'),
+        },
+        xThread: {
+          title: t('sample.navigation.xThread.title'),
+          value: t('sample.navigation.xThread.value'),
+        },
+        redditPost: {
+          title: t('sample.navigation.redditPost.title'),
+          value: t('sample.navigation.redditPost.value'),
+        },
+        seoPlan: {
+          title: t('sample.navigation.seoPlan.title'),
+          value: t('sample.navigation.seoPlan.value'),
+        },
+        prospects: {
+          title: t('sample.navigation.prospects.title'),
+          value: t('sample.navigation.prospects.value'),
+        },
+        outreach: {
+          title: t('sample.navigation.outreach.title'),
+          value: t('sample.navigation.outreach.value'),
+        },
+        productDemo: {
+          title: t('sample.navigation.productDemo.title'),
+          value: t('sample.navigation.productDemo.value'),
+        },
+        creative: {
+          title: t('sample.navigation.creative.title'),
+          value: t('sample.navigation.creative.value'),
+        },
+      },
+      sections: {
+        extractedBrief: t('sample.sections.extractedBrief'),
+        freeLaunchCopy: t('sample.sections.freeLaunchCopy'),
+        subredditsToEvaluate: t('sample.sections.subredditsToEvaluate'),
+        whereToTest: t('sample.sections.whereToTest'),
+        premiumSeo: t('sample.sections.premiumSeo'),
+        premiumProspects: t('sample.sections.premiumProspects'),
+        premiumOutreach: t('sample.sections.premiumOutreach'),
+        premiumProductDemo: t('sample.sections.premiumProductDemo'),
+        premiumCreative: t('sample.sections.premiumCreative'),
+        oneLiner: t('sample.sections.oneLiner'),
+        pressHook: t('sample.sections.pressHook'),
+      },
+      ctaItems: readStringList(t.raw('sample.ctaItems')),
+      noteItems: readStringList(t.raw('sample.noteItems')),
     },
   }
 
@@ -144,17 +219,49 @@ export default async function WaitingListPage() {
             </svg>
           </div>
           <span className={styles.logoWord}>
-            ship<span className={styles.accent}>daddy</span>
+            {labels.nav.brandPrefix}
+            <span className={styles.accent}>{labels.nav.brandAccent}</span>
           </span>
         </div>
         <nav className={styles.topnav}>
           <span className={styles.pill}>
-            <span className={styles.dot} /> pre-launch · waitlist open
+            <span className={styles.dot} /> {labels.nav.status}
           </span>
         </nav>
       </header>
 
-      <WaitingListExperience painRows={PAIN_ROWS} ticker={TICKER} labels={labels} />
+      <WaitingListExperience painRows={painRows} sampleData={sampleData} ticker={ticker} labels={labels} />
     </div>
   )
+}
+
+function readPainPosts(value: unknown): PainPost[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.flatMap((item) => {
+    if (
+      item &&
+      typeof item === 'object' &&
+      'text' in item &&
+      'c' in item &&
+      'tag' in item &&
+      typeof item.text === 'string' &&
+      typeof item.c === 'number' &&
+      typeof item.tag === 'string'
+    ) {
+      return [{ text: item.text, c: item.c, tag: item.tag }]
+    }
+
+    return []
+  })
+}
+
+function readStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((item): item is string => typeof item === 'string')
 }

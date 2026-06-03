@@ -280,10 +280,11 @@ async function generateTextAsset(
       verbosity: 'medium',
     })
 
-    if (modelOutput?.body?.trim()) {
+    const body = modelString(modelOutput?.body)
+    if (body) {
       output = {
-        title: modelOutput.title?.trim() || fallback.title,
-        body: modelOutput.body.trim(),
+        title: modelString(modelOutput?.title) || fallback.title,
+        body,
       }
     }
   }
@@ -388,7 +389,11 @@ async function generateScreenshotTitle(
     verbosity: 'low',
   })
 
-  return output?.title?.trim() || template.title || fallback
+  return modelString(output?.title) || template.title || fallback
+}
+
+function modelString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
 }
 
 async function captureWebsiteScreenshot(

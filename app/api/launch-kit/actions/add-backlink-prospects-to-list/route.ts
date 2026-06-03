@@ -1,23 +1,22 @@
 import {
+  getJsonObjectField,
+  getJsonStringArrayField,
+  getJsonStringField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { normalizeSeoGrowthState } from '@/lib/launch-kit/normalizers'
 import { runAddBacklinkProspectsToListAction } from '@/lib/launch-kit/seo'
-import type { SeoGrowthState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      seoGrowth?: Partial<SeoGrowthState>
-      prospectIds?: string[]
-      listName?: string
-    }>(request)
+    const body = await readTrustedJsonBody(request)
 
     const access = await requireLaunchApiAccess(request, {
       action: 'add_backlink_prospects_to_list',
@@ -25,9 +24,9 @@ export async function POST(request: Request) {
       rateLimitAction: 'premium_action',
     })
     const result = runAddBacklinkProspectsToListAction({
-      seoGrowth: normalizeSeoGrowthState(body.seoGrowth),
-      prospectIds: Array.isArray(body.prospectIds) ? body.prospectIds : [],
-      listName: body.listName,
+      seoGrowth: normalizeSeoGrowthState(getJsonObjectField(body, 'seoGrowth')),
+      prospectIds: getJsonStringArrayField(body, 'prospectIds', { maxLength: 128 }),
+      listName: getJsonStringField(body, 'listName', { maxLength: 120 }),
     })
     await recordLaunchApiUsage(access, 'add_backlink_prospects_to_list')
 

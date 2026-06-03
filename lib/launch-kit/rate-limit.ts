@@ -19,9 +19,11 @@ const DEFAULT_LIMITS: Record<string, RateLimitPolicy> = {
   generate_free: { limit: 6, windowSeconds: 24 * 60 * 60 },
   generate_premium: { limit: 60, windowSeconds: 24 * 60 * 60 },
   premium_action: { limit: 120, windowSeconds: 24 * 60 * 60 },
+  project_read: { limit: 300, windowSeconds: 60 * 60 },
   project_write: { limit: 100, windowSeconds: 60 * 60 },
   export: { limit: 100, windowSeconds: 60 * 60 },
   billing_admin: { limit: 10, windowSeconds: 60 * 60 },
+  maintenance_admin: { limit: 10, windowSeconds: 60 * 60 },
 }
 
 export function getRateLimitPolicy(action: string, premium: boolean): RateLimitPolicy {
@@ -126,12 +128,13 @@ export async function consumeRateLimit(input: {
   }
 }
 
-export async function pruneExpiredRateLimitBuckets(): Promise<void> {
-  await prisma.rateLimitBucket.deleteMany({
+export async function pruneExpiredRateLimitBuckets(now = new Date()): Promise<number> {
+  const result = await prisma.rateLimitBucket.deleteMany({
     where: {
       resetAt: {
-        lt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        lt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
       },
     },
   })
+  return result.count
 }

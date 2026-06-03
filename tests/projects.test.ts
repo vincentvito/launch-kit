@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma'
 import {
   InvalidLaunchProjectInputError,
   LaunchProjectNotFoundError,
+  deleteLaunchProject,
+  MAX_SAVED_PROJECTS_PER_USER,
+  MAX_STORED_PROJECT_JSON_BYTES,
   saveLaunchProject,
   upsertUserLaunchProfile,
 } from '../lib/launch-kit/projects'
@@ -11,7 +14,9 @@ import { createEmptyKit } from '../lib/launch-kit/normalizers'
 vi.mock('@/lib/prisma', () => ({
   default: {
     launchProject: {
+      count: vi.fn(),
       create: vi.fn(),
+      deleteMany: vi.fn(),
       updateMany: vi.fn(),
       findFirst: vi.fn(),
     },
@@ -22,7 +27,9 @@ vi.mock('@/lib/prisma', () => ({
 }))
 
 const launchProject = prisma.launchProject as unknown as {
+  count: Mock
   create: Mock
+  deleteMany: Mock
   updateMany: Mock
   findFirst: Mock
 }
@@ -83,6 +90,7 @@ const saveInput = {
 describe('launch project persistence', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    launchProject.count.mockResolvedValue(0)
   })
 
   it('creates a new project for the current user', async () => {
@@ -147,6 +155,71 @@ describe('launch project persistence', () => {
     expect(launchProject.create).not.toHaveBeenCalled()
   })
 
+  it('rejects private or internal project source URLs before storage', async () => {
+    await expect(
+      saveLaunchProject({
+        ...saveInput,
+        sourceUrl: 'http://localhost:3000/private',
+      }),
+    ).rejects.toBeInstanceOf(InvalidLaunchProjectInputError)
+
+    await expect(
+      saveLaunchProject({
+        ...saveInput,
+        sourceUrl: 'https://intranet/internal',
+      }),
+    ).rejects.toBeInstanceOf(InvalidLaunchProjectInputError)
+
+    expect(launchProject.create).not.toHaveBeenCalled()
+  })
+
+  it('rejects oversized project JSON before storage', async () => {
+    await expect(
+      saveLaunchProject({
+        ...saveInput,
+        kit: {
+          ...saveInput.kit,
+          platformBlocks: {
+            ...saveInput.kit.platformBlocks,
+            product_hunt: {
+              ...saveInput.kit.platformBlocks.product_hunt,
+              body: 'x'.repeat(MAX_STORED_PROJECT_JSON_BYTES),
+            },
+          },
+        },
+      }),
+    ).rejects.toMatchObject({
+      name: 'InvalidLaunchProjectInputError',
+      message: 'Saved project is too large. Shorten generated content or remove oversized assets.',
+    })
+
+    expect(launchProject.create).not.toHaveBeenCalled()
+  })
+
+  it('keeps stored project JSON below the configured byte budget', async () => {
+    launchProject.create.mockResolvedValue(savedRecord)
+
+    await saveLaunchProject(saveInput)
+
+    const createCall = launchProject.create.mock.calls[0]?.[0]
+    const storedBytes =
+      new TextEncoder().encode(createCall.data.briefJson).byteLength +
+      new TextEncoder().encode(createCall.data.kitJson).byteLength
+
+    expect(storedBytes).toBeLessThanOrEqual(MAX_STORED_PROJECT_JSON_BYTES)
+  })
+
+  it('rejects new projects when the user has reached the saved-project cap', async () => {
+    launchProject.count.mockResolvedValue(MAX_SAVED_PROJECTS_PER_USER)
+
+    await expect(saveLaunchProject(saveInput)).rejects.toMatchObject({
+      name: 'InvalidLaunchProjectInputError',
+      message: `You can save up to ${MAX_SAVED_PROJECTS_PER_USER} projects. Delete an old project before saving another.`,
+    })
+
+    expect(launchProject.create).not.toHaveBeenCalled()
+  })
+
   it('updates an existing project only when it belongs to the current user', async () => {
     launchProject.updateMany.mockResolvedValue({ count: 1 })
     launchProject.findFirst.mockResolvedValue(savedRecord)
@@ -167,6 +240,7 @@ describe('launch project persistence', () => {
       }),
     })
     expect(saved.id).toBe('project_123')
+    expect(launchProject.count).not.toHaveBeenCalled()
   })
 
   it('throws a safe not-found error for stale or cross-user project ids', async () => {
@@ -180,6 +254,27 @@ describe('launch project persistence', () => {
     ).rejects.toBeInstanceOf(LaunchProjectNotFoundError)
 
     expect(launchProject.findFirst).not.toHaveBeenCalled()
+  })
+
+  it('deletes a project only when it belongs to the current user', async () => {
+    launchProject.deleteMany.mockResolvedValue({ count: 1 })
+
+    await deleteLaunchProject('user_123', 'project_123')
+
+    expect(launchProject.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: 'project_123',
+        userId: 'user_123',
+      },
+    })
+  })
+
+  it('throws a safe not-found error for cross-user deletes', async () => {
+    launchProject.deleteMany.mockResolvedValue({ count: 0 })
+
+    await expect(deleteLaunchProject('user_123', 'project_123')).rejects.toBeInstanceOf(
+      LaunchProjectNotFoundError,
+    )
   })
 
   it('sanitizes saved launch profile fields', async () => {
@@ -213,12 +308,47 @@ describe('launch project persistence', () => {
         founderBio: 'Builds tools',
         website: null,
         email: null,
+        socialX: '@launchkit',
+        socialLinkedIn: 'https://linkedin.com/company/launchkit',
       }),
       update: expect.objectContaining({
         founderName: 'Ada Lovelace',
         founderBio: 'Builds tools',
         website: null,
         email: null,
+        socialX: '@launchkit',
+        socialLinkedIn: 'https://linkedin.com/company/launchkit',
+      }),
+    })
+  })
+
+  it('drops unsafe profile social URL schemes before storage', async () => {
+    userLaunchProfile.upsert.mockResolvedValue({
+      founderName: '',
+      founderBio: '',
+      companyName: '',
+      companyBio: '',
+      website: '',
+      email: '',
+      contactPhone: '',
+      socialX: '',
+      socialLinkedIn: '',
+    })
+
+    await upsertUserLaunchProfile('user_123', {
+      socialX: 'javascript:alert(1)',
+      socialLinkedIn: 'data:text/html,<script>alert(1)</script>',
+    })
+
+    expect(userLaunchProfile.upsert).toHaveBeenCalledWith({
+      where: { userId: 'user_123' },
+      create: expect.objectContaining({
+        socialX: null,
+        socialLinkedIn: null,
+      }),
+      update: expect.objectContaining({
+        socialX: null,
+        socialLinkedIn: null,
       }),
     })
   })

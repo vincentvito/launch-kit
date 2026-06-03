@@ -20,13 +20,16 @@
       "title": "Iniciar sesion | Launch Kit",
       "description": "Inicia sesion para guardar proyectos, exports y trabajo premium de growth."
     },
+    "brand": "Launch Kit",
+    "brandInitial": "L",
     "title": "Inicia sesion en tu cuenta",
     "createTitle": "Crea tu cuenta",
     "subtitle": "Continua para guardar proyectos, exports y trabajo premium.",
     "googleButton": "Continuar con Google",
     "nameLabel": "Nombre",
     "emailLabel": "Email",
-    "passwordLabel": "Password",
+    "passwordLabel": "Contrasena",
+    "defaultName": "Usuario Launch Kit",
     "emailSignIn": "Iniciar sesion con email",
     "emailSignUp": "Crear cuenta",
     "switchToSignUp": "Necesitas una cuenta? Crea una",
@@ -106,17 +109,131 @@
     },
     "nav": {
       "brand": "Launch Kit",
-      "sub": "Motor editorial de lanzamientos para builders"
+      "sub": "Motor editorial de lanzamientos para builders",
+      "brandPrefix": "ship",
+      "brandAccent": "daddy",
+      "status": "pre-launch · waitlist abierta"
     },
     "hero": {
       "badge": "Proximamente",
-      "title": "Copy de launch day,",
-      "titleHighlight": "antes del launch day",
-      "description": "Estamos dando los ultimos retoques a Launch Kit. Unete a la lista de espera para acceso anticipado cuando abramos."
+      "eyebrow": "tu launch kit enfocado",
+      "title": "lanza en todas partes.",
+      "titleHighlight": "desde una URL.",
+      "description": "Deja de adivinar que escribir primero. Shipdaddy convierte una URL en copy de launch, guia para subreddits, email de anuncio y media kit que puedes usar hoy.",
+      "descriptionHighlight": "Premium desbloquea SEO, outreach, demos y assets creativos."
+    },
+    "marquee": {
+      "posts": [
+        {
+          "text": "pase 6 horas escribiendo el mismo post de launch para 8 plataformas. que alguien me salve.",
+          "c": 268,
+          "tag": "reescritura"
+        },
+        {
+          "text": "un post generico reutilizado en todos lados. la voz muere apenas lo copio y pego.",
+          "c": 252,
+          "tag": "voz"
+        },
+        {
+          "text": "thread de x, post de reddit, lista de subreddits, email de launch - todo en docs distintos. por que.",
+          "c": 280,
+          "tag": "demasiados docs"
+        },
+        {
+          "text": "PH manana. draft de HN? no escrito. blurb de prensa? jaja. deseenme suerte.",
+          "c": 30,
+          "tag": "launch day"
+        },
+        {
+          "text": "escribir copy 'profesional' para LinkedIn me deja sin energia.",
+          "c": 200,
+          "tag": "linkedin"
+        },
+        {
+          "text": "como que reddit no quiere mi copy pulido de landing page.",
+          "c": 320,
+          "tag": "reddit"
+        },
+        {
+          "text": "en que subreddit puedo publicar sin que me borren o me ataquen al instante?",
+          "c": 180,
+          "tag": "subreddits"
+        },
+        {
+          "text": "intento #4 del draft de Show HN. todavia suena como brochure corporativo.",
+          "c": 60,
+          "tag": "hacker news"
+        },
+        {
+          "text": "reescribi la misma historia del producto 9 veces para 9 canales hoy. 9.",
+          "c": 110,
+          "tag": "reescritura"
+        },
+        {
+          "text": "producto listo. copy de launch no listo. una persona. un fin de semana. ayuda.",
+          "c": 8,
+          "tag": "solo"
+        },
+        {
+          "text": "amo programar. amo shippear. ODIO escribir copy de launch.",
+          "c": 340,
+          "tag": "copy"
+        },
+        {
+          "text": "necesito copy util de launch primero, no otro dashboard gigante de growth.",
+          "c": 90,
+          "tag": "enfoque"
+        },
+        {
+          "text": "indie hackers quiere la historia build-in-public. linkedin quiere pulido. mismo producto.",
+          "c": 220,
+          "tag": "indie hackers"
+        },
+        {
+          "text": "launch kit basico primero. ads y demos elegantes pueden esperar hasta que el copy funcione.",
+          "c": 160,
+          "tag": "alcance"
+        },
+        {
+          "text": "x quiere un hook claro. reddit quiere contexto. linkedin quiere pulido. mismo producto.",
+          "c": 140,
+          "tag": "fit por canal"
+        },
+        {
+          "text": "cada comunidad tiene reglas no escritas y las aprendo a golpes en cada launch.",
+          "c": 40,
+          "tag": "contrato social"
+        },
+        {
+          "text": "el growth premium ayuda, pero solo despues de que la historia de launch esta clara.",
+          "c": 290,
+          "tag": "growth"
+        },
+        {
+          "text": "una URL, una historia, diez plataformas. tiene que haber una mejor forma.",
+          "c": 250,
+          "tag": "un brief"
+        }
+      ]
+    },
+    "ticker": {
+      "items": [
+        "una URL de producto · contenido de launch generado",
+        "launch kit gratis · un brief estructurado",
+        "Product Hunt · Hacker News · Reddit · Indie Hackers",
+        "X · LinkedIn · Email · Media Kit",
+        "subreddits sugeridos · donde publicar",
+        "premium · SEO · backlinks · outreach",
+        "premium · demo de producto · assets creativos",
+        "founder a founder · sin relleno",
+        "revisalo · luego publica"
+      ]
     },
     "form": {
+      "emailLabel": "Email",
       "placeholder": "founder@tustartup.com",
       "submit": "Ver muestra",
+      "saving": "Guardando...",
       "helper": "Ingresa un email para desbloquear la muestra generada de Shipdaddy.",
       "invalidEmail": "Ese email no parece valido. Intentalo de nuevo.",
       "success": "Ya estas en la lista. Te escribiremos cuando abra el acceso anticipado.",
@@ -143,6 +260,7 @@
       "inputUrl": "URL de entrada",
       "contentYouGet": "Contenido que recibes",
       "contentSummary": "Launch kit basado en la fuente primero. Sistema de growth premium cuando estes listo.",
+      "contentSummaryValue": "Kit gratis mas preview de growth premium.",
       "channels": "Canales generados",
       "generatedCopy": "Copy generado",
       "mediaAssets": "Assets visuales",
@@ -158,7 +276,88 @@
       "redditPost": "Post para Reddit",
       "prospects": "Prospects premium",
       "productDemo": "Product Demo",
-      "fullResults": "Resultados generados completos"
+      "fullResults": "Resultados generados completos",
+      "metrics": {
+        "channelDrafts": "drafts por canal",
+        "redditTargets": "targets de reddit",
+        "creativePrompts": "prompts creativos",
+        "reviewedProspects": "prospects revisados"
+      },
+      "workflow": {
+        "sourceUrl": {
+          "title": "URL fuente",
+          "body": "shipdaddy.ai",
+          "status": "Brief extraido"
+        },
+        "generationProfile": {
+          "title": "Perfil de generacion",
+          "body": "Basado en la fuente, nativo por canal y seguro con el proof.",
+          "status": "Prompt de Shipdaddy"
+        },
+        "dashboardOutput": {
+          "title": "Output del dashboard",
+          "body": "Copy, SEO, outreach, demo, creative y media kit.",
+          "status": "Listo para revisar"
+        }
+      },
+      "navigation": {
+        "launchCopy": {
+          "title": "Copy de launch",
+          "value": "Product Hunt, HN, LinkedIn, email"
+        },
+        "xThread": {
+          "title": "Thread de X",
+          "value": "Hook de launch sin docs en blanco"
+        },
+        "redditPost": {
+          "title": "Post de Reddit",
+          "value": "Draft comunitario enfocado en feedback"
+        },
+        "seoPlan": {
+          "title": "Plan SEO",
+          "value": "Keywords, posts, backlinks"
+        },
+        "prospects": {
+          "title": "Prospects",
+          "value": "Founders y curadores objetivo"
+        },
+        "outreach": {
+          "title": "Outreach",
+          "value": "Drafts para email, LinkedIn y X"
+        },
+        "productDemo": {
+          "title": "Demo de producto",
+          "value": "Workflow y shot list"
+        },
+        "creative": {
+          "title": "Creative",
+          "value": "Prompts de imagen y video"
+        }
+      },
+      "sections": {
+        "extractedBrief": "Brief extraido",
+        "freeLaunchCopy": "Copy de launch gratis",
+        "subredditsToEvaluate": "Subreddits para evaluar",
+        "whereToTest": "Donde probar",
+        "premiumSeo": "Plan premium de SEO y GEO",
+        "premiumProspects": "Prospects premium",
+        "premiumOutreach": "Drafts premium de outreach",
+        "premiumProductDemo": "Script premium de demo de producto",
+        "premiumCreative": "Prompts creativos premium",
+        "oneLiner": "One-liner",
+        "pressHook": "Hook de prensa"
+      },
+      "ctaItems": [
+        "CTA principal: prueba el launch kit de muestra",
+        "CTA secundario: genera desde la URL de tu producto",
+        "CTA premium: convierte el brief confirmado en growth work"
+      ],
+      "noteItems": [
+        "Mantén claro el limite de revision del founder.",
+        "No inventes conteos de clientes, revenue ni traccion.",
+        "Revisa las reglas de cada subreddit antes de publicar.",
+        "Mantén el growth premium separado hasta que la historia principal funcione."
+      ]
     },
     "highlights": {
       "one": {
@@ -177,6 +376,245 @@
     "footer": {
       "copyright": "Launch Kit. Todos los derechos reservados.",
       "tagline": "El acceso anticipado abre pronto."
+    },
+    "sampleData": {
+      "briefSignals": [
+        {
+          "label": "Posicionamiento",
+          "value": "Shipdaddy convierte una URL de producto en copy de launch, guia para subreddits, un email de anuncio y un media kit ligero."
+        },
+        {
+          "label": "Mejor audiencia",
+          "value": "Solo founders, indie hackers y equipos SaaS lean que ya tienen producto listo pero no quieren preparar el launch en docs en blanco."
+        },
+        {
+          "label": "Proof para usar",
+          "value": "La app extrae un brief enfocado, genera canales principales de launch, mantiene la revision en el dashboard y separa el growth premium hasta que la historia esta clara."
+        }
+      ],
+      "channels": [
+        {
+          "id": "product-hunt",
+          "label": "Product Hunt",
+          "eyebrow": "Plataforma de launch",
+          "title": "Shipdaddy - una URL de producto a un launch kit enfocado",
+          "body": "Shipdaddy convierte una URL de producto en el trabajo de launch que los founders necesitan primero: copy para Product Hunt, Show HN, drafts para Reddit, posts para X, copy para LinkedIn, un email de anuncio, guia de subreddits y un media kit ligero.\n\nEsta construido para ese momento en que el producto esta listo pero la historia de launch sigue repartida entre documentos vacios, notas viejas y dudas por canal.\n\nPega la URL, revisa el brief extraido, genera el launch kit y luego edita y publica las piezas que esten listas.",
+          "cta": "Probar el launch kit de muestra",
+          "notes": "Promesa clara, outputs concretos y un flujo de revisar antes de publicar."
+        },
+        {
+          "id": "hacker-news",
+          "label": "Hacker News",
+          "eyebrow": "Show HN",
+          "title": "Show HN: Shipdaddy - de URL a drafts de launch para founders",
+          "body": "Estoy construyendo Shipdaddy porque preparar un launch se vuelve trabajo repetitivo de reescritura.\n\nEl flujo es simple: pegas una URL de producto, confirmas el brief extraido y generas el primer launch kit: Product Hunt, Show HN, Reddit, X, LinkedIn, email, recomendaciones de subreddits y un media kit ligero. Premium agrega SEO, backlinks, outreach, beats de demo y prompts creativos desde el mismo brief.\n\nNo publica por ti. El objetivo es dar a los founders un primer borrador fuerte que respete cada canal, para que el trabajo humano sea revisar, editar y decidir.\n\nMe serviria feedback sobre que output generado te costaria mas confiar y que lo haria publicable.",
+          "cta": "Abrir la muestra y criticar un bloque",
+          "notes": "Especifico, transparente sobre limites del producto y apropiado para feedback en HN."
+        },
+        {
+          "id": "reddit",
+          "label": "Reddit",
+          "eyebrow": "Post comunitario",
+          "title": "Construí una herramienta que convierte una URL en copy de launch",
+          "body": "Me gusta shippear productos. No me gusta escribir la misma historia de launch de ocho formas distintas y luego adivinar que subreddit tolerara el post.\n\nShipdaddy es mi intento de hacer ese primer borrador menos caotico. Pegas una URL de producto, revisas el brief y obtienes drafts especificos por canal mas recomendaciones de subreddits. El kit gratis cubre el contenido basico de launch. Premium agrega SEO, backlinks, outreach, demo beats y creative cuando la historia ya vale la pena escalar.\n\nLa idea no es rociar posts genericos de AI por todos lados. La idea es empezar con un draft y un lugar que encajen con el canal, y luego editar como humano antes de publicar.\n\nSi lanzas side projects, que es peor: escribir el post, encontrar donde publicarlo o hacer que no suene como anuncio?",
+          "cta": "Pedir feedback sobre el workflow de launch",
+          "notes": "Empieza con el dolor del founder y pide discusion util en vez de soltar un pitch."
+        },
+        {
+          "id": "x",
+          "label": "X",
+          "eyebrow": "Thread social",
+          "title": "Thread de X: preparar un launch no deberia empezar con diez docs en blanco",
+          "body": "1/ Preparar un launch no deberia empezar con diez docs en blanco.\n\n2/ Shipdaddy lee una URL de producto y te da el primer borrador: copy para Product Hunt, Show HN, Reddit, X, LinkedIn, email, guia de subreddits y media kit.\n\n3/ Lo dificil no es solo escribir. Es saber que angulo pertenece a cada canal. Reddit quiere contexto. X necesita un hook claro. LinkedIn necesita el caso de negocio.\n\n4/ Shipdaddy te da un mapa de canales y drafts para revisar. Tu sigues decidiendo que se publica.\n\n5/ Una URL entra. Un launch kit enfocado sale.",
+          "cta": "Publicar el thread",
+          "notes": "Hook escaneable, dolor claro, lista concreta de outputs y limite de revision humana."
+        },
+        {
+          "id": "indie-hackers",
+          "label": "Indie Hackers",
+          "eyebrow": "Build in public",
+          "title": "Convertir la preparacion del launch en un workflow de producto",
+          "body": "El patron que sigo viendo: el producto esta listo, pero la distribucion empieza desde una pagina en blanco.\n\nShipdaddy empieza con una URL y crea el primer borrador del launch kit: copy para Product Hunt, post de Reddit, thread de X, recomendaciones de subreddits, copy de LinkedIn, email de anuncio y media kit.\n\nLa opinion: los founders deberian pasar la semana de launch eligiendo, editando y publicando, no reconstruyendo la misma narrativa en diez tabs.\n\nFoco actual: hacer que el trabajo generado sea lo bastante claro para que la siguiente edicion sea obvia.",
+          "cta": "Seguir el workflow de launch generado",
+          "notes": "Historia de founder, tesis del producto y update claro de build-in-public."
+        },
+        {
+          "id": "linkedin",
+          "label": "LinkedIn",
+          "eyebrow": "Social profesional",
+          "title": "Los founders no deberian lanzar desde documentos en blanco",
+          "body": "La mayoria de launches necesitan las mismas primeras piezas: copy para Product Hunt, Show HN, Reddit, X, LinkedIn, email, guia de subreddits y media kit.\n\nShipdaddy crea esas piezas desde una URL de producto.\n\nMantiene una narrativa de producto consistente mientras adapta la entrega por canal.\n\nEl founder mantiene el control. Shipdaddy elimina el trabajo de pagina en blanco y separa el growth premium hasta que la historia de launch esta clara.",
+          "cta": "Abrir la muestra de Shipdaddy",
+          "notes": "Legible para ejecutivos y preciso sobre los trabajos de launch que maneja Shipdaddy."
+        },
+        {
+          "id": "email",
+          "label": "Email",
+          "eyebrow": "Anuncio",
+          "title": "Asunto: Shipdaddy convierte tu URL en drafts de launch",
+          "body": "Hola,\n\nShipdaddy esta hecho para founders que pueden shippear el producto, pero no quieren que la distribucion del launch empiece desde cero.\n\nPega tu URL de producto y Shipdaddy genera el primer launch kit: copy para Product Hunt, draft de Show HN, draft de Reddit, post de X, recomendaciones de subreddits, post de LinkedIn, email de anuncio y media kit listo para revisar.\n\nTu decides que se publica. Shipdaddy te da el primer pase completo.\n\nLa muestra enseña como una URL de producto se convierte en trabajo de launch especifico por canal.",
+          "cta": "Ver la muestra de Shipdaddy",
+          "notes": "Directo, practico y claro en que el usuario revisa antes de publicar."
+        }
+      ],
+      "subreddits": [
+        {
+          "name": "r/SaaS",
+          "angle": "Feedback de workflow de founders SaaS que entienden el dolor de copy de launch y fit por canal.",
+          "guidance": "Pide critica sobre el workflow y la calidad del output generado. Evita un anuncio puro de producto."
+        },
+        {
+          "name": "r/SideProject",
+          "angle": "Post maker mas ligero mostrando la transformacion de una URL a contenido de launch.",
+          "guidance": "Empieza con lo que construiste, muestra la muestra y pregunta que output ahorraria mas tiempo."
+        },
+        {
+          "name": "r/AlphaandBetaUsers",
+          "angle": "Testers tempranos que pueden probar copy de launch y recomendaciones de subreddits desde su propia URL.",
+          "guidance": "Se explicito con que es early access y pide founders dispuestos a probar contenido generado de launch."
+        },
+        {
+          "name": "r/GrowthHacking",
+          "angle": "Angulo de workflow de distribucion: contenido de launch, targeting de subreddits y ruta clara de growth premium.",
+          "guidance": "Enmarcalo como un workflow enfocado de launch primero, no como un producto gigante de growth."
+        },
+        {
+          "name": "r/startups",
+          "angle": "Discusion de launch para founders que intentan convertir un producto terminado en traccion inicial.",
+          "guidance": "Pide feedback sobre el workflow de launch y los primeros outputs generados. Mantenlo practico."
+        },
+        {
+          "name": "r/EntrepreneurRideAlong",
+          "angle": "Audiencia build-in-public que responde a workflows concretos de antes y despues.",
+          "guidance": "Comparte la URL de entrada, el mapa de outputs generado y lo que editarias manualmente antes de publicar."
+        }
+      ],
+      "seoPlan": [
+        {
+          "title": "Generador de copy de launch con AI",
+          "intent": "Keyword research",
+          "angle": "Query comercial principal para founders que quieren convertir una URL de producto en copy de launch."
+        },
+        {
+          "title": "Generador de product launch kit",
+          "intent": "Keyword research",
+          "angle": "Angulo de pagina comercial sobre crear assets para Product Hunt, HN, Reddit, X, LinkedIn, email y media kit."
+        },
+        {
+          "title": "Como lanzar en Reddit sin sonar como anuncio",
+          "intent": "Generacion de contenido",
+          "angle": "Guia evergreen que convierte recomendaciones de subreddits y notas de contrato social en contenido buscable."
+        },
+        {
+          "title": "Ejemplos de copy para Product Hunt",
+          "intent": "Generacion de contenido",
+          "angle": "Post basado en ejemplos que muestra como un brief se convierte en tagline, descripcion, maker comment y CTA."
+        },
+        {
+          "title": "Directorios de startups y listas de launch",
+          "intent": "Ideas de backlinks",
+          "angle": "Encontrar directorios relevantes donde Shipdaddy pueda reutilizar el brief confirmado para listings."
+        },
+        {
+          "title": "Roundups de herramientas para founders",
+          "intent": "Preparacion GEO",
+          "angle": "Construir angulos de comparacion y mencion para herramientas AI de launch, workflows de founders y planificacion de launch."
+        }
+      ],
+      "outreach": [
+        {
+          "title": "Draft de email para founder",
+          "body": "Asunto: Idea rapida de workflow de launch para {{company}}\n\nHola {{firstName}},\n\nVi que {{company}} esta preparando trabajo de producto. Shipdaddy convierte una URL en el launch kit principal primero, y luego premium puede preparar SEO, backlinks y drafts de outreach desde el mismo brief.\n\nQuieres que te mande la muestra generada desde shipdaddy.ai?",
+          "cta": "Listo para revisar"
+        },
+        {
+          "title": "DM de LinkedIn",
+          "body": "Hola {{firstName}} - vi que {{company}} esta trabajando en launch o growth. Shipdaddy crea el primer launch kit desde una URL y luego prepara outreach premium que puedes revisar antes de enviar.\n\nQuieres que te mande la muestra?",
+          "cta": "Enviar despues de revisar"
+        },
+        {
+          "title": "DM de X",
+          "body": "Hola {{firstName}} - vi que hablabas de distribucion de launch. Estoy construyendo Shipdaddy: una URL al launch kit principal, con SEO premium, outreach, backlinks, demos y creative cuando la historia esta clara.\n\nVale la pena mandarte la muestra?",
+          "cta": "Enviar despues de revisar"
+        },
+        {
+          "title": "Email de follow-up",
+          "body": "Asunto: Re: idea de workflow de launch\n\nHola {{firstName}},\n\nFollow-up rapido. Lo util de Shipdaddy es empezar simple: Product Hunt, HN, Reddit, X, LinkedIn, email, guia de subreddits y media kit ligero desde una URL.\n\nFeliz de mandar la muestra si sirve.",
+          "cta": "Listo para revisar"
+        }
+      ],
+      "prospects": [
+        {
+          "name": "Founder Micro-SaaS lanzando una nueva feature",
+          "segment": "Cliente potencial",
+          "fit": "Founders preparando launches publicos suelen necesitar ayuda con Product Hunt, Reddit, X, email y outreach al mismo tiempo.",
+          "outreachAngle": "Ofrecer un launch kit de muestra generado desde su URL y preguntar que bloque esta mas cerca de ser publicable."
+        },
+        {
+          "name": "Curador de herramientas para founders",
+          "segment": "Partner de distribucion",
+          "fit": "Curadores de herramientas y newsletters para founders cubren workflows de launch, escritura AI, SEO y adquisicion temprana.",
+          "outreachAngle": "Presentar Shipdaddy como herramienta estrecha de launch prep con un dashboard de muestra concreto."
+        },
+        {
+          "name": "Directorio de startup tools",
+          "segment": "Prospect de backlink",
+          "fit": "Directorios que listan herramientas de launch, marketing y productividad para founders pueden reutilizar un listing conciso de Shipdaddy.",
+          "outreachAngle": "Preparar una solicitud de listing con fit de categoria, blurb corto y copy generado de media kit."
+        }
+      ],
+      "productDemo": [
+        {
+          "title": "Walkthrough de 30 segundos",
+          "format": "Script de demo",
+          "draft": "Abrir en shipdaddy.ai. Pegar una URL de producto. Mostrar el brief extraido. Generar Product Hunt, Show HN, Reddit, X, LinkedIn, email, guia de subreddits y media kit. Luego mostrar SEO premium, outreach, demo beats y prompts creativos desde el mismo brief."
+        },
+        {
+          "title": "Voiceover de founder",
+          "format": "Narracion",
+          "draft": "No necesito otro documento en blanco. Pego una URL en Shipdaddy y obtengo copy de launch, plan de donde publicar, email de anuncio y media kit ligero listo para revisar. Cuando la historia funciona, premium la convierte en growth work."
+        },
+        {
+          "title": "Checklist de screen recording",
+          "format": "Shot list",
+          "draft": "1. Input de URL. 2. Brief de producto extraido. 3. Dashboard generado. 4. Thread de X y draft de Reddit. 5. Cards de recomendacion de subreddits. 6. Email de anuncio. 7. Paneles premium de SEO y outreach. 8. Cards de prompts creativos."
+        }
+      ],
+      "creativeAssets": [
+        {
+          "id": "problem-solution",
+          "title": "Problema / Solucion",
+          "label": "Prompt de imagen para ad",
+          "format": "1:1",
+          "prompt": "Ad premium estilo dashboard para Shipdaddy mostrando tabs de launch y docs vacios desordenados convirtiendose en un launch kit organizado. Acentos violeta y menta, input central de URL claro, sin texto falso."
+        },
+        {
+          "id": "before-after",
+          "title": "Antes / Despues",
+          "label": "Prompt de imagen para ad",
+          "format": "4:5",
+          "prompt": "Antes: docs dispersos para Product Hunt, HN, Reddit, X, LinkedIn, email y SEO. Despues: un dashboard limpio de Shipdaddy con bloques de launch revisados. Product-led, enfocado en founders, sin metricas inventadas."
+        },
+        {
+          "id": "feature-benefit",
+          "title": "Feature / Beneficio",
+          "label": "Prompt de imagen para ad",
+          "format": "16:9",
+          "prompt": "Mostrar una URL de producto fluyendo hacia cards de copy de launch nativas por canal, recomendaciones de subreddits y paneles premium de growth. Estilo dashboard SaaS calmado, acentos violeta, jerarquia clara."
+        },
+        {
+          "id": "video-hook",
+          "title": "De URL a launch kit",
+          "label": "Script de video",
+          "format": "9:16",
+          "prompt": "0-2s: \"Tu producto esta listo. Tus docs de launch estan vacios.\" 3-7s: pegar URL. 8-15s: brief generado y cards por canal. 16-22s: preview de SEO y outreach premium. Cierre: Una URL. Launch kit enfocado."
+        }
+      ],
+      "mediaKit": {
+        "oneLiner": "Shipdaddy convierte una URL de producto en copy de launch enfocado, guia de subreddits, un email de anuncio y un media kit ligero que los founders pueden revisar y publicar.",
+        "boilerplate": "Shipdaddy es un workspace de launch prep para founders. Extrae un brief estructurado desde una URL de producto y genera copy nativo por plataforma, recomendaciones de subreddits, emails de anuncio y bases de media kit. Premium agrega SEO growth, planificacion de backlinks, drafts de outreach revisados, beats de product demo y prompts creativos desde el mismo brief.",
+        "pressHook": "Shipdaddy apunta al trabajo de pagina en blanco que frena launches: reescribir para cada canal, adivinar donde publicar y convertir una historia de producto en launch kit antes de expandirla a growth work premium."
+      }
     }
   },
   "Landing": {
@@ -636,47 +1074,161 @@
         }
       },
       "channels": {
-        "product_hunt": { "title": "Product Hunt", "description": "Copy de pagina de lanzamiento" },
-        "hacker_news": { "title": "Hacker News", "description": "Post Show HN" },
-        "indie_hackers": { "title": "Indie Hackers", "description": "Historia del founder" },
-        "launch_directories": { "title": "Launch Directories", "description": "Playbook de listing" },
-        "trustmrr": { "title": "TrustMRR", "description": "Marketplace de startups con revenue verificado" },
-        "acquire_com": { "title": "Acquire.com", "description": "Marketplace de adquisicion de startups" },
-        "flippa": { "title": "Flippa", "description": "Marketplace de negocios online" },
-        "x": { "title": "X", "description": "Posts build-in-public" },
-        "linkedin": { "title": "LinkedIn", "description": "Post profesional" },
-        "threads": { "title": "Threads", "description": "Thread casual de lanzamiento" },
-        "reddit": { "title": "Reddit", "description": "Post de comunidad" },
-        "instagram": { "title": "Instagram", "description": "Plan visual de lanzamiento" },
-        "tiktok": { "title": "TikTok", "description": "Script de video corto" },
-        "youtube_shorts": { "title": "YouTube Shorts", "description": "Script de video corto" },
-        "email_announcement": { "title": "Anuncio por Email", "description": "Email de launch" },
-        "linkedin_outreach": { "title": "Outreach en LinkedIn", "description": "Variantes de cold DM" },
-        "x_outreach": { "title": "Outreach en X", "description": "Variantes de cold DM" },
-        "cold_email_outreach": { "title": "Cold Email Outreach", "description": "Variantes de email" },
-        "website_seo": { "title": "Website SEO", "description": "Checks tecnicos y de contenido" },
-        "keyword_research": { "title": "Keyword Research", "description": "Clusters de busqueda" },
-        "blog_cadence": { "title": "Blog Cadence", "description": "Un post cada 4 dias" },
-        "geo_llm_visibility": { "title": "GEO / LLM Visibility", "description": "Preparacion para respuestas AI" },
-        "comparison_alternatives": { "title": "Comparison / Alternatives Pages", "description": "Playbook SEO de alta intencion" },
-        "email_scrape_contacts": { "title": "Scrapear Website para Contactos", "description": "Encuentra contactos relevantes" },
-        "email_import_list": { "title": "Importar Lista", "description": "Pega CSV o emails" },
-        "email_automation": { "title": "Automatizar Envio de Emails", "description": "Jobs de outreach listos para webhook" },
-        "backlink_building": { "title": "Backlink Building", "description": "Prospecta y puntua sitios" },
-        "guest_posts": { "title": "Guest Posts", "description": "Playbook de backlinks editoriales" },
-        "partner_pages": { "title": "Partner Pages", "description": "Menciones en ecosistemas" },
-        "directory_outreach": { "title": "Directory Outreach", "description": "Pitches a directorios relevantes" },
-        "media_kit": { "title": "Media Kit", "description": "Assets listos para prensa" },
-        "pr_pitch": { "title": "PR Pitch", "description": "Playbook para periodistas" },
-        "podcast_pitch": { "title": "Podcast Pitch", "description": "Angulo de entrevista founder" },
-        "newsletter_partnerships": { "title": "Newsletter Partnerships", "description": "Playbook de audiencia prestada" }
+        "product_hunt": {
+          "title": "Product Hunt",
+          "description": "Copy de pagina de lanzamiento"
+        },
+        "hacker_news": {
+          "title": "Hacker News",
+          "description": "Post Show HN"
+        },
+        "indie_hackers": {
+          "title": "Indie Hackers",
+          "description": "Historia del founder"
+        },
+        "launch_directories": {
+          "title": "Launch Directories",
+          "description": "Playbook de listing"
+        },
+        "trustmrr": {
+          "title": "TrustMRR",
+          "description": "Marketplace de startups con revenue verificado"
+        },
+        "acquire_com": {
+          "title": "Acquire.com",
+          "description": "Marketplace de adquisicion de startups"
+        },
+        "flippa": {
+          "title": "Flippa",
+          "description": "Marketplace de negocios online"
+        },
+        "x": {
+          "title": "X",
+          "description": "Posts build-in-public"
+        },
+        "linkedin": {
+          "title": "LinkedIn",
+          "description": "Post profesional"
+        },
+        "threads": {
+          "title": "Threads",
+          "description": "Thread casual de lanzamiento"
+        },
+        "reddit": {
+          "title": "Reddit",
+          "description": "Post de comunidad"
+        },
+        "instagram": {
+          "title": "Instagram",
+          "description": "Plan visual de lanzamiento"
+        },
+        "tiktok": {
+          "title": "TikTok",
+          "description": "Script de video corto"
+        },
+        "youtube_shorts": {
+          "title": "YouTube Shorts",
+          "description": "Script de video corto"
+        },
+        "email_announcement": {
+          "title": "Anuncio por Email",
+          "description": "Email de launch"
+        },
+        "linkedin_outreach": {
+          "title": "Outreach en LinkedIn",
+          "description": "Variantes de cold DM"
+        },
+        "x_outreach": {
+          "title": "Outreach en X",
+          "description": "Variantes de cold DM"
+        },
+        "cold_email_outreach": {
+          "title": "Cold Email Outreach",
+          "description": "Variantes de email"
+        },
+        "website_seo": {
+          "title": "Website SEO",
+          "description": "Checks tecnicos y de contenido"
+        },
+        "keyword_research": {
+          "title": "Keyword Research",
+          "description": "Clusters de busqueda"
+        },
+        "blog_cadence": {
+          "title": "Blog Cadence",
+          "description": "Un post cada 4 dias"
+        },
+        "geo_llm_visibility": {
+          "title": "GEO / LLM Visibility",
+          "description": "Preparacion para respuestas AI"
+        },
+        "comparison_alternatives": {
+          "title": "Comparison / Alternatives Pages",
+          "description": "Playbook SEO de alta intencion"
+        },
+        "email_scrape_contacts": {
+          "title": "Scrapear Website para Contactos",
+          "description": "Encuentra contactos relevantes"
+        },
+        "email_import_list": {
+          "title": "Importar Lista",
+          "description": "Pega CSV o emails"
+        },
+        "email_automation": {
+          "title": "Automatizar Envio de Emails",
+          "description": "Jobs de outreach listos para webhook"
+        },
+        "backlink_building": {
+          "title": "Backlink Building",
+          "description": "Prospecta y puntua sitios"
+        },
+        "guest_posts": {
+          "title": "Guest Posts",
+          "description": "Playbook de backlinks editoriales"
+        },
+        "partner_pages": {
+          "title": "Partner Pages",
+          "description": "Menciones en ecosistemas"
+        },
+        "directory_outreach": {
+          "title": "Directory Outreach",
+          "description": "Pitches a directorios relevantes"
+        },
+        "media_kit": {
+          "title": "Media Kit",
+          "description": "Assets listos para prensa"
+        },
+        "pr_pitch": {
+          "title": "PR Pitch",
+          "description": "Playbook para periodistas"
+        },
+        "podcast_pitch": {
+          "title": "Podcast Pitch",
+          "description": "Angulo de entrevista founder"
+        },
+        "newsletter_partnerships": {
+          "title": "Newsletter Partnerships",
+          "description": "Playbook de audiencia prestada"
+        }
       },
       "assets": {
         "kinds": {
-          "screenshots": { "title": "Screenshots", "description": "Visuales de lanzamiento con gradiente" },
-          "image_ads": { "title": "Image Ads", "description": "Creatividades evergreen para paid social" },
-          "video_ads": { "title": "Video Ads", "description": "Videos cortos para paid social" },
-          "text_ads": { "title": "Text Ads", "description": "Copy para X y Threads" }
+          "screenshots": {
+            "title": "Screenshots",
+            "description": "Visuales de lanzamiento con gradiente"
+          },
+          "image_ads": {
+            "title": "Image Ads",
+            "description": "Creatividades evergreen para paid social"
+          },
+          "video_ads": {
+            "title": "Video Ads",
+            "description": "Videos cortos para paid social"
+          },
+          "text_ads": {
+            "title": "Text Ads",
+            "description": "Copy para X y Threads"
+          }
         },
         "actions": {
           "generate": "Generar",
@@ -821,7 +1373,10 @@
       "descriptionGuest": "Los proyectos guest se guardan solo en este navegador.",
       "empty": "No hay proyectos guardados.",
       "cloudLabel": "Nube",
-      "localLabel": "Local"
+      "localLabel": "Local",
+      "delete": "Eliminar",
+      "deleteAria": "Eliminar {name}",
+      "deleteConfirm": "Eliminar {name}? Esta accion no se puede deshacer."
     },
     "workflow": {
       "title": "Flujo Principal",
@@ -1008,6 +1563,7 @@
       "saveFailed": "No se pudo guardar el proyecto ahora.",
       "saveRequiresKit": "Genera un launch kit antes de guardar.",
       "projectLoadFailed": "No se pudo cargar este proyecto.",
+      "projectDeleteFailed": "No se pudo eliminar este proyecto.",
       "assetGenerateFailed": "La generacion del asset fallo. Revisa los datos del proyecto y la configuracion del API.",
       "actionFailed": "La accion fallo. Revisa los datos del proyecto e intenta de nuevo."
     },
@@ -1023,6 +1579,7 @@
       "savedLocal": "Proyecto guardado localmente en este navegador.",
       "loadedCloud": "Proyecto cargado desde la nube.",
       "loadedLocal": "Proyecto cargado desde almacenamiento local.",
+      "projectDeleted": "Proyecto eliminado.",
       "blockCopied": "Bloque de {platform} copiado al portapapeles.",
       "channelCardCopied": "Tarjeta de {channel} copiada al portapapeles.",
       "urlPrefilled": "URL precargada desde la landing. Extrae cuando quieras.",

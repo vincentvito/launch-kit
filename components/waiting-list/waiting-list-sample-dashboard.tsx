@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   BookOpenText,
@@ -20,18 +21,10 @@ import {
   Users,
 } from 'lucide-react'
 import {
-  SAMPLE_BRIEF_SIGNALS,
-  SAMPLE_CHANNELS,
-  SAMPLE_CREATIVE_ASSETS,
-  SAMPLE_MEDIA_KIT,
-  SAMPLE_OUTREACH,
-  SAMPLE_PRODUCT_DEMO,
-  SAMPLE_PROSPECTS,
-  SAMPLE_SEO_PLAN,
-  SAMPLE_SUBREDDITS,
   type SampleChannel,
+  type WaitingListSampleData,
 } from '@/components/waiting-list/sample-data'
-import styles from '@/components/waiting-list/waiting-list.module.css'
+import { waitingListStyles as styles } from '@/components/waiting-list/waiting-list-styles'
 
 export type WaitingListSampleLabels = {
   unlocked: string
@@ -40,6 +33,7 @@ export type WaitingListSampleLabels = {
   inputUrl: string
   contentYouGet: string
   contentSummary: string
+  contentSummaryValue: string
   channels: string
   generatedCopy: string
   mediaAssets: string
@@ -56,68 +50,222 @@ export type WaitingListSampleLabels = {
   prospects: string
   productDemo: string
   fullResults: string
+  metrics: {
+    channelDrafts: string
+    redditTargets: string
+    creativePrompts: string
+    reviewedProspects: string
+  }
+  workflow: {
+    sourceUrl: WaitingListWorkflowLabel
+    generationProfile: WaitingListWorkflowLabel
+    dashboardOutput: WaitingListWorkflowLabel
+  }
+  navigation: {
+    launchCopy: WaitingListNavigationLabel
+    xThread: WaitingListNavigationLabel
+    redditPost: WaitingListNavigationLabel
+    seoPlan: WaitingListNavigationLabel
+    prospects: WaitingListNavigationLabel
+    outreach: WaitingListNavigationLabel
+    productDemo: WaitingListNavigationLabel
+    creative: WaitingListNavigationLabel
+  }
+  sections: {
+    extractedBrief: string
+    freeLaunchCopy: string
+    subredditsToEvaluate: string
+    whereToTest: string
+    premiumSeo: string
+    premiumProspects: string
+    premiumOutreach: string
+    premiumProductDemo: string
+    premiumCreative: string
+    oneLiner: string
+    pressHook: string
+  }
+  ctaItems: string[]
+  noteItems: string[]
 }
 
-const productHuntChannel = getChannel('product-hunt')
-const hackerNewsChannel = getChannel('hacker-news')
-const xChannel = getChannel('x')
-const redditChannel = getChannel('reddit')
-const linkedInChannel = getChannel('linkedin')
-const emailChannel = getChannel('email')
+type WaitingListWorkflowLabel = {
+  title: string
+  body: string
+  status: string
+}
 
-const sampleMetrics = [
-  { value: '8', label: 'channel drafts' },
-  { value: '6', label: 'reddit targets' },
-  { value: '4', label: 'creative prompts' },
-  { value: '3', label: 'reviewed prospects' },
-]
+type WaitingListNavigationLabel = {
+  title: string
+  value: string
+}
 
-const workflowCards = [
-  {
-    icon: <Globe2 size={18} />,
-    title: 'Source URL',
-    body: 'shipdaddy.ai',
-    status: 'Brief extracted',
-  },
-  {
-    icon: <Sparkles size={18} />,
-    title: 'Generation profile',
-    body: 'Source-grounded, channel-native, proof-safe.',
-    status: 'Shipdaddy prompt',
-  },
-  {
-    icon: <LayoutDashboard size={18} />,
-    title: 'Dashboard output',
-    body: 'Copy, SEO, outreach, demo, creative, and media kit.',
-    status: 'Ready to review',
-  },
-]
-
-const navigationItems = [
-  { icon: <Newspaper size={16} />, title: 'Launch copy', value: 'Product Hunt, HN, LinkedIn, email' },
-  { icon: <MessageSquareText size={16} />, title: 'X thread', value: 'Blank-doc launch hook' },
-  { icon: <Users size={16} />, title: 'Reddit post', value: 'Feedback-first community draft' },
-  { icon: <Search size={16} />, title: 'SEO plan', value: 'Keywords, posts, backlinks' },
-  { icon: <Target size={16} />, title: 'Prospects', value: 'Founder and curator targets' },
-  { icon: <Send size={16} />, title: 'Outreach', value: 'Email, LinkedIn, X drafts' },
-  { icon: <MonitorPlay size={16} />, title: 'Product demo', value: 'Workflow and shot list' },
-  { icon: <ImageIcon size={16} />, title: 'Creative', value: 'Image and video prompts' },
-]
-
-const launchCopyChannels = [
-  productHuntChannel,
-  hackerNewsChannel,
-  linkedInChannel,
-  emailChannel,
-]
+type SampleSectionId =
+  | 'launch-copy'
+  | 'x-thread'
+  | 'reddit-post'
+  | 'seo-plan'
+  | 'prospects'
+  | 'outreach'
+  | 'product-demo'
+  | 'creative'
 
 export default function WaitingListSampleDashboard({
   email,
   labels,
+  sampleData,
 }: {
   email: string
   labels: WaitingListSampleLabels
+  sampleData: WaitingListSampleData
 }) {
+  const [activeSection, setActiveSection] = useState<SampleSectionId>('launch-copy')
+  const activeContentRef = useRef<HTMLDivElement>(null)
+  const productHuntChannel = getChannel('product-hunt', sampleData.channels)
+  const hackerNewsChannel = getChannel('hacker-news', sampleData.channels)
+  const xChannel = getChannel('x', sampleData.channels)
+  const redditChannel = getChannel('reddit', sampleData.channels)
+  const linkedInChannel = getChannel('linkedin', sampleData.channels)
+  const emailChannel = getChannel('email', sampleData.channels)
+  const launchCopyChannels = [
+    productHuntChannel,
+    hackerNewsChannel,
+    linkedInChannel,
+    emailChannel,
+  ]
+  const sampleMetrics = [
+    { value: '8', label: labels.metrics.channelDrafts },
+    { value: '6', label: labels.metrics.redditTargets },
+    { value: '4', label: labels.metrics.creativePrompts },
+    { value: '3', label: labels.metrics.reviewedProspects },
+  ]
+  const workflowCards = [
+    {
+      icon: <Globe2 size={18} />,
+      ...labels.workflow.sourceUrl,
+    },
+    {
+      icon: <Sparkles size={18} />,
+      ...labels.workflow.generationProfile,
+    },
+    {
+      icon: <LayoutDashboard size={18} />,
+      ...labels.workflow.dashboardOutput,
+    },
+  ]
+  const navigationItems: Array<{
+    id: SampleSectionId
+    icon: ReactNode
+    title: string
+    value: string
+  }> = [
+    { id: 'launch-copy', icon: <Newspaper size={16} />, ...labels.navigation.launchCopy },
+    { id: 'x-thread', icon: <MessageSquareText size={16} />, ...labels.navigation.xThread },
+    { id: 'reddit-post', icon: <Users size={16} />, ...labels.navigation.redditPost },
+    { id: 'seo-plan', icon: <Search size={16} />, ...labels.navigation.seoPlan },
+    { id: 'prospects', icon: <Target size={16} />, ...labels.navigation.prospects },
+    { id: 'outreach', icon: <Send size={16} />, ...labels.navigation.outreach },
+    { id: 'product-demo', icon: <MonitorPlay size={16} />, ...labels.navigation.productDemo },
+    { id: 'creative', icon: <ImageIcon size={16} />, ...labels.navigation.creative },
+  ]
+
+  const activeContent = {
+    'launch-copy': (
+      <ResultSection icon={<FileText size={17} />} label={labels.generatedCopy} title={labels.sections.freeLaunchCopy}>
+        <div className={styles.sampleChannelGrid}>
+          {launchCopyChannels.map((channel) => (
+            <ChannelPreviewCard channel={channel} key={channel.id} />
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    'x-thread': (
+      <ResultSection icon={<MessageSquareText size={17} />} label={labels.xPosts} title={xChannel.title}>
+        <CopyBlock text={xChannel.body} />
+      </ResultSection>
+    ),
+    'reddit-post': (
+      <ResultSection icon={<Users size={17} />} label={labels.redditPost} title={redditChannel.title}>
+        <CopyBlock text={redditChannel.body} />
+        <div className={styles.sampleRelatedGrid}>
+          {sampleData.subreddits.map((item) => (
+            <ResultCard key={item.name} eyebrow={labels.sections.whereToTest} title={item.name}>
+              <p>{item.angle}</p>
+              <p>{item.guidance}</p>
+            </ResultCard>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    'seo-plan': (
+      <ResultSection icon={<Search size={17} />} label={labels.seoPlan} title={labels.sections.premiumSeo}>
+        <div className={styles.resultGrid}>
+          {sampleData.seoPlan.map((item) => (
+            <ResultCard key={item.title} eyebrow={item.intent} title={item.title}>
+              <p>{item.angle}</p>
+            </ResultCard>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    prospects: (
+      <ResultSection icon={<Target size={17} />} label={labels.prospects} title={labels.sections.premiumProspects}>
+        <div className={styles.resultGrid}>
+          {sampleData.prospects.map((item) => (
+            <ResultCard key={item.name} eyebrow={item.segment} title={item.name}>
+              <p>{item.fit}</p>
+              <p>{item.outreachAngle}</p>
+            </ResultCard>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    outreach: (
+      <ResultSection icon={<Send size={17} />} label={labels.outreach} title={labels.sections.premiumOutreach}>
+        <div className={styles.resultGrid}>
+          {sampleData.outreach.map((item) => (
+            <ResultCard key={item.title} eyebrow={item.cta} title={item.title}>
+              <p>{item.body}</p>
+            </ResultCard>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    'product-demo': (
+      <ResultSection icon={<MonitorPlay size={17} />} label={labels.productDemo} title={labels.sections.premiumProductDemo}>
+        <div className={styles.resultGrid}>
+          {sampleData.productDemo.map((item) => (
+            <ResultCard key={item.title} eyebrow={item.format} title={item.title}>
+              <p>{item.draft}</p>
+            </ResultCard>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+    creative: (
+      <ResultSection icon={<ImageIcon size={17} />} label={labels.mediaAssets} title={labels.sections.premiumCreative}>
+        <div className={styles.sampleCreativeGrid}>
+          {sampleData.creativeAssets.map((asset) => (
+            <article className={styles.sampleCreativeCard} key={asset.id}>
+              <div>
+                <span>{asset.label}</span>
+                <strong>{asset.format}</strong>
+              </div>
+              <h3>{asset.title}</h3>
+              <p>{asset.prompt}</p>
+            </article>
+          ))}
+        </div>
+      </ResultSection>
+    ),
+  } satisfies Record<SampleSectionId, ReactNode>
+
+  const selectSection = (sectionId: SampleSectionId) => {
+    setActiveSection(sectionId)
+    window.requestAnimationFrame(() => {
+      activeContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
   return (
     <main className={styles.sampleMain}>
       <section className={styles.sampleDashboardHero}>
@@ -149,7 +297,7 @@ export default function WaitingListSampleDashboard({
           <div className={styles.sampleRunRows}>
             <MetaRow label={labels.inputUrl} value="shipdaddy.ai" />
             <MetaRow label={labels.savedFor} value={email} />
-            <MetaRow label={labels.contentSummary} value="Free kit plus premium growth preview." />
+            <MetaRow label={labels.contentSummary} value={labels.contentSummaryValue} />
           </div>
         </div>
       </section>
@@ -175,25 +323,37 @@ export default function WaitingListSampleDashboard({
           </div>
           <div className={styles.sampleNavList}>
             {navigationItems.map((item) => (
-              <div className={styles.sampleNavItem} key={item.title}>
+              <button
+                type="button"
+                className={`${styles.sampleNavItem} ${
+                  activeSection === item.id ? styles.sampleNavItemActive : ''
+                }`}
+                key={item.id}
+                onClick={() => selectSection(item.id)}
+                aria-pressed={activeSection === item.id}
+              >
                 <span>{item.icon}</span>
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.value}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </aside>
 
         <div className={styles.sampleContentColumn}>
+          <div className={styles.sampleActiveContent} ref={activeContentRef}>
+            {activeContent[activeSection]}
+          </div>
+
           <section className={styles.sampleBriefPanel}>
             <div className={styles.panelHeader}>
               <Sparkles size={16} />
-              <span>Extracted brief</span>
+              <span>{labels.sections.extractedBrief}</span>
             </div>
             <div className={styles.sampleBriefGrid}>
-              {SAMPLE_BRIEF_SIGNALS.map((signal) => (
+              {sampleData.briefSignals.map((signal) => (
                 <article className={styles.sampleBriefCard} key={signal.label}>
                   <span>{signal.label}</span>
                   <p>{signal.value}</p>
@@ -201,89 +361,6 @@ export default function WaitingListSampleDashboard({
               ))}
             </div>
           </section>
-
-          <ResultSection icon={<FileText size={17} />} label={labels.generatedCopy} title="Free launch copy">
-            <div className={styles.sampleChannelGrid}>
-              {launchCopyChannels.map((channel) => (
-                <ChannelPreviewCard channel={channel} key={channel.id} />
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<MessageSquareText size={17} />} label={labels.xPosts} title={xChannel.title}>
-            <CopyBlock text={xChannel.body} />
-          </ResultSection>
-
-          <ResultSection icon={<Users size={17} />} label={labels.redditPost} title={redditChannel.title}>
-            <CopyBlock text={redditChannel.body} />
-          </ResultSection>
-
-          <ResultSection icon={<Search size={17} />} label={labels.subreddits} title="Subreddits to evaluate">
-            <div className={styles.resultGrid}>
-              {SAMPLE_SUBREDDITS.map((item) => (
-                <ResultCard key={item.name} eyebrow="Where to test" title={item.name}>
-                  <p>{item.angle}</p>
-                  <p>{item.guidance}</p>
-                </ResultCard>
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<Search size={17} />} label={labels.seoPlan} title="Premium SEO and GEO plan">
-            <div className={styles.resultGrid}>
-              {SAMPLE_SEO_PLAN.map((item) => (
-                <ResultCard key={item.title} eyebrow={item.intent} title={item.title}>
-                  <p>{item.angle}</p>
-                </ResultCard>
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<Target size={17} />} label={labels.prospects} title="Premium prospects">
-            <div className={styles.resultGrid}>
-              {SAMPLE_PROSPECTS.map((item) => (
-                <ResultCard key={item.name} eyebrow={item.segment} title={item.name}>
-                  <p>{item.fit}</p>
-                  <p>{item.outreachAngle}</p>
-                </ResultCard>
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<Send size={17} />} label={labels.outreach} title="Premium outreach drafts">
-            <div className={styles.resultGrid}>
-              {SAMPLE_OUTREACH.map((item) => (
-                <ResultCard key={item.title} eyebrow={item.cta} title={item.title}>
-                  <p>{item.body}</p>
-                </ResultCard>
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<MonitorPlay size={17} />} label={labels.productDemo} title="Premium product demo script">
-            <div className={styles.resultGrid}>
-              {SAMPLE_PRODUCT_DEMO.map((item) => (
-                <ResultCard key={item.title} eyebrow={item.format} title={item.title}>
-                  <p>{item.draft}</p>
-                </ResultCard>
-              ))}
-            </div>
-          </ResultSection>
-
-          <ResultSection icon={<ImageIcon size={17} />} label={labels.mediaAssets} title="Premium creative prompts">
-            <div className={styles.sampleCreativeGrid}>
-              {SAMPLE_CREATIVE_ASSETS.map((asset) => (
-                <article className={styles.sampleCreativeCard} key={asset.id}>
-                  <div>
-                    <span>{asset.label}</span>
-                    <strong>{asset.format}</strong>
-                  </div>
-                  <h3>{asset.title}</h3>
-                  <p>{asset.prompt}</p>
-                </article>
-              ))}
-            </div>
-          </ResultSection>
         </div>
 
         <aside className={styles.sampleInsightRail}>
@@ -293,12 +370,12 @@ export default function WaitingListSampleDashboard({
               <span>{labels.mediaKit}</span>
             </div>
             <div className={styles.mediaKitBlock}>
-              <strong>One-liner</strong>
-              <p>{SAMPLE_MEDIA_KIT.oneLiner}</p>
+              <strong>{labels.sections.oneLiner}</strong>
+              <p>{sampleData.mediaKit.oneLiner}</p>
             </div>
             <div className={styles.mediaKitBlock}>
-              <strong>Press hook</strong>
-              <p>{SAMPLE_MEDIA_KIT.pressHook}</p>
+              <strong>{labels.sections.pressHook}</strong>
+              <p>{sampleData.mediaKit.pressHook}</p>
             </div>
           </section>
 
@@ -308,9 +385,9 @@ export default function WaitingListSampleDashboard({
               <span>{labels.cta}</span>
             </div>
             <div className={styles.sampleReviewList}>
-              <p>Primary CTA: Try the sample launch kit</p>
-              <p>Secondary CTA: Generate from your product URL</p>
-              <p>Premium CTA: Turn the confirmed brief into growth work</p>
+              {labels.ctaItems.map((item) => (
+                <p key={item}>{item}</p>
+              ))}
             </div>
           </section>
 
@@ -320,10 +397,9 @@ export default function WaitingListSampleDashboard({
               <span>{labels.notes}</span>
             </div>
             <div className={styles.sampleReviewList}>
-              <p>Keep the founder review boundary clear.</p>
-              <p>Do not invent customer counts, revenue, or traction.</p>
-              <p>Review subreddit rules before posting.</p>
-              <p>Keep premium growth work separate until the core story works.</p>
+              {labels.noteItems.map((item) => (
+                <p key={item}>{item}</p>
+              ))}
             </div>
           </section>
         </aside>
@@ -408,6 +484,16 @@ function CopyBlock({ text }: { text: string }) {
   )
 }
 
-function getChannel(id: string): SampleChannel {
-  return SAMPLE_CHANNELS.find((channel) => channel.id === id) || SAMPLE_CHANNELS[0]
+function getChannel(id: string, channels: SampleChannel[]): SampleChannel {
+  return channels.find((channel) => channel.id === id) || channels[0] || EMPTY_CHANNEL
+}
+
+const EMPTY_CHANNEL: SampleChannel = {
+  id: '',
+  label: '',
+  eyebrow: '',
+  title: '',
+  body: '',
+  cta: '',
+  notes: '',
 }

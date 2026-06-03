@@ -1,4 +1,4 @@
-// ClickStudio starter — Prisma schema
+// Launch Kit Prisma schema.
 // Defaults to SQLite so a fresh clone runs with zero database setup.
 // Switch `provider` to "postgresql" (and set DATABASE_URL accordingly) when
 // the project is ready for a real database. The pg adapter and driver are
@@ -82,7 +82,8 @@ model Verification {
 }
 
 model RateLimit {
-  key         String @id
+  id          String @id
+  key         String @unique
   count       Int
   lastRequest BigInt
 

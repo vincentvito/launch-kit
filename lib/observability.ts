@@ -1,8 +1,11 @@
 import {
   assertProductionReady,
   getProductionReadinessChecks,
+  isProductionBuildPhase,
   isProductionRuntime,
 } from '@/lib/env'
+
+let lastProductionReadinessLogKey: string | null = null
 
 export function logServerEvent(event: string, fields: Record<string, unknown> = {}): void {
   console.log(JSON.stringify({
@@ -38,17 +41,37 @@ export function logProductionReadinessWarnings(): void {
 }
 
 export function assertOrLogProductionReadiness(): void {
+  if (isProductionBuildPhase()) {
+    assertProductionReady()
+    return
+  }
+
   try {
     assertProductionReady()
   } catch (error) {
-    logServerError('production_readiness_failed', error)
+    logProductionReadinessStateOnce(
+      `error:${error instanceof Error ? error.message : String(error)}`,
+      () => logServerError('production_readiness_failed', error),
+    )
     throw error
   }
 
   if (isProductionRuntime()) {
     const failed = getProductionReadinessChecks().filter((check) => !check.ok)
-    logServerEvent(failed.length === 0 ? 'production_readiness_ok' : 'production_readiness_skipped', {
-      failedChecks: failed.map((check) => check.key),
+    const event = failed.length === 0 ? 'production_readiness_ok' : 'production_readiness_skipped'
+    const failedChecks = failed.map((check) => check.key)
+
+    logProductionReadinessStateOnce(`${event}:${failedChecks.join(',')}`, () => {
+      logServerEvent(event, { failedChecks })
     })
   }
+}
+
+function logProductionReadinessStateOnce(key: string, log: () => void): void {
+  if (lastProductionReadinessLogKey === key) {
+    return
+  }
+
+  lastProductionReadinessLogKey = key
+  log()
 }

@@ -2,21 +2,24 @@
 
 import { type FormEvent, useReducer } from 'react'
 import { ArrowRight, MailIcon } from '@/components/waiting-list/icons'
-import styles from '@/components/waiting-list/waiting-list.module.css'
+import { waitingListStyles as styles } from '@/components/waiting-list/waiting-list-styles'
 
 export type WaitingListSignupStatLabel = {
   n: string
   label: string
 }
 export type WaitingListSignupLabels = {
+  emailLabel: string
   placeholder: string
   submit: string
+  saving: string
   helper: string
   invalidEmail: string
+  error: string
   stats: WaitingListSignupStatLabel[]
 }
 
-type Status = 'idle' | 'error'
+type Status = 'idle' | 'saving' | 'error'
 type SignupState = {
   email: string
   status: Status
@@ -25,6 +28,7 @@ type SignupState = {
 }
 type SignupAction =
   | { type: 'email'; email: string }
+  | { type: 'saving' }
   | { type: 'invalid'; errorText: string }
   | { type: 'stop-shake' }
   | { type: 'reset' }
@@ -43,6 +47,10 @@ function signupReducer(state: SignupState, action: SignupAction): SignupState {
       email: action.email,
       status: state.status === 'error' ? 'idle' : state.status,
     }
+  }
+
+  if (action.type === 'saving') {
+    return { ...state, status: 'saving', errorText: '', shake: false }
   }
 
   if (action.type === 'invalid') {
@@ -78,13 +86,29 @@ export default function WaitingListSignupForm({
       return
     }
 
-    void fetch('/api/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: trimmed }),
-    }).catch(() => undefined)
-    onSampleUnlocked(trimmed)
+    dispatch({ type: 'saving' })
+
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed, source: 'waitlist' }),
+      })
+
+      if (!response.ok) {
+        dispatch({ type: 'invalid', errorText: labels.error })
+        setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
+        return
+      }
+
+      onSampleUnlocked(trimmed)
+    } catch {
+      dispatch({ type: 'invalid', errorText: labels.error })
+      setTimeout(() => dispatch({ type: 'stop-shake' }), 500)
+    }
   }
+
+  const isSaving = status === 'saving'
 
   return (
     <>
@@ -101,11 +125,12 @@ export default function WaitingListSignupForm({
             }}
             placeholder={labels.placeholder}
             autoComplete="email"
-            aria-label="email"
+            aria-label={labels.emailLabel}
+            disabled={isSaving}
           />
         </div>
-        <button type="submit" className={styles.cta}>
-          <span>{labels.submit}</span>
+        <button type="submit" className={styles.cta} disabled={isSaving}>
+          <span>{isSaving ? labels.saving : labels.submit}</span>
           <ArrowRight size={18} />
         </button>
       </form>

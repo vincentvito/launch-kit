@@ -1,12 +1,21 @@
 import prisma from '@/lib/prisma'
 import { getAppUrl } from '@/lib/env'
 
-type StripeEvent = {
+export type StripeEvent = {
   type: string
   data?: {
     object?: Record<string, unknown>
   }
 }
+
+export class InvalidStripeEventError extends Error {
+  constructor() {
+    super('Invalid Stripe event.')
+    this.name = 'InvalidStripeEventError'
+  }
+}
+
+const STRIPE_REQUEST_TIMEOUT_MS = 15000
 
 export function isStripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID)
@@ -50,18 +59,14 @@ export async function createCheckoutSession(input: {
       'content-type': 'application/x-www-form-urlencoded',
     },
     body: form,
+    signal: AbortSignal.timeout(STRIPE_REQUEST_TIMEOUT_MS),
   })
 
   if (!response.ok) {
     throw new Error(`Stripe checkout failed with ${response.status}`)
   }
 
-  const json = (await response.json()) as { url?: string }
-  if (!json.url) {
-    throw new Error('Stripe checkout did not return a URL.')
-  }
-
-  return { url: json.url }
+  return { url: await readStripeRedirectUrl(response, 'checkout') }
 }
 
 export async function createBillingPortalSession(input: {
@@ -91,24 +96,21 @@ export async function createBillingPortalSession(input: {
       'content-type': 'application/x-www-form-urlencoded',
     },
     body: form,
+    signal: AbortSignal.timeout(STRIPE_REQUEST_TIMEOUT_MS),
   })
 
   if (!response.ok) {
     throw new Error(`Stripe portal failed with ${response.status}`)
   }
 
-  const json = (await response.json()) as { url?: string }
-  if (!json.url) {
-    throw new Error('Stripe portal did not return a URL.')
-  }
-
-  return { url: json.url }
+  return { url: await readStripeRedirectUrl(response, 'portal') }
 }
 
-export async function applyStripeEvent(event: StripeEvent): Promise<void> {
-  const object = event.data?.object || {}
+export async function applyStripeEvent(event: unknown): Promise<void> {
+  const stripeEvent = normalizeStripeEvent(event)
+  const object = stripeEvent.data?.object || {}
 
-  if (event.type === 'checkout.session.completed') {
+  if (stripeEvent.type === 'checkout.session.completed') {
     const userId = getString(object.client_reference_id) || getMetadataValue(object, 'userId')
     if (!userId) {
       return
@@ -135,7 +137,7 @@ export async function applyStripeEvent(event: StripeEvent): Promise<void> {
     return
   }
 
-  if (event.type.startsWith('customer.subscription.')) {
+  if (stripeEvent.type.startsWith('customer.subscription.')) {
     const subscriptionId = getString(object.id)
     const customerId = getString(object.customer)
     const status = normalizeStripeStatus(getString(object.status))
@@ -166,6 +168,65 @@ export async function applyStripeEvent(event: StripeEvent): Promise<void> {
   }
 }
 
+export function parseStripeEventPayload(payload: string): StripeEvent {
+  try {
+    return normalizeStripeEvent(JSON.parse(payload))
+  } catch (error) {
+    if (error instanceof InvalidStripeEventError) {
+      throw error
+    }
+    throw new InvalidStripeEventError()
+  }
+}
+
+function normalizeStripeEvent(value: unknown): StripeEvent {
+  if (!isRecord(value) || typeof value.type !== 'string' || !value.type.trim()) {
+    throw new InvalidStripeEventError()
+  }
+
+  const event: StripeEvent = {
+    type: value.type.trim(),
+  }
+  const data = value.data
+  if (isRecord(data)) {
+    const object = data.object
+    event.data = {
+      object: isRecord(object) ? object : {},
+    }
+  }
+
+  return event
+}
+
+async function readStripeRedirectUrl(
+  response: Response,
+  context: 'checkout' | 'portal',
+): Promise<string> {
+  let payload: unknown
+  try {
+    payload = await response.json()
+  } catch {
+    throw new Error(`Stripe ${context} returned invalid JSON.`)
+  }
+
+  const url = isRecord(payload) && typeof payload.url === 'string' ? payload.url.trim() : ''
+  if (!isStripeHostedRedirectUrl(url)) {
+    throw new Error(`Stripe ${context} did not return a valid hosted URL.`)
+  }
+
+  return url
+}
+
+function isStripeHostedRedirectUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    const hostname = url.hostname.toLowerCase()
+    return url.protocol === 'https:' && (hostname === 'stripe.com' || hostname.endsWith('.stripe.com'))
+  } catch {
+    return false
+  }
+}
+
 function normalizeStripeStatus(status: string): string {
   if (status === 'active' || status === 'trialing') {
     return status
@@ -188,6 +249,10 @@ function getMetadataValue(object: Record<string, unknown>, key: string): string 
 
   const value = (metadata as Record<string, unknown>)[key]
   return typeof value === 'string' ? value : ''
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function getUnixDate(value: unknown): Date | null {

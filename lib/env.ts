@@ -2,13 +2,24 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { isPostgresDatabaseUrl } from '@/lib/database-provider'
 
-type EnvCheck = {
+export type EnvCheck = {
   key: string
   ok: boolean
   message: string
 }
 
 export type RuntimeEnv = 'development' | 'preview' | 'production'
+
+export class ProductionReadinessError extends Error {
+  failedChecks: EnvCheck[]
+
+  constructor(failedChecks: EnvCheck[]) {
+    const summary = failedChecks.map((check) => `${check.key}: ${check.message}`).join('; ')
+    super(`Production environment is not ready: ${summary}`)
+    this.name = 'ProductionReadinessError'
+    this.failedChecks = failedChecks
+  }
+}
 
 export function getRuntimeEnv(): RuntimeEnv {
   if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
@@ -32,11 +43,19 @@ export function isProductionBuildPhase(): boolean {
 }
 
 export function shouldSkipProductionReadinessChecks(): boolean {
-  return parseBoolean(process.env.SKIP_PRODUCTION_ENV_CHECKS) || isProductionBuildPhase()
+  return isProductionBuildPhase()
 }
 
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+  return (
+    normalizeHttpOrigin(process.env.NEXT_PUBLIC_APP_URL) ||
+    normalizeHttpOrigin(process.env.BETTER_AUTH_URL) ||
+    'http://localhost:3000'
+  )
+}
+
+export function getAuthUrl(): string {
+  return normalizeHttpOrigin(process.env.BETTER_AUTH_URL) || getAppUrl()
 }
 
 export function getAllowedOrigins(): string[] {
@@ -44,17 +63,21 @@ export function getAllowedOrigins(): string[] {
     process.env.BETTER_AUTH_URL,
     process.env.NEXT_PUBLIC_APP_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
-  ].filter((value): value is string => Boolean(value))
+  ]
+    .map((value) => normalizeHttpOrigin(value))
+    .filter((value): value is string => Boolean(value))
+
+  const uniqueConfiguredOrigins = [...new Set(configuredOrigins)]
 
   if (isProductionRuntime()) {
-    return configuredOrigins
+    return uniqueConfiguredOrigins
   }
 
-  return [
-    ...configuredOrigins,
+  return [...new Set([
+    ...uniqueConfiguredOrigins,
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-  ]
+  ])]
 }
 
 export function parseBoolean(value: string | undefined, fallback = false): boolean {
@@ -81,14 +104,51 @@ export function parseCsv(value: string | undefined): string[] {
     .filter(Boolean)
 }
 
-function isProductionHttpsUrl(value: string): boolean {
+function normalizeHttpOrigin(value: string | undefined): string {
+  if (!value) {
+    return ''
+  }
+
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return ''
+    }
+    return url.origin
+  } catch {
+    return ''
+  }
+}
+
+function isProductionHttpsOrigin(value: string): boolean {
   try {
     const url = new URL(value)
     return (
       url.protocol === 'https:' &&
       url.hostname !== 'localhost' &&
       url.hostname !== '127.0.0.1' &&
-      !url.hostname.endsWith('.localhost')
+      !url.hostname.endsWith('.localhost') &&
+      url.username === '' &&
+      url.password === '' &&
+      (url.pathname === '' || url.pathname === '/') &&
+      url.search === '' &&
+      url.hash === ''
+    )
+  } catch {
+    return false
+  }
+}
+
+export function isProductionSafeWebhookUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return (
+      url.protocol === 'https:' &&
+      url.hostname !== 'localhost' &&
+      url.hostname !== '127.0.0.1' &&
+      !url.hostname.endsWith('.localhost') &&
+      url.username === '' &&
+      url.password === ''
     )
   } catch {
     return false
@@ -149,6 +209,8 @@ export function getProductionReadinessChecks(): EnvCheck[] {
   const betterAuthSecret = process.env.BETTER_AUTH_SECRET || ''
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
   const authUrl = process.env.BETTER_AUTH_URL || ''
+  const outreachWebhookUrl = process.env.OUTREACH_EMAIL_WEBHOOK_URL || ''
+  const maintenanceToken = process.env.MAINTENANCE_ADMIN_TOKEN || process.env.CRON_SECRET || ''
   const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
   const aiEnabled = Boolean(process.env.OPENAI_API_KEY || process.env.REPLICATE_API_TOKEN)
   const manualBillingConfigured = Boolean(
@@ -184,13 +246,13 @@ export function getProductionReadinessChecks(): EnvCheck[] {
     },
     {
       key: 'NEXT_PUBLIC_APP_URL',
-      ok: isProductionHttpsUrl(appUrl),
-      message: 'Set the public production HTTPS URL.',
+      ok: isProductionHttpsOrigin(appUrl),
+      message: 'Set the public production HTTPS origin.',
     },
     {
       key: 'BETTER_AUTH_URL',
-      ok: isProductionHttpsUrl(authUrl),
-      message: 'Set the production auth HTTPS URL.',
+      ok: isProductionHttpsOrigin(authUrl),
+      message: 'Set the production auth HTTPS origin.',
     },
     {
       key: 'AI_PROVIDER',
@@ -207,6 +269,16 @@ export function getProductionReadinessChecks(): EnvCheck[] {
       ok: googleEnabled || process.env.AUTH_ALLOW_PASSWORD_ONLY === 'true',
       message: 'Set Google OAuth or explicitly allow password-only auth.',
     },
+    {
+      key: 'OUTREACH_WEBHOOK',
+      ok: !outreachWebhookUrl || isProductionSafeWebhookUrl(outreachWebhookUrl),
+      message: 'Use an HTTPS OUTREACH_EMAIL_WEBHOOK_URL on a public production host, or leave it unset.',
+    },
+    {
+      key: 'MAINTENANCE_TOKEN',
+      ok: isStrongSecret(maintenanceToken),
+      message: 'Set a strong MAINTENANCE_ADMIN_TOKEN or CRON_SECRET for scheduled maintenance.',
+    },
   ]
 }
 
@@ -217,7 +289,6 @@ export function assertProductionReady(): void {
 
   const failed = getProductionReadinessChecks().filter((check) => !check.ok)
   if (failed.length > 0 && !shouldSkipProductionReadinessChecks()) {
-    const summary = failed.map((check) => `${check.key}: ${check.message}`).join('; ')
-    throw new Error(`Production environment is not ready: ${summary}`)
+    throw new ProductionReadinessError(failed)
   }
 }

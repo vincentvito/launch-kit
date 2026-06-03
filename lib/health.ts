@@ -29,7 +29,7 @@ export async function getReadinessPayload(): Promise<ReadinessPayload> {
   const checks: ReadinessPayload['checks'] = []
 
   try {
-    await prisma.$queryRawUnsafe('SELECT 1')
+    await prisma.$queryRaw`SELECT 1`
     checks.push({
       key: 'DATABASE',
       ok: true,

@@ -1,21 +1,20 @@
 import {
+  getJsonObjectField,
+  getJsonStringField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { runImportEmailListAction } from '@/lib/launch-kit/prospecting'
-import type { ProspectingState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      prospecting?: ProspectingState
-      rawContacts?: string
-    }>(request)
+    const body = await readTrustedJsonBody(request)
 
     const access = await requireLaunchApiAccess(request, {
       action: 'import_email_list',
@@ -23,8 +22,8 @@ export async function POST(request: Request) {
       rateLimitAction: 'premium_action',
     })
     const result = runImportEmailListAction({
-      prospecting: body.prospecting,
-      rawContacts: body.rawContacts || '',
+      prospecting: getJsonObjectField(body, 'prospecting') || undefined,
+      rawContacts: getJsonStringField(body, 'rawContacts', { trim: false }),
     })
     await recordLaunchApiUsage(access, 'import_email_list')
 

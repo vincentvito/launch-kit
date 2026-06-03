@@ -1,8 +1,10 @@
 import { dispatchEmailDelivery, isEmailDeliveryConfigured } from '@/lib/email-delivery'
 import {
+  getJsonObjectField,
+  getJsonStringArrayField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
@@ -11,16 +13,13 @@ import {
   buildBacklinkOutreachDeliveryPayload,
   runSendBacklinkEmailAction,
 } from '@/lib/launch-kit/seo'
-import type { SeoGrowthState } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      seoGrowth?: Partial<SeoGrowthState>
-      prospectIds?: string[]
-    }>(request)
+    const body = await readTrustedJsonBody(request)
 
     const access = await requireLaunchApiAccess(request, {
       action: 'send_backlink_emails',
@@ -28,8 +27,8 @@ export async function POST(request: Request) {
       rateLimitAction: 'premium_action',
     })
     const input = {
-      seoGrowth: normalizeSeoGrowthState(body.seoGrowth),
-      prospectIds: Array.isArray(body.prospectIds) ? body.prospectIds : [],
+      seoGrowth: normalizeSeoGrowthState(getJsonObjectField(body, 'seoGrowth')),
+      prospectIds: getJsonStringArrayField(body, 'prospectIds', { maxLength: 128 }),
     }
     const deliveryPayload = buildBacklinkOutreachDeliveryPayload(input)
     const delivery = deliveryPayload.prospects.length > 0

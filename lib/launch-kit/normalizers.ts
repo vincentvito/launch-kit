@@ -173,173 +173,150 @@ type BriefFallback = {
 }
 
 export function normalizeBrief(
-  brief: Partial<ExtractedBrief> | null | undefined,
+  brief: unknown,
   fallback: BriefFallback = {},
 ): ExtractedBrief {
+  const rawBrief = isRecord(brief) ? brief : {}
+  const sourceUrl = safeString(rawBrief.sourceUrl) || safeString(fallback.sourceUrl)
+  const language = safeString(rawBrief.language) || safeString(fallback.language) || 'en'
+  const productName =
+    safeString(rawBrief.productName) || safeString(fallback.productName) || 'Untitled Product'
+  const crawlPages = safeStringArray(rawBrief.crawlPages)
+
   return {
-    sourceUrl: brief?.sourceUrl || fallback.sourceUrl || '',
-    productName: brief?.productName || fallback.productName || 'Untitled Product',
-    positioning: brief?.positioning || '',
-    targetUsers: Array.isArray(brief?.targetUsers) ? brief.targetUsers.filter(Boolean) : [],
-    icp: brief?.icp || '',
-    painPoints: Array.isArray(brief?.painPoints) ? brief.painPoints.filter(Boolean) : [],
-    valueProps: Array.isArray(brief?.valueProps) ? brief.valueProps.filter(Boolean) : [],
-    keyClaims: Array.isArray(brief?.keyClaims) ? brief.keyClaims.filter(Boolean) : [],
-    proofPoints: Array.isArray(brief?.proofPoints) ? brief.proofPoints.filter(Boolean) : [],
-    voiceGuide: brief?.voiceGuide || buildDefaultVoiceGuide(brief),
-    cta: brief?.cta || '',
-    language: brief?.language || fallback.language || 'en',
-    sourceHighlights: Array.isArray(brief?.sourceHighlights)
-      ? brief.sourceHighlights.filter(Boolean)
-      : [],
-    detectedImageUrls: Array.isArray(brief?.detectedImageUrls)
-      ? brief.detectedImageUrls.filter(Boolean)
-      : [],
-    crawlPages:
-      Array.isArray(brief?.crawlPages) && brief.crawlPages.length > 0
-        ? brief.crawlPages.filter(Boolean)
-        : [brief?.sourceUrl || fallback.sourceUrl || ''],
-    keywordResearch: normalizeKeywordResearch(brief?.keywordResearch),
+    sourceUrl,
+    productName,
+    positioning: safeString(rawBrief.positioning),
+    targetUsers: safeStringArray(rawBrief.targetUsers),
+    icp: safeString(rawBrief.icp),
+    painPoints: safeStringArray(rawBrief.painPoints),
+    valueProps: safeStringArray(rawBrief.valueProps),
+    keyClaims: safeStringArray(rawBrief.keyClaims),
+    proofPoints: safeStringArray(rawBrief.proofPoints),
+    voiceGuide: safeString(rawBrief.voiceGuide) || buildDefaultVoiceGuide(brief),
+    cta: safeString(rawBrief.cta),
+    language,
+    sourceHighlights: safeStringArray(rawBrief.sourceHighlights),
+    detectedImageUrls: safeStringArray(rawBrief.detectedImageUrls),
+    crawlPages: crawlPages.length > 0 ? crawlPages : [sourceUrl],
+    keywordResearch: normalizeKeywordResearch(rawBrief.keywordResearch),
   }
 }
 
-function buildDefaultVoiceGuide(brief: Partial<ExtractedBrief> | null | undefined): string {
-  const productName = brief?.productName || 'the product'
-  const audience = brief?.targetUsers?.[0] || brief?.icp || 'the target audience'
+function buildDefaultVoiceGuide(brief: unknown): string {
+  const rawBrief = isRecord(brief) ? brief : {}
+  const productName = safeString(rawBrief.productName) || 'the product'
+  const audience = safeStringArray(rawBrief.targetUsers)[0] ||
+    safeString(rawBrief.icp) ||
+    'the target audience'
 
   return `Use a clear, human, product-specific voice for ${productName}. Keep claims grounded in the source brief, speak directly to ${audience}, avoid generic AI phrasing, and adapt structure and tone to each channel's social contract.`
 }
 
 export function normalizeKeywordResearch(
-  research: Partial<KeywordResearch> | null | undefined,
+  research: unknown,
 ): KeywordResearch {
+  const rawResearch = isRecord(research) ? research : {}
   const fallback = createEmptyKeywordResearch()
   return {
-    generatedAt: research?.generatedAt || fallback.generatedAt,
-    notes: research?.notes || fallback.notes,
-    clusters: Array.isArray(research?.clusters)
-      ? research.clusters
-          .map((cluster, index) => ({
-            id: cluster.id || `cluster-${index + 1}`,
-            topic: cluster.topic || '',
-            intent: cluster.intent || 'informational',
-            priority: cluster.priority || 'medium',
-            keywords: Array.isArray(cluster.keywords) ? cluster.keywords.filter(Boolean) : [],
-            contentAngles: Array.isArray(cluster.contentAngles)
-              ? cluster.contentAngles.filter(Boolean)
-              : [],
-          }))
+    generatedAt: safeString(rawResearch.generatedAt) || fallback.generatedAt,
+    notes: safeString(rawResearch.notes) || fallback.notes,
+    clusters: Array.isArray(rawResearch.clusters)
+      ? rawResearch.clusters
+          .map((cluster, index) => {
+            const rawCluster = isRecord(cluster) ? cluster : {}
+            return {
+              id: safeString(rawCluster.id) || `cluster-${index + 1}`,
+              topic: safeString(rawCluster.topic),
+              intent: isKeywordIntent(rawCluster.intent) ? rawCluster.intent : 'informational',
+              priority: isKeywordPriority(rawCluster.priority) ? rawCluster.priority : 'medium',
+              keywords: safeStringArray(rawCluster.keywords),
+              contentAngles: safeStringArray(rawCluster.contentAngles),
+            }
+          })
           .filter((cluster) => cluster.topic)
       : [],
   }
 }
 
 export function normalizeKit(
-  kit: Partial<LaunchKit> | null | undefined,
+  kit: unknown,
   language: string,
 ): LaunchKit {
+  const rawKit = isRecord(kit) ? kit : {}
   const fallback = createEmptyKit(language)
   const platformBlocks = { ...fallback.platformBlocks }
+  const rawPlatformBlocks = isRecord(rawKit.platformBlocks) ? rawKit.platformBlocks : {}
 
   for (const blockId of PLATFORM_IDS) {
-    const block = kit?.platformBlocks?.[blockId]
+    const block = isRecord(rawPlatformBlocks[blockId]) ? rawPlatformBlocks[blockId] : null
     if (!block) {
       continue
     }
 
     platformBlocks[blockId] = {
       id: blockId,
-      label: block.label || PLATFORM_LABELS[blockId],
-      title: block.title || '',
-      body: block.body || '',
-      cta: block.cta || '',
-      notes: block.notes || '',
+      label: safeString(block.label) || PLATFORM_LABELS[blockId],
+      title: safeString(block.title),
+      body: safeString(block.body),
+      cta: safeString(block.cta),
+      notes: safeString(block.notes),
       ...(blockId === 'reddit'
         ? { redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations) }
       : {}),
     }
   }
 
-  const channelPacks = normalizeChannelPacks(kit?.channelPacks, platformBlocks)
+  const channelPacks = normalizeChannelPacks(rawKit.channelPacks, platformBlocks)
+  const rawMediaKit = isRecord(rawKit.mediaKit) ? rawKit.mediaKit : {}
+  const rawGrowthAssets = isRecord(rawKit.growthAssets) ? rawKit.growthAssets : {}
 
   return {
-    generatedAt: kit?.generatedAt || fallback.generatedAt,
-    language: kit?.language || language,
+    generatedAt: safeString(rawKit.generatedAt) || fallback.generatedAt,
+    language: safeString(rawKit.language) || language,
     platformBlocks,
     channelPacks,
     mediaKit: {
-      founderCompanyBio: kit?.mediaKit?.founderCompanyBio || '',
-      productOneLiner: kit?.mediaKit?.productOneLiner || '',
-      boilerplate: kit?.mediaKit?.boilerplate || '',
-      pressRelease: kit?.mediaKit?.pressRelease || '',
-      keyVisualsChecklist: Array.isArray(kit?.mediaKit?.keyVisualsChecklist)
-        ? kit.mediaKit.keyVisualsChecklist.filter(Boolean)
-        : [],
-      screenshotsAndLogos: kit?.mediaKit?.screenshotsAndLogos || '',
-      contactDetails: kit?.mediaKit?.contactDetails || '',
+      founderCompanyBio: safeString(rawMediaKit.founderCompanyBio),
+      productOneLiner: safeString(rawMediaKit.productOneLiner),
+      boilerplate: safeString(rawMediaKit.boilerplate),
+      pressRelease: safeString(rawMediaKit.pressRelease),
+      keyVisualsChecklist: safeStringArray(rawMediaKit.keyVisualsChecklist),
+      screenshotsAndLogos: safeString(rawMediaKit.screenshotsAndLogos),
+      contactDetails: safeString(rawMediaKit.contactDetails),
     },
-    assetLibrary: normalizeAssetLibrary(kit?.assetLibrary),
+    assetLibrary: normalizeAssetLibrary(rawKit.assetLibrary),
     growthAssets: {
-      ...fallback.growthAssets,
-      ...(kit?.growthAssets || {}),
-      linkedinOutreach: {
-        ...fallback.growthAssets.linkedinOutreach,
-        ...(kit?.growthAssets?.linkedinOutreach || {}),
-        variants: Array.isArray(kit?.growthAssets?.linkedinOutreach?.variants)
-          ? kit.growthAssets.linkedinOutreach.variants.filter((variant) => variant.message)
-          : [],
-      },
-      xOutreach: {
-        ...fallback.growthAssets.xOutreach,
-        ...(kit?.growthAssets?.xOutreach || {}),
-        variants: Array.isArray(kit?.growthAssets?.xOutreach?.variants)
-          ? kit.growthAssets.xOutreach.variants.filter((variant) => variant.message)
-          : [],
-      },
-      emailOutreach: {
-        ...fallback.growthAssets.emailOutreach,
-        ...(kit?.growthAssets?.emailOutreach || {}),
-        variants: Array.isArray(kit?.growthAssets?.emailOutreach?.variants)
-          ? kit.growthAssets.emailOutreach.variants.filter((variant) => variant.message)
-          : [],
-      },
-      seoPostPacks: Array.isArray(kit?.growthAssets?.seoPostPacks)
-        ? kit.growthAssets.seoPostPacks.filter((pack) => pack.title || pack.draft)
-        : [],
-      followUpSequences: Array.isArray(kit?.growthAssets?.followUpSequences)
-        ? kit.growthAssets.followUpSequences.filter((item) => item.message)
-        : [],
+      generatedAt: safeString(rawGrowthAssets.generatedAt) || fallback.growthAssets.generatedAt,
+      linkedinOutreach: normalizeOutreachPack(
+        rawGrowthAssets.linkedinOutreach,
+        fallback.growthAssets.linkedinOutreach,
+      ),
+      xOutreach: normalizeOutreachPack(
+        rawGrowthAssets.xOutreach,
+        fallback.growthAssets.xOutreach,
+      ),
+      emailOutreach: normalizeOutreachPack(
+        rawGrowthAssets.emailOutreach,
+        fallback.growthAssets.emailOutreach,
+      ),
+      seoPostPacks: normalizeSeoPostPacks(rawGrowthAssets.seoPostPacks),
+      followUpSequences: normalizeFollowUpSequences(rawGrowthAssets.followUpSequences),
     },
-    prospecting: {
-      ...fallback.prospecting,
-      ...(kit?.prospecting || {}),
-      queryHints: Array.isArray(kit?.prospecting?.queryHints)
-        ? kit.prospecting.queryHints.filter(Boolean)
-        : [],
-      leads: Array.isArray(kit?.prospecting?.leads) ? kit.prospecting.leads : [],
-      personalizedOutreach: Array.isArray(kit?.prospecting?.personalizedOutreach)
-        ? kit.prospecting.personalizedOutreach
-        : [],
-      actionRuns: Array.isArray(kit?.prospecting?.actionRuns) ? kit.prospecting.actionRuns : [],
-      emailJobs: Array.isArray(kit?.prospecting?.emailJobs) ? kit.prospecting.emailJobs : [],
-      lastScrapeAt: kit?.prospecting?.lastScrapeAt || '',
-      lastEmailBuildAt: kit?.prospecting?.lastEmailBuildAt || '',
-    },
-    seoGrowth: normalizeSeoGrowthState(kit?.seoGrowth),
+    prospecting: normalizeProspectingState(rawKit.prospecting),
+    seoGrowth: normalizeSeoGrowthState(rawKit.seoGrowth),
   }
 }
 
 export function normalizeChannelPacks(
-  channelPacks:
-    | Partial<Record<ChannelPackId, Partial<ChannelPack> | null>>
-    | null
-    | undefined,
+  channelPacks: unknown,
   platformBlocks: Record<PlatformBlockId, PlatformBlock> = createEmptyPlatformBlocks(),
 ): Record<ChannelPackId, ChannelPack> {
   const normalized = createEmptyChannelPacks()
+  const rawChannelPacks = isRecord(channelPacks) ? channelPacks : {}
 
   for (const channelId of CHANNEL_PACK_IDS) {
-    const rawPack = channelPacks?.[channelId]
+    const rawPack = isRecord(rawChannelPacks[channelId]) ? rawChannelPacks[channelId] : null
     const legacyPack = synthesizeChannelPackFromPlatformBlock(channelId, platformBlocks)
     const rawCards = Array.isArray(rawPack?.cards) ? rawPack.cards : []
     const cards = rawCards
@@ -348,8 +325,8 @@ export function normalizeChannelPacks(
 
     normalized[channelId] = {
       id: channelId,
-      label: rawPack?.label?.trim() || CHANNEL_PACK_LABELS[channelId],
-      notes: rawPack?.notes?.trim() || legacyPack.notes,
+      label: safeString(rawPack?.label) || CHANNEL_PACK_LABELS[channelId],
+      notes: safeString(rawPack?.notes) || legacyPack.notes,
       cards: cards.length > 0 ? cards : legacyPack.cards,
       ...(channelId === 'reddit'
         ? {
@@ -366,31 +343,109 @@ export function normalizeChannelPacks(
 }
 
 function normalizeChannelCard(
-  card: Partial<ChannelCard> | null | undefined,
+  card: unknown,
   channelId: ChannelPackId,
   index: number,
 ): ChannelCard | null {
-  const title = safeString(card?.title)
-  const body = safeString(card?.body)
-  const cta = safeString(card?.cta)
+  const rawCard = isRecord(card) ? card : {}
+  const title = safeString(rawCard.title)
+  const rawBody = safeString(rawCard.body)
+  const cta = safeString(rawCard.cta)
+  const format = safeString(rawCard.format) || 'Native post'
+  const body = channelId === 'x' ? sanitizeXPostBody(rawBody, title, format) : rawBody
 
   if (!title && !body && !cta) {
     return null
   }
 
   return {
-    id: safeString(card?.id) || `${channelId}-card-${index + 1}`,
+    id: safeString(rawCard.id) || `${channelId}-card-${index + 1}`,
     title,
     body,
     cta,
-    proofPoint: safeString(card?.proofPoint) || inferProofPointFromText(body),
-    stage: isChannelCardStage(card?.stage) ? card.stage : 'evergreen',
-    format: safeString(card?.format) || 'Native post',
-    socialContractNote: safeString(card?.socialContractNote),
-    qualityChecks: Array.isArray(card?.qualityChecks)
-      ? card.qualityChecks.map((item) => safeString(item)).filter(Boolean).slice(0, 6)
-      : [],
+    proofPoint: safeString(rawCard.proofPoint) || inferProofPointFromText(body),
+    stage: isChannelCardStage(rawCard.stage) ? rawCard.stage : 'evergreen',
+    format,
+    socialContractNote: safeString(rawCard.socialContractNote),
+    qualityChecks: safeStringArray(rawCard.qualityChecks, 6),
   }
+}
+
+export function sanitizeXPostBody(body: string, title = '', format = ''): string {
+  const normalized = body.replace(/\r\n?/g, '\n').trim()
+  if (!normalized) {
+    return ''
+  }
+
+  const lines = normalized.split('\n')
+
+  while (lines.length > 0) {
+    const firstLine = cleanXPostHeadingLine(lines[0] || '')
+    const remainingContent = lines.slice(1).some((line) => line.trim())
+    const prefixed = removeXPostHeadingPrefix(firstLine)
+
+    if (prefixed !== firstLine) {
+      if (prefixed && !remainingContent) {
+        lines[0] = prefixed
+      } else {
+        lines.shift()
+      }
+      continue
+    }
+
+    if (isInternalXPostHeading(firstLine, title, format)) {
+      lines.shift()
+      continue
+    }
+
+    break
+  }
+
+  return lines.join('\n').trim()
+}
+
+function cleanXPostHeadingLine(line: string): string {
+  return line
+    .trim()
+    .replace(/^#{1,4}\s+/, '')
+    .replace(/^\*\*(.+)\*\*$/, '$1')
+    .trim()
+}
+
+function removeXPostHeadingPrefix(line: string): string {
+  return line
+    .replace(
+      /^(\*\*)?\s*(?:title|headline|x\s*(?:post|thread)|tweet|thread|post)\s*(\*\*)?\s*[:\-]\s*/i,
+      '',
+    )
+    .trim()
+}
+
+function isInternalXPostHeading(line: string, title: string, format: string): boolean {
+  const normalizedLine = normalizeXPostHeading(line)
+  if (!normalizedLine) {
+    return true
+  }
+
+  const candidates = [
+    title,
+    format,
+    format ? `X - ${format}` : '',
+    format ? `X: ${format}` : '',
+    format ? `X ${format}` : '',
+  ]
+
+  return candidates.some((candidate) => normalizeXPostHeading(candidate) === normalizedLine)
+}
+
+function normalizeXPostHeading(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/^#{1,4}\s+/, '')
+    .replace(/^\*\*(.+)\*\*$/, '$1')
+    .replace(/[\s:._-]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function synthesizeChannelPackFromPlatformBlock(
@@ -413,24 +468,28 @@ function synthesizeChannelPackFromPlatformBlock(
   }
 
   const block = platformBlocks[platformId]
-  if (!block || !(block.title.trim() || block.body.trim() || block.cta.trim())) {
+  const title = safeString(block?.title)
+  const body = safeString(block?.body)
+  const cta = safeString(block?.cta)
+  const notes = safeString(block?.notes)
+  if (!title && !body && !cta) {
     return emptyPack
   }
 
   return {
     id: channelId,
     label: CHANNEL_PACK_LABELS[channelId],
-    notes: block.notes,
+    notes,
     cards: [
       {
         id: `${channelId}-legacy-launch`,
-        title: block.title,
-        body: block.body,
-        cta: block.cta,
-        proofPoint: inferProofPointFromText(block.body) || 'Review source evidence before publishing.',
+        title,
+        body,
+        cta,
+        proofPoint: inferProofPointFromText(body) || 'Review source evidence before publishing.',
         stage: 'launch_day',
         format: 'Launch post',
-        socialContractNote: block.notes,
+        socialContractNote: notes,
         qualityChecks: ['Review current channel rules and expectations before posting.'],
       },
     ],
@@ -466,12 +525,13 @@ function getLegacyPlatformBlockIdForChannel(channelId: ChannelPackId): PlatformB
 }
 
 export function normalizeAssetLibrary(
-  assetLibrary: Partial<AssetLibrary> | null | undefined,
+  assetLibrary: unknown,
 ): AssetLibrary {
+  const rawAssetLibrary = isRecord(assetLibrary) ? assetLibrary : {}
   return {
     templates: DEFAULT_LAUNCH_ASSET_TEMPLATES,
-    generatedAssets: Array.isArray(assetLibrary?.generatedAssets)
-      ? assetLibrary.generatedAssets
+    generatedAssets: Array.isArray(rawAssetLibrary.generatedAssets)
+      ? rawAssetLibrary.generatedAssets
           .map((asset, index) => normalizeGeneratedAsset(asset, index))
           .filter(Boolean) as GeneratedLaunchAsset[]
       : [],
@@ -479,180 +539,435 @@ export function normalizeAssetLibrary(
 }
 
 function normalizeGeneratedAsset(
-  asset: Partial<GeneratedLaunchAsset> | null | undefined,
+  asset: unknown,
   index: number,
 ): GeneratedLaunchAsset | null {
-  if (!asset?.templateId) {
+  const rawAsset = isRecord(asset) ? asset : {}
+  const templateId = safeString(rawAsset.templateId)
+  if (!templateId) {
     return null
   }
 
-  const template = DEFAULT_LAUNCH_ASSET_TEMPLATES.find((item) => item.id === asset.templateId)
+  const template = DEFAULT_LAUNCH_ASSET_TEMPLATES.find((item) => item.id === templateId)
   if (!template) {
     return null
   }
 
-  const format = isLaunchAssetFormat(asset.format) && template.formats.includes(asset.format)
-    ? asset.format
+  const format = isLaunchAssetFormat(rawAsset.format) && template.formats.includes(rawAsset.format)
+    ? rawAsset.format
     : template.formats[0]
 
   return {
-    id: asset.id || `${asset.templateId}-${format}-${index + 1}`,
-    templateId: asset.templateId,
-    kind: isLaunchAssetKind(asset.kind) ? asset.kind : template.kind,
-    mediaType: isLaunchAssetMediaType(asset.mediaType) ? asset.mediaType : template.mediaType,
+    id: safeString(rawAsset.id) || `${templateId}-${format}-${index + 1}`,
+    templateId,
+    kind: isLaunchAssetKind(rawAsset.kind) ? rawAsset.kind : template.kind,
+    mediaType: isLaunchAssetMediaType(rawAsset.mediaType) ? rawAsset.mediaType : template.mediaType,
     format,
-    status: isGeneratedAssetStatus(asset.status) ? asset.status : 'failed',
-    title: asset.title || template.title,
-    prompt: asset.prompt || '',
-    outputUrl: asset.outputUrl || '',
-    outputText: asset.outputText || '',
-    replicatePredictionId: asset.replicatePredictionId || '',
-    error: asset.error || '',
-    createdAt: asset.createdAt || new Date().toISOString(),
-    updatedAt: asset.updatedAt || asset.createdAt || new Date().toISOString(),
+    status: isGeneratedAssetStatus(rawAsset.status) ? rawAsset.status : 'failed',
+    title: safeString(rawAsset.title) || template.title,
+    prompt: safeString(rawAsset.prompt),
+    outputUrl: normalizeGeneratedAssetOutputUrl(rawAsset.outputUrl),
+    outputText: safeString(rawAsset.outputText),
+    replicatePredictionId: safeString(rawAsset.replicatePredictionId),
+    error: safeString(rawAsset.error),
+    createdAt: safeString(rawAsset.createdAt) || new Date().toISOString(),
+    updatedAt: safeString(rawAsset.updatedAt) ||
+      safeString(rawAsset.createdAt) ||
+      new Date().toISOString(),
   }
 }
 
-export function normalizeSeoGrowthState(
-  seoGrowth: Partial<SeoGrowthState> | null | undefined,
-): SeoGrowthState {
-  const fallback = createEmptySeoGrowthState()
+function normalizeOutreachPack(
+  pack: unknown,
+  fallback: GrowthAssets['linkedinOutreach'],
+): GrowthAssets['linkedinOutreach'] {
+  const rawPack = isRecord(pack) ? pack : {}
 
   return {
-    ...fallback,
-    ...(seoGrowth || {}),
-    websiteAnalysis: seoGrowth?.websiteAnalysis
+    channel: fallback.channel,
+    notes: safeString(rawPack.notes) || fallback.notes,
+    personalizationTemplate: safeString(rawPack.personalizationTemplate) ||
+      fallback.personalizationTemplate,
+    variants: normalizeOutreachVariants(rawPack.variants),
+  }
+}
+
+function normalizeOutreachVariants(value: unknown): GrowthAssets['linkedinOutreach']['variants'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const variants: GrowthAssets['linkedinOutreach']['variants'] = []
+
+  for (const [index, variant] of value.entries()) {
+    const rawVariant = isRecord(variant) ? variant : {}
+    const message = safeString(rawVariant.message)
+    if (!message) {
+      continue
+    }
+
+    variants.push({
+      id: safeString(rawVariant.id) || `variant-${index + 1}`,
+      title: safeString(rawVariant.title),
+      subject: safeString(rawVariant.subject),
+      message,
+      cta: safeString(rawVariant.cta),
+    })
+
+    if (variants.length >= 12) {
+      break
+    }
+  }
+
+  return variants
+}
+
+function normalizeSeoPostPacks(value: unknown): GrowthAssets['seoPostPacks'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const posts: GrowthAssets['seoPostPacks'] = []
+
+  for (const [index, post] of value.entries()) {
+    const rawPost = isRecord(post) ? post : {}
+    const title = safeString(rawPost.title)
+    const draft = safeString(rawPost.draft)
+    if (!title && !draft) {
+      continue
+    }
+
+    posts.push({
+      id: safeString(rawPost.id) || `seo-post-${index + 1}`,
+      keywordClusterId: safeString(rawPost.keywordClusterId) || `cluster-${index + 1}`,
+      keywordTopic: safeString(rawPost.keywordTopic),
+      title,
+      metaDescription: safeString(rawPost.metaDescription),
+      outline: safeStringArray(rawPost.outline),
+      draft,
+      cta: safeString(rawPost.cta),
+    })
+
+    if (posts.length >= 12) {
+      break
+    }
+  }
+
+  return posts
+}
+
+function normalizeFollowUpSequences(value: unknown): GrowthAssets['followUpSequences'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const sequences: GrowthAssets['followUpSequences'] = []
+
+  for (const [index, item] of value.entries()) {
+    const rawItem = isRecord(item) ? item : {}
+    const message = safeString(rawItem.message)
+    if (!message) {
+      continue
+    }
+
+    sequences.push({
+      day: safeString(rawItem.day) || `Day ${index + 1}`,
+      message,
+    })
+
+    if (sequences.length >= 12) {
+      break
+    }
+  }
+
+  return sequences
+}
+
+export function normalizeProspectingState(prospecting: unknown): ProspectingState {
+  const rawProspecting = isRecord(prospecting) ? prospecting : {}
+
+  return {
+    queryHints: safeStringArray(rawProspecting.queryHints),
+    leads: normalizeProspectLeads(rawProspecting.leads),
+    personalizedOutreach: normalizePersonalizedOutreach(rawProspecting.personalizedOutreach),
+    actionRuns: normalizeProspectActionRuns(rawProspecting.actionRuns),
+    emailJobs: normalizeOutreachEmailJobs(rawProspecting.emailJobs),
+    lastScrapeAt: safeString(rawProspecting.lastScrapeAt),
+    lastEmailBuildAt: safeString(rawProspecting.lastEmailBuildAt),
+  }
+}
+
+function normalizeProspectLeads(value: unknown): ProspectingState['leads'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const leads: ProspectingState['leads'] = []
+
+  for (const [index, lead] of value.entries()) {
+    const rawLead = isRecord(lead) ? lead : {}
+    const name = safeString(rawLead.name)
+    const company = safeString(rawLead.company)
+    const website = normalizeHttpUrl(rawLead.website)
+    const email = safeString(rawLead.email)
+    if (!name && !company && !website && !email) {
+      continue
+    }
+
+    leads.push({
+      id: safeString(rawLead.id) || `lead-${index + 1}`,
+      name,
+      role: safeString(rawLead.role),
+      company,
+      website,
+      email,
+      linkedinUrl: normalizeHttpUrl(rawLead.linkedinUrl),
+      xUrl: normalizeHttpUrl(rawLead.xUrl),
+      reason: safeString(rawLead.reason),
+      source: safeString(rawLead.source),
+      score: clampNumber(rawLead.score, 0, 100, 50),
+      tier: isProspectLeadTier(rawLead.tier) ? rawLead.tier : 'warm',
+    })
+
+    if (leads.length >= 100) {
+      break
+    }
+  }
+
+  return leads
+}
+
+function normalizePersonalizedOutreach(value: unknown): ProspectingState['personalizedOutreach'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const outreach: ProspectingState['personalizedOutreach'] = []
+
+  for (const [index, item] of value.entries()) {
+    const rawItem = isRecord(item) ? item : {}
+    const leadId = safeString(rawItem.leadId)
+    const hasMessage = Boolean(
+      safeString(rawItem.linkedinMessage) ||
+        safeString(rawItem.xMessage) ||
+        safeString(rawItem.emailBody),
+    )
+    if (!leadId || !hasMessage) {
+      continue
+    }
+
+    outreach.push({
+      id: safeString(rawItem.id) || `outreach-${index + 1}`,
+      leadId,
+      leadName: safeString(rawItem.leadName),
+      company: safeString(rawItem.company),
+      linkedinMessage: safeString(rawItem.linkedinMessage),
+      xMessage: safeString(rawItem.xMessage),
+      emailSubject: safeString(rawItem.emailSubject),
+      emailBody: safeString(rawItem.emailBody),
+      createdAt: safeString(rawItem.createdAt),
+    })
+
+    if (outreach.length >= 100) {
+      break
+    }
+  }
+
+  return outreach
+}
+
+function normalizeProspectActionRuns(value: unknown): ProspectingState['actionRuns'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((run, index) => {
+      const rawRun = isRecord(run) ? run : {}
+
+      return {
+        id: safeString(rawRun.id) || `action-run-${index + 1}`,
+        type: isProspectActionType(rawRun.type) ? rawRun.type : 'prospect',
+        status: isProspectActionStatus(rawRun.status) ? rawRun.status : 'failed',
+        summary: safeString(rawRun.summary),
+        createdAt: safeString(rawRun.createdAt),
+        updatedAt: safeString(rawRun.updatedAt),
+        error: safeString(rawRun.error) || undefined,
+      }
+    })
+    .slice(0, 100)
+}
+
+function normalizeOutreachEmailJobs(value: unknown): ProspectingState['emailJobs'] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const jobs: ProspectingState['emailJobs'] = []
+
+  for (const [index, job] of value.entries()) {
+    const rawJob = isRecord(job) ? job : {}
+    const leadIds = safeStringArray(rawJob.leadIds)
+    const subject = safeString(rawJob.subject)
+    if (!leadIds.length && !subject) {
+      continue
+    }
+
+    jobs.push({
+      id: safeString(rawJob.id) || `email-job-${index + 1}`,
+      status: rawJob.status === 'queued' ? 'queued' : 'completed',
+      leadIds,
+      subject,
+      bodyPreview: safeString(rawJob.bodyPreview),
+      createdAt: safeString(rawJob.createdAt),
+      completedAt: safeString(rawJob.completedAt) || undefined,
+    })
+
+    if (jobs.length >= 100) {
+      break
+    }
+  }
+
+  return jobs
+}
+
+export function normalizeSeoGrowthState(
+  seoGrowth: unknown,
+): SeoGrowthState {
+  const rawSeoGrowth = isRecord(seoGrowth) ? seoGrowth : {}
+  const fallback = createEmptySeoGrowthState()
+  const websiteAnalysis = isRecord(rawSeoGrowth.websiteAnalysis)
+    ? rawSeoGrowth.websiteAnalysis
+    : null
+
+  return {
+    websiteAnalysis: websiteAnalysis
       ? {
-          generatedAt: seoGrowth.websiteAnalysis.generatedAt || '',
-          score: clampNumber(seoGrowth.websiteAnalysis.score, 0, 100, 0),
-          summary: seoGrowth.websiteAnalysis.summary || '',
-          strengths: Array.isArray(seoGrowth.websiteAnalysis.strengths)
-            ? seoGrowth.websiteAnalysis.strengths.filter(Boolean)
-            : [],
-          fixes: Array.isArray(seoGrowth.websiteAnalysis.fixes)
-            ? seoGrowth.websiteAnalysis.fixes.filter(Boolean)
-            : [],
-          checks: Array.isArray(seoGrowth.websiteAnalysis.checks)
-            ? seoGrowth.websiteAnalysis.checks
-                .map((check, index) => ({
-                  id: check.id || `seo-check-${index + 1}`,
-                  label: check.label || '',
-                  status: ['pass', 'warning', 'fail'].includes(check.status)
-                    ? check.status
-                    : 'warning',
-                  detail: check.detail || '',
-                }))
+          generatedAt: safeString(websiteAnalysis.generatedAt),
+          score: clampNumber(websiteAnalysis.score, 0, 100, 0),
+          summary: safeString(websiteAnalysis.summary),
+          strengths: safeStringArray(websiteAnalysis.strengths),
+          fixes: safeStringArray(websiteAnalysis.fixes),
+          checks: Array.isArray(websiteAnalysis.checks)
+            ? websiteAnalysis.checks
+                .map((check, index) => {
+                  const rawCheck = isRecord(check) ? check : {}
+                  return {
+                    id: safeString(rawCheck.id) || `seo-check-${index + 1}`,
+                    label: safeString(rawCheck.label),
+                    status: isSeoCheckStatus(rawCheck.status) ? rawCheck.status : 'warning',
+                    detail: safeString(rawCheck.detail),
+                  }
+                })
                 .filter((check) => check.label || check.detail)
             : [],
-          llmReadinessNotes: Array.isArray(seoGrowth.websiteAnalysis.llmReadinessNotes)
-            ? seoGrowth.websiteAnalysis.llmReadinessNotes.filter(Boolean)
-            : [],
+          llmReadinessNotes: safeStringArray(websiteAnalysis.llmReadinessNotes),
         }
       : null,
-    blogStrategy: Array.isArray(seoGrowth?.blogStrategy)
-      ? seoGrowth.blogStrategy
-          .map((post, index) => ({
-            id: post.id || `blog-post-${index + 1}`,
-            dayOffset: clampNumber(post.dayOffset, 0, 365, index * 4),
-            keywordClusterId: post.keywordClusterId || `cluster-${index + 1}`,
-            keywordTopic: post.keywordTopic || '',
-            title: post.title || '',
-            intent: post.intent || 'informational',
-            targetKeywords: Array.isArray(post.targetKeywords)
-              ? post.targetKeywords.filter(Boolean)
-              : [],
-            tableIdeas: Array.isArray(post.tableIdeas) ? post.tableIdeas.filter(Boolean) : [],
-            outline: Array.isArray(post.outline) ? post.outline.filter(Boolean) : [],
-            llmNotes: Array.isArray(post.llmNotes) ? post.llmNotes.filter(Boolean) : [],
-            cta: post.cta || '',
-          }))
+    blogStrategy: Array.isArray(rawSeoGrowth.blogStrategy)
+      ? rawSeoGrowth.blogStrategy
+          .map((post, index) => {
+            const rawPost = isRecord(post) ? post : {}
+            return {
+              id: safeString(rawPost.id) || `blog-post-${index + 1}`,
+              dayOffset: clampNumber(rawPost.dayOffset, 0, 365, index * 4),
+              keywordClusterId: safeString(rawPost.keywordClusterId) || `cluster-${index + 1}`,
+              keywordTopic: safeString(rawPost.keywordTopic),
+              title: safeString(rawPost.title),
+              intent: isKeywordIntent(rawPost.intent) ? rawPost.intent : 'informational',
+              targetKeywords: safeStringArray(rawPost.targetKeywords),
+              tableIdeas: safeStringArray(rawPost.tableIdeas),
+              outline: safeStringArray(rawPost.outline),
+              llmNotes: safeStringArray(rawPost.llmNotes),
+              cta: safeString(rawPost.cta),
+            }
+          })
           .filter((post) => post.title || post.keywordTopic)
       : [],
-    freeTools: Array.isArray(seoGrowth?.freeTools)
-      ? seoGrowth.freeTools
-          .map((tool, index) => ({
-            id: tool.id || `free-tool-${index + 1}`,
-            category: tool.category || '',
-            title: tool.title || '',
-            url: tool.url || '',
-            workflow: tool.workflow || '',
-          }))
+    freeTools: Array.isArray(rawSeoGrowth.freeTools)
+      ? rawSeoGrowth.freeTools
+          .map((tool, index) => {
+            const rawTool = isRecord(tool) ? tool : {}
+            return {
+              id: safeString(rawTool.id) || `free-tool-${index + 1}`,
+              category: safeString(rawTool.category),
+              title: safeString(rawTool.title),
+              url: normalizeHttpUrl(rawTool.url),
+              workflow: safeString(rawTool.workflow),
+            }
+          })
           .filter((tool) => tool.title)
       : [],
-    backlinkProspects: Array.isArray(seoGrowth?.backlinkProspects)
-      ? seoGrowth.backlinkProspects
-          .map((prospect, index) => ({
-            id: prospect.id || `backlink-${index + 1}`,
-            website: prospect.website || '',
-            domain: prospect.domain || '',
-            title: prospect.title || '',
-            contactName: prospect.contactName || '',
-            contactEmail: prospect.contactEmail || '',
-            scrapedSummary: prospect.scrapedSummary || '',
-            relevanceReason: prospect.relevanceReason || '',
-            backlinkAngle: prospect.backlinkAngle || '',
-            costToList:
-              typeof prospect.costToList === 'number' && Number.isFinite(prospect.costToList)
-                ? prospect.costToList
-                : null,
-            estimatedTraffic:
-              typeof prospect.estimatedTraffic === 'number' && Number.isFinite(prospect.estimatedTraffic)
-                ? prospect.estimatedTraffic
-                : null,
-            relevanceScore: clampNumber(prospect.relevanceScore, 0, 100, 50),
-            trafficScore: clampNumber(prospect.trafficScore, 0, 100, 50),
-            authorityScore: clampNumber(prospect.authorityScore, 0, 100, 50),
-            contactabilityScore: clampNumber(prospect.contactabilityScore, 0, 100, 50),
-            costScore: clampNumber(prospect.costScore, 0, 100, 50),
-            valueScore: clampNumber(prospect.valueScore, 0, 100, 50),
-            status: [
-              'new',
-              'first_contact',
-              'second_contact',
-              'in_negotiation',
-              'closed',
-              'rejected',
-            ].includes(prospect.status)
-              ? prospect.status
-              : 'new',
-            listIds: Array.isArray(prospect.listIds) ? prospect.listIds.filter(Boolean) : [],
-            customizedEmailSubject: prospect.customizedEmailSubject || '',
-            customizedEmailBody: prospect.customizedEmailBody || '',
-            source: prospect.source || '',
-            discoveredAt: prospect.discoveredAt || '',
-            lastContactedAt: prospect.lastContactedAt || '',
-          }))
+    backlinkProspects: Array.isArray(rawSeoGrowth.backlinkProspects)
+      ? rawSeoGrowth.backlinkProspects
+          .map((prospect, index) => {
+            const rawProspect = isRecord(prospect) ? prospect : {}
+            return {
+              id: safeString(rawProspect.id) || `backlink-${index + 1}`,
+              website: normalizeHttpUrl(rawProspect.website, { includePath: false }),
+              domain: safeString(rawProspect.domain),
+              title: safeString(rawProspect.title),
+              contactName: safeString(rawProspect.contactName),
+              contactEmail: safeString(rawProspect.contactEmail),
+              scrapedSummary: safeString(rawProspect.scrapedSummary),
+              relevanceReason: safeString(rawProspect.relevanceReason),
+              backlinkAngle: safeString(rawProspect.backlinkAngle),
+              costToList: finiteNumberOrNull(rawProspect.costToList),
+              estimatedTraffic: finiteNumberOrNull(rawProspect.estimatedTraffic),
+              relevanceScore: clampNumber(rawProspect.relevanceScore, 0, 100, 50),
+              trafficScore: clampNumber(rawProspect.trafficScore, 0, 100, 50),
+              authorityScore: clampNumber(rawProspect.authorityScore, 0, 100, 50),
+              contactabilityScore: clampNumber(rawProspect.contactabilityScore, 0, 100, 50),
+              costScore: clampNumber(rawProspect.costScore, 0, 100, 50),
+              valueScore: clampNumber(rawProspect.valueScore, 0, 100, 50),
+              status: isBacklinkProspectStatus(rawProspect.status) ? rawProspect.status : 'new',
+              listIds: safeStringArray(rawProspect.listIds),
+              customizedEmailSubject: safeString(rawProspect.customizedEmailSubject),
+              customizedEmailBody: safeString(rawProspect.customizedEmailBody),
+              source: safeString(rawProspect.source),
+              discoveredAt: safeString(rawProspect.discoveredAt),
+              lastContactedAt: safeString(rawProspect.lastContactedAt),
+            }
+          })
           .filter((prospect) => prospect.website || prospect.domain || prospect.title)
       : [],
-    prospectLists: Array.isArray(seoGrowth?.prospectLists)
-      ? seoGrowth.prospectLists
-          .map((list, index) => ({
-            id: list.id || `backlink-list-${index + 1}`,
-            name: list.name || '',
-            description: list.description || '',
-            prospectIds: Array.isArray(list.prospectIds) ? list.prospectIds.filter(Boolean) : [],
-            createdAt: list.createdAt || '',
-            updatedAt: list.updatedAt || '',
-          }))
+    prospectLists: Array.isArray(rawSeoGrowth.prospectLists)
+      ? rawSeoGrowth.prospectLists
+          .map((list, index) => {
+            const rawList = isRecord(list) ? list : {}
+            return {
+              id: safeString(rawList.id) || `backlink-list-${index + 1}`,
+              name: safeString(rawList.name),
+              description: safeString(rawList.description),
+              prospectIds: safeStringArray(rawList.prospectIds),
+              createdAt: safeString(rawList.createdAt),
+              updatedAt: safeString(rawList.updatedAt),
+            }
+          })
           .filter((list) => list.name)
       : [],
-    backlinkEmailJobs: Array.isArray(seoGrowth?.backlinkEmailJobs)
-      ? seoGrowth.backlinkEmailJobs
-          .map((job, index) => ({
-            id: job.id || `backlink-email-job-${index + 1}`,
-            status: job.status === 'queued' ? ('queued' as const) : ('completed' as const),
-            prospectIds: Array.isArray(job.prospectIds) ? job.prospectIds.filter(Boolean) : [],
-            subject: job.subject || '',
-            bodyPreview: job.bodyPreview || '',
-            createdAt: job.createdAt || '',
-            completedAt: job.completedAt || '',
-          }))
+    backlinkEmailJobs: Array.isArray(rawSeoGrowth.backlinkEmailJobs)
+      ? rawSeoGrowth.backlinkEmailJobs
+          .map((job, index) => {
+            const rawJob = isRecord(job) ? job : {}
+            return {
+              id: safeString(rawJob.id) || `backlink-email-job-${index + 1}`,
+              status: rawJob.status === 'queued' ? ('queued' as const) : ('completed' as const),
+              prospectIds: safeStringArray(rawJob.prospectIds),
+              subject: safeString(rawJob.subject),
+              bodyPreview: safeString(rawJob.bodyPreview),
+              createdAt: safeString(rawJob.createdAt),
+              completedAt: safeString(rawJob.completedAt),
+            }
+          })
           .filter((job) => job.prospectIds.length > 0 || job.subject)
       : [],
-    lastAnalyzedAt: seoGrowth?.lastAnalyzedAt || '',
-    lastBlogStrategyAt: seoGrowth?.lastBlogStrategyAt || '',
-    lastBacklinkScrapeAt: seoGrowth?.lastBacklinkScrapeAt || '',
-    lastBacklinkEmailAt: seoGrowth?.lastBacklinkEmailAt || '',
+    lastAnalyzedAt: safeString(rawSeoGrowth.lastAnalyzedAt) || fallback.lastAnalyzedAt,
+    lastBlogStrategyAt: safeString(rawSeoGrowth.lastBlogStrategyAt) || fallback.lastBlogStrategyAt,
+    lastBacklinkScrapeAt: safeString(rawSeoGrowth.lastBacklinkScrapeAt) ||
+      fallback.lastBacklinkScrapeAt,
+    lastBacklinkEmailAt: safeString(rawSeoGrowth.lastBacklinkEmailAt) ||
+      fallback.lastBacklinkEmailAt,
   }
 }
 
@@ -662,6 +977,36 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
   }
 
   return Math.max(min, Math.min(max, value))
+}
+
+function finiteNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function safeStringArray(value: unknown, limit?: number): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const cleaned = value.map((item) => safeString(item)).filter(Boolean)
+  return typeof limit === 'number' ? cleaned.slice(0, limit) : cleaned
+}
+
+function isKeywordIntent(value: unknown): value is KeywordResearch['clusters'][number]['intent'] {
+  return (
+    value === 'informational' ||
+    value === 'commercial' ||
+    value === 'transactional' ||
+    value === 'navigational'
+  )
+}
+
+function isKeywordPriority(value: unknown): value is KeywordResearch['clusters'][number]['priority'] {
+  return value === 'high' || value === 'medium' || value === 'low'
 }
 
 function isLaunchAssetKind(value: unknown): value is LaunchAssetKind {
@@ -701,30 +1046,74 @@ function isGeneratedAssetStatus(value: unknown): value is GeneratedLaunchAssetSt
   return value === 'succeeded' || value === 'failed'
 }
 
+function isProspectLeadTier(value: unknown): value is ProspectingState['leads'][number]['tier'] {
+  return value === 'hot' || value === 'warm' || value === 'cold'
+}
+
+function isProspectActionType(
+  value: unknown,
+): value is ProspectingState['actionRuns'][number]['type'] {
+  return (
+    value === 'prospect' ||
+    value === 'build_email_list' ||
+    value === 'personalize_outreach' ||
+    value === 'send_outreach_email' ||
+    value === 'score_segment' ||
+    value === 'export_leads' ||
+    value === 'followup_sequences'
+  )
+}
+
+function isProspectActionStatus(
+  value: unknown,
+): value is ProspectingState['actionRuns'][number]['status'] {
+  return (
+    value === 'pending_approval' ||
+    value === 'approved' ||
+    value === 'running' ||
+    value === 'completed' ||
+    value === 'failed'
+  )
+}
+
+function isSeoCheckStatus(
+  value: unknown,
+): value is NonNullable<SeoGrowthState['websiteAnalysis']>['checks'][number]['status'] {
+  return value === 'pass' || value === 'warning' || value === 'fail'
+}
+
+function isBacklinkProspectStatus(
+  value: unknown,
+): value is SeoGrowthState['backlinkProspects'][number]['status'] {
+  return (
+    value === 'new' ||
+    value === 'first_contact' ||
+    value === 'second_contact' ||
+    value === 'in_negotiation' ||
+    value === 'closed' ||
+    value === 'rejected'
+  )
+}
+
 export function normalizeRedditRecommendations(
-  recommendations:
-    | {
-        engagementSubreddits?: Partial<SubredditRecommendation>[] | null
-        selfPromotionSubreddits?: Partial<SubredditRecommendation>[] | null
-      }
-    | null
-    | undefined,
+  recommendations: unknown,
   fallback?: RedditRecommendations,
 ): RedditRecommendations {
+  const rawRecommendations = isRecord(recommendations) ? recommendations : {}
   return {
     engagementSubreddits: normalizeSubredditRecommendationList(
-      recommendations?.engagementSubreddits,
+      rawRecommendations.engagementSubreddits,
       fallback?.engagementSubreddits,
     ),
     selfPromotionSubreddits: normalizeSubredditRecommendationList(
-      recommendations?.selfPromotionSubreddits,
+      rawRecommendations.selfPromotionSubreddits,
       fallback?.selfPromotionSubreddits,
     ),
   }
 }
 
 function normalizeSubredditRecommendationList(
-  recommendations: Partial<SubredditRecommendation>[] | null | undefined,
+  recommendations: unknown,
   fallback: SubredditRecommendation[] = [],
 ): SubredditRecommendation[] {
   const normalized = Array.isArray(recommendations)
@@ -747,9 +1136,9 @@ function normalizeSubredditRecommendationList(
     seen.add(key)
     deduped.push({
       name: `r/${slug}`,
-      url: recommendation.url.trim() || buildSubredditUrl(slug),
-      reason: recommendation.reason.trim(),
-      postingGuidance: recommendation.postingGuidance.trim(),
+      url: buildSubredditUrl(slug),
+      reason: safeString(recommendation.reason),
+      postingGuidance: safeString(recommendation.postingGuidance),
     })
   }
 
@@ -757,10 +1146,11 @@ function normalizeSubredditRecommendationList(
 }
 
 function normalizeSubredditRecommendation(
-  recommendation: Partial<SubredditRecommendation> | null | undefined,
+  recommendation: unknown,
 ): SubredditRecommendation | null {
-  const name = safeString(recommendation?.name)
-  const rawUrl = safeString(recommendation?.url)
+  const rawRecommendation = isRecord(recommendation) ? recommendation : {}
+  const name = safeString(rawRecommendation.name)
+  const rawUrl = safeString(rawRecommendation.url)
   const slug = extractSubredditSlug(name || rawUrl)
 
   if (!slug) {
@@ -769,10 +1159,114 @@ function normalizeSubredditRecommendation(
 
   return {
     name: `r/${slug}`,
-    url: rawUrl || buildSubredditUrl(slug),
-    reason: safeString(recommendation?.reason),
-    postingGuidance: safeString(recommendation?.postingGuidance),
+    url: buildSubredditUrl(slug),
+    reason: safeString(rawRecommendation.reason),
+    postingGuidance: safeString(rawRecommendation.postingGuidance),
   }
+}
+
+function normalizeHttpUrl(
+  value: unknown,
+  options: {
+    includePath?: boolean
+  } = {},
+): string {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  try {
+    const url = new URL(value.trim())
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return ''
+    }
+    if (isBlockedPublicLinkHost(url.hostname)) {
+      return ''
+    }
+
+    url.hash = ''
+
+    if (options.includePath === false) {
+      url.pathname = ''
+      url.search = ''
+    }
+
+    return url.toString()
+  } catch {
+    return ''
+  }
+}
+
+function isBlockedPublicLinkHost(hostname: string): boolean {
+  const lower = hostname.replace(/^\[|\]$/g, '').toLowerCase()
+  if (
+    lower === 'localhost' ||
+    lower.endsWith('.localhost') ||
+    lower.endsWith('.local') ||
+    lower.endsWith('.lan') ||
+    lower.endsWith('.home') ||
+    lower === '' ||
+    !lower.includes('.')
+  ) {
+    return true
+  }
+
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(lower)) {
+    return isBlockedIpv4LinkHost(lower)
+  }
+
+  return isBlockedIpv6LinkHost(lower)
+}
+
+function isBlockedIpv4LinkHost(ip: string): boolean {
+  const parts = ip.split('.').map(Number)
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return true
+  }
+
+  const [a, b] = parts
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224
+  )
+}
+
+function isBlockedIpv6LinkHost(hostname: string): boolean {
+  if (!hostname.includes(':')) {
+    return false
+  }
+
+  return (
+    hostname === '::1' ||
+    hostname.startsWith('fc') ||
+    hostname.startsWith('fd') ||
+    hostname.startsWith('fe80:') ||
+    hostname.startsWith('::ffff:127.') ||
+    hostname.startsWith('::ffff:10.') ||
+    hostname.startsWith('::ffff:192.168.')
+  )
+}
+
+function normalizeGeneratedAssetOutputUrl(value: unknown): string {
+  const httpUrl = normalizeHttpUrl(value)
+  if (httpUrl) {
+    return httpUrl
+  }
+
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  const trimmed = value.trim()
+  return /^data:image\/(?:png|jpe?g|webp|gif|svg\+xml);base64,[a-z0-9+/=\s]+$/i.test(trimmed)
+    ? trimmed
+    : ''
 }
 
 function safeString(value: unknown): string {

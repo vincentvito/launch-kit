@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { getAppUrl } from "@/lib/env";
+import { assertOrLogProductionReadiness } from "@/lib/observability";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  assertOrLogProductionReadiness();
+
   const t = await getTranslations("App.meta");
   const appUrl = getAppUrl();
 
@@ -43,6 +46,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  assertOrLogProductionReadiness();
+
   const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
 
   return (

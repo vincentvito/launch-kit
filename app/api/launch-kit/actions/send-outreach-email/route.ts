@@ -1,8 +1,11 @@
 import { dispatchEmailDelivery, isEmailDeliveryConfigured } from '@/lib/email-delivery'
 import {
+  getJsonObjectField,
+  getJsonStringArrayField,
+  getJsonStringField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
@@ -11,24 +14,23 @@ import {
   buildLeadOutreachDeliveryPayload,
   runSendOutreachEmailAction,
 } from '@/lib/launch-kit/prospecting'
-import type { LaunchKit } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      launchKit?: Partial<LaunchKit>
-      selectedLeadIds?: string[]
-      subject?: string
-      body?: string
-    }>(request)
+    const body = await readTrustedJsonBody(request)
+    const launchKitInput = getJsonObjectField(body, 'launchKit')
 
-    if (!body.launchKit) {
+    if (!launchKitInput) {
       return privateJsonResponse({ error: 'launchKit is required.' }, { status: 400 })
     }
 
-    const launchKit = normalizeKit(body.launchKit, body.launchKit.language || 'en')
+    const launchKit = normalizeKit(
+      launchKitInput,
+      typeof launchKitInput.language === 'string' ? launchKitInput.language : 'en',
+    )
     const access = await requireLaunchApiAccess(request, {
       action: 'send_outreach_email',
       feature: 'premium',
@@ -36,9 +38,9 @@ export async function POST(request: Request) {
     })
     const input = {
       launchKit,
-      selectedLeadIds: Array.isArray(body.selectedLeadIds) ? body.selectedLeadIds : [],
-      subject: body.subject,
-      body: body.body,
+      selectedLeadIds: getJsonStringArrayField(body, 'selectedLeadIds', { maxLength: 128 }),
+      subject: getJsonStringField(body, 'subject', { maxLength: 240 }),
+      body: getJsonStringField(body, 'body', { maxLength: 8000, trim: false }),
     }
     const deliveryPayload = buildLeadOutreachDeliveryPayload(input)
     const delivery = deliveryPayload.leads.length > 0

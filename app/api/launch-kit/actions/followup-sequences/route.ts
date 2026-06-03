@@ -1,29 +1,29 @@
 import {
+  getJsonObjectField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 import { runFollowUpSequenceAction } from '@/lib/launch-kit/prospecting'
-import type { ExtractedBrief, LaunchKit } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      brief?: Partial<ExtractedBrief>
-      launchKit?: Partial<LaunchKit>
-    }>(request)
+    const body = await readTrustedJsonBody(request)
+    const briefInput = getJsonObjectField(body, 'brief')
+    const launchKitInput = getJsonObjectField(body, 'launchKit')
 
-    if (!body.brief || !body.launchKit) {
+    if (!briefInput || !launchKitInput) {
       return privateJsonResponse({ error: 'brief and launchKit are required.' }, { status: 400 })
     }
 
-    const brief = normalizeBrief(body.brief)
-    const launchKit = normalizeKit(body.launchKit, brief.language || 'en')
+    const brief = normalizeBrief(briefInput)
+    const launchKit = normalizeKit(launchKitInput, brief.language || 'en')
 
     const access = await requireLaunchApiAccess(request, {
       action: 'followup_sequences',

@@ -2,19 +2,17 @@ import { ingestProductUrl } from '@/lib/launch-kit/url-extractor'
 import {
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonBody<{
-      url?: string
-      languageOverride?: string
-    }>(request, { maxBytes: 16 * 1024 })
+    const body = await readTrustedJsonBody(request, { maxBytes: 16 * 1024 })
 
     if (!body.url || typeof body.url !== 'string') {
       return privateJsonResponse({ error: 'A valid URL is required.' }, { status: 400 })

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   assertTrustedRequestOrigin,
   LaunchApiError,
+  readTrustedJsonBody,
 } from '../lib/launch-kit/api-guard'
 
 const originalEnv = {
@@ -53,6 +54,27 @@ describe('api origin guard', () => {
         method: 'POST',
       })),
     ).toThrow(LaunchApiError)
+  })
+
+  it('rejects untrusted origins before parsing JSON request bodies', async () => {
+    process.env.VERCEL_ENV = 'production'
+    process.env.NEXT_PUBLIC_APP_URL = 'https://launch.example'
+    process.env.BETTER_AUTH_URL = 'https://launch.example'
+
+    await expect(
+      readTrustedJsonBody(
+        new Request('https://launch.example/api/test', {
+          method: 'POST',
+          headers: {
+            origin: 'https://evil.example',
+            'content-type': 'application/json',
+          },
+          body: '{not-json',
+        }),
+      ),
+    ).rejects.toMatchObject({
+      code: 'untrusted_origin',
+    })
   })
 
   it('does not require origin headers for local development requests', () => {

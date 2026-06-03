@@ -1,16 +1,19 @@
 import { generateLaunchAsset } from '@/lib/launch-kit/assets'
 import {
+  getJsonObjectField,
+  getJsonStringField,
   launchApiRouteErrorResponse,
   privateJsonResponse,
-  readJsonBody,
+  readTrustedJsonBody,
   recordLaunchApiUsage,
   requireLaunchApiAccess,
 } from '@/lib/launch-kit/api-guard'
 import { completeLaunchJob, createLaunchJob } from '@/lib/launch-kit/jobs'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
-import type { ExtractedBrief, LaunchAssetFormat, LaunchKit } from '@/lib/launch-kit/types'
+import type { LaunchAssetFormat } from '@/lib/launch-kit/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 const LAUNCH_ASSET_FORMATS = new Set(['16:9', '9:16', '1:1', '4:5', '1.91:1', 'text'])
 
@@ -18,22 +21,20 @@ export async function POST(request: Request) {
   let jobId: string | undefined
 
   try {
-    const body = await readJsonBody<{
-      brief?: Partial<ExtractedBrief>
-      launchKit?: Partial<LaunchKit> | null
-      templateId?: unknown
-      format?: unknown
-    }>(request, { maxBytes: 2 * 1024 * 1024 })
+    const body = await readTrustedJsonBody(request, { maxBytes: 2 * 1024 * 1024 })
+    const requestedBrief = getJsonObjectField(body, 'brief')
+    const templateId = getJsonStringField(body, 'templateId', { maxLength: 160 })
+    const format = getJsonStringField(body, 'format', { maxLength: 20 })
 
-    if (!body.brief) {
+    if (!requestedBrief) {
       return privateJsonResponse({ error: 'Brief is required.' }, { status: 400 })
     }
 
-    if (typeof body.templateId !== 'string' || !body.templateId.trim()) {
+    if (!templateId) {
       return privateJsonResponse({ error: 'Template is required.' }, { status: 400 })
     }
 
-    if (typeof body.format !== 'string' || !LAUNCH_ASSET_FORMATS.has(body.format)) {
+    if (!LAUNCH_ASSET_FORMATS.has(format)) {
       return privateJsonResponse({ error: 'Supported format is required.' }, { status: 400 })
     }
 
@@ -42,8 +43,8 @@ export async function POST(request: Request) {
       feature: 'premium',
       rateLimitAction: 'premium_action',
     })
-    const brief = normalizeBrief(body.brief)
-    const kit = normalizeKit(body.launchKit, brief.language)
+    const brief = normalizeBrief(requestedBrief)
+    const kit = normalizeKit(getJsonObjectField(body, 'launchKit'), brief.language)
     const job = await createLaunchJob({
       userId: access.session?.user.id,
       subjectKey: access.subjectKey,
@@ -51,27 +52,27 @@ export async function POST(request: Request) {
       payload: {
         sourceUrl: brief.sourceUrl,
         productName: brief.productName,
-        templateId: body.templateId,
-        format: body.format,
+        templateId,
+        format,
       },
     })
     jobId = job.id
     const launchKit = await generateLaunchAsset({
       brief,
       kit,
-      templateId: body.templateId,
-      format: body.format as LaunchAssetFormat,
+      templateId,
+      format: format as LaunchAssetFormat,
     })
     await recordLaunchApiUsage(access, 'asset_generate', {
-      templateId: body.templateId,
-      format: body.format,
+      templateId,
+      format,
       productName: brief.productName,
     })
     await completeLaunchJob({
       jobId,
       result: {
-        templateId: body.templateId,
-        format: body.format,
+        templateId,
+        format,
       },
     })
 

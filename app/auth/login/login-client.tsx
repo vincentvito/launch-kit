@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { type FormEvent, useState } from 'react'
 import { signIn, signUp, useSession } from '@/lib/auth-client'
+import { MIN_PASSWORD_LENGTH } from '@/lib/auth-password-policy'
 import { Button } from '@/components/ui/button'
 
 export default function LoginClient({ googleEnabled }: { googleEnabled: boolean }) {
@@ -39,7 +40,7 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
               callbackURL: '/dashboard',
             })
           : await signUp.email({
-              name: name.trim() || email.split('@')[0] || 'Launch Kit user',
+              name: name.trim() || email.split('@')[0] || t('defaultName'),
               email,
               password,
               callbackURL: '/dashboard',
@@ -72,12 +73,9 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
         <div className="text-center">
           <Link href="/" className="mb-6 inline-flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">C</span>
+              <span className="text-sm font-bold text-primary-foreground">{t('brandInitial')}</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-zinc-950 px-1 text-white dark:bg-white dark:text-black">click</span>
-              studio
-            </span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">{t('brand')}</span>
           </Link>
           <h1 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
             {mode === 'signIn' ? t('title') : t('createTitle')}
@@ -118,7 +116,7 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
               className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-300/40 dark:border-zinc-700 dark:bg-zinc-950"
               type="password"
               autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
-              minLength={8}
+              minLength={MIN_PASSWORD_LENGTH}
               required
             />
           </label>

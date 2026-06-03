@@ -1,11 +1,11 @@
 import prisma from '@/lib/prisma'
 import type {
-  LaunchKit,
   LaunchProjectSnapshot,
   MediaKitContact,
   ProjectSummary,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
+import { normalizePublicHttpUrl } from '@/lib/launch-kit/url-safety'
 import { safeJsonParse, withDefaultContact } from '@/lib/launch-kit/utils'
 
 type SaveProjectInput = {
@@ -14,9 +14,12 @@ type SaveProjectInput = {
   sourceUrl: string
   name: string
   language: string
-  brief: LaunchProjectSnapshot['brief']
-  kit: LaunchKit
+  brief: unknown
+  kit: unknown
 }
+
+export const MAX_STORED_PROJECT_JSON_BYTES = 1_800_000
+export const MAX_SAVED_PROJECTS_PER_USER = 50
 
 export class LaunchProjectNotFoundError extends Error {
   constructor() {
@@ -47,6 +50,7 @@ export async function saveLaunchProject(input: SaveProjectInput): Promise<Launch
   const kit = normalizeKit(input.kit, language)
   const briefJson = JSON.stringify(brief)
   const kitJson = JSON.stringify(kit)
+  assertStoredProjectJsonBudget(briefJson, kitJson)
 
   if (input.projectId) {
     const updated = await prisma.launchProject.updateMany({
@@ -79,6 +83,15 @@ export async function saveLaunchProject(input: SaveProjectInput): Promise<Launch
     }
 
     return toSnapshot(project)
+  }
+
+  const savedProjectCount = await prisma.launchProject.count({
+    where: { userId: input.userId },
+  })
+  if (savedProjectCount >= MAX_SAVED_PROJECTS_PER_USER) {
+    throw new InvalidLaunchProjectInputError(
+      `You can save up to ${MAX_SAVED_PROJECTS_PER_USER} projects. Delete an old project before saving another.`,
+    )
   }
 
   const project = await prisma.launchProject.create({
@@ -126,6 +139,19 @@ export async function getLaunchProject(userId: string, projectId: string): Promi
   return toSnapshot(project)
 }
 
+export async function deleteLaunchProject(userId: string, projectId: string): Promise<void> {
+  const deleted = await prisma.launchProject.deleteMany({
+    where: {
+      id: projectId,
+      userId,
+    },
+  })
+
+  if (deleted.count === 0) {
+    throw new LaunchProjectNotFoundError()
+  }
+}
+
 export async function getUserLaunchProfile(userId: string): Promise<MediaKitContact> {
   const profile = await prisma.userLaunchProfile.findUnique({
     where: { userId },
@@ -148,7 +174,7 @@ export async function getUserLaunchProfile(userId: string): Promise<MediaKitCont
   })
 }
 
-export async function upsertUserLaunchProfile(userId: string, contact: Partial<MediaKitContact>): Promise<MediaKitContact> {
+export async function upsertUserLaunchProfile(userId: string, contact: unknown): Promise<MediaKitContact> {
   const merged = sanitizeMediaKitContact(contact)
 
   const profile = await prisma.userLaunchProfile.upsert({
@@ -231,8 +257,8 @@ function toSnapshot(project: LaunchProjectRecord): LaunchProjectSnapshot {
   }
 }
 
-function sanitizeMediaKitContact(contact: Partial<MediaKitContact>): MediaKitContact {
-  const merged = withDefaultContact(contact)
+function sanitizeMediaKitContact(contact: unknown): MediaKitContact {
+  const merged = isRecord(contact) ? contact : {}
 
   return {
     founderName: cleanStoredText(merged.founderName, 120),
@@ -242,8 +268,8 @@ function sanitizeMediaKitContact(contact: Partial<MediaKitContact>): MediaKitCon
     website: normalizeOptionalHttpUrl(merged.website, 500),
     email: normalizeEmail(merged.email),
     contactPhone: cleanStoredText(merged.contactPhone, 80),
-    socialX: cleanStoredText(merged.socialX, 240),
-    socialLinkedIn: cleanStoredText(merged.socialLinkedIn, 240),
+    socialX: normalizeProfileLocator(merged.socialX, 240),
+    socialLinkedIn: normalizeProfileLocator(merged.socialLinkedIn, 240),
   }
 }
 
@@ -253,35 +279,37 @@ function normalizeRequiredHttpUrl(value: string): string {
     throw new InvalidLaunchProjectInputError('A valid source URL is required.')
   }
 
-  try {
-    const url = new URL(cleaned)
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      throw new InvalidLaunchProjectInputError('Source URL must use HTTP or HTTPS.')
-    }
-    return cleaned
-  } catch (error) {
-    if (error instanceof InvalidLaunchProjectInputError) {
-      throw error
-    }
+  const normalized = normalizePublicHttpUrl(cleaned)
+  if (!normalized) {
     throw new InvalidLaunchProjectInputError('A valid source URL is required.')
   }
+
+  return normalized
 }
 
-function normalizeOptionalHttpUrl(value: string, maxLength: number): string {
+function normalizeOptionalHttpUrl(value: unknown, maxLength: number): string {
   const cleaned = cleanStoredText(value, maxLength)
   if (!cleaned) {
     return ''
   }
 
-  try {
-    const url = new URL(cleaned)
-    return ['http:', 'https:'].includes(url.protocol) ? cleaned : ''
-  } catch {
-    return ''
-  }
+  return normalizePublicHttpUrl(cleaned)
 }
 
-function normalizeEmail(value: string): string {
+function normalizeProfileLocator(value: unknown, maxLength: number): string {
+  const cleaned = cleanStoredText(value, maxLength)
+  if (!cleaned) {
+    return ''
+  }
+
+  if (/^https?:\/\//i.test(cleaned)) {
+    return normalizePublicHttpUrl(cleaned)
+  }
+
+  return /^[a-z][a-z0-9+.-]*:/i.test(cleaned) ? '' : cleaned
+}
+
+function normalizeEmail(value: unknown): string {
   const cleaned = cleanStoredText(value, 254).toLowerCase()
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned) ? cleaned : ''
 }
@@ -291,10 +319,25 @@ function normalizeLanguage(value: string): string {
   return /^[a-z]{2}(?:[-_][a-z]{2})?$/.test(cleaned) ? cleaned : 'en'
 }
 
+function assertStoredProjectJsonBudget(briefJson: string, kitJson: string): void {
+  const bytes = utf8ByteLength(briefJson) + utf8ByteLength(kitJson)
+  if (bytes > MAX_STORED_PROJECT_JSON_BYTES) {
+    throw new InvalidLaunchProjectInputError('Saved project is too large. Shorten generated content or remove oversized assets.')
+  }
+}
+
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).byteLength
+}
+
 function cleanStoredText(value: unknown, maxLength: number): string {
   return String(value ?? '')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, maxLength)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

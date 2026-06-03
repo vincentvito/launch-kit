@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { BookOpenText, ChevronRight, Lock, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Wand2 } from 'lucide-react'
+import { BookOpenText, ChevronRight, Lock, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import { signOut, useSession } from '@/lib/auth-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ function createInitialDemoSnapshot(enabled: boolean) {
     return null
   }
 
-  return createDemoSnapshot(typeof window === 'undefined' ? undefined : window.location.origin)
+  return createDemoSnapshot()
 }
 
 // react-doctor-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer
@@ -99,6 +99,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
   const [generationFeedbackIndex, setGenerationFeedbackIndex] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null)
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
 
   const [error, setError] = useState('')
 
@@ -627,6 +628,42 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     }
   }
 
+  const onDeleteProject = async (project: SavedProjectItem) => {
+    if (!window.confirm(t('savedProjects.deleteConfirm', { name: project.name }))) {
+      return
+    }
+
+    setError('')
+    setSuccess('')
+    setDeletingProjectId(project.id)
+
+    try {
+      if (project.storage === 'guest') {
+        const next = guestProjects.filter((item) => item.id !== project.id)
+        writeGuestProjects(next)
+        setGuestProjects(next)
+      } else {
+        const response = await fetch(`/api/launch-kit/projects/${project.id}`, {
+          method: 'DELETE',
+        })
+        const json = (await response.json()) as { error?: string }
+        if (!response.ok) {
+          throw new Error(json.error || t('errors.projectDeleteFailed'))
+        }
+        await loadServerProjects()
+      }
+
+      if (projectIdRef.current === project.id) {
+        projectIdRef.current = null
+      }
+      setSuccess(t('messages.projectDeleted'))
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : t('errors.projectDeleteFailed'))
+    } finally {
+      setDeletingProjectId(null)
+    }
+  }
+
   const hydrateProject = (snapshot: LaunchProjectSnapshot, isGuest: boolean) => {
     setSourceUrl(snapshot.sourceUrl)
     const nextBrief = normalizeBrief(snapshot.brief)
@@ -670,8 +707,12 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
     const projectId = projectIdRef.current
     if (session && projectId && !projectId.startsWith('guest-')) {
-      window.open(`/api/launch-kit/projects/${projectId}/press-pack`, '_blank', 'noopener,noreferrer')
-      return
+      const response = await fetch(`/api/launch-kit/projects/${projectId}/press-pack`)
+      if (response.ok) {
+        const blob = await response.blob()
+        downloadBlob(blob, `${slugify(projectName || brief.productName || 'launch-kit')}-press-pack.html`)
+        return
+      }
     }
 
     const html = buildPressPackHtml({
@@ -686,9 +727,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     }, getExportLabels(t))
 
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank', 'noopener,noreferrer')
-    setTimeout(() => URL.revokeObjectURL(url), 1500)
+    downloadBlob(blob, `${slugify(projectName || brief.productName || 'launch-kit')}-press-pack.html`)
   }
 
   const copyBlock = async (blockId: PlatformBlockId) => {
@@ -1980,27 +2019,43 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                 <div className="mt-4 space-y-2">
                   {savedProjects.length > 0 ? (
                     savedProjects.map((project) => (
-                      <button
-                        type="button"
+                      <div
                         key={`${project.storage}:${project.id}`}
-                        onClick={() => {
-                          void onLoadProject(project)
-                          setIsUtilityDrawerOpen(false)
-                        }}
-                        className="group w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-left transition hover:border-violet-300 hover:bg-violet-50"
-                        disabled={loadingProjectId === project.id}
+                        className="group flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50/40 p-3 transition hover:border-violet-300 hover:bg-violet-50"
                       >
-                        <p className="text-sm font-semibold text-zinc-900 group-hover:text-violet-700">
-                          {project.name}
-                        </p>
-                        <p className="mt-1 text-xs text-zinc-500">{project.sourceUrl}</p>
-                        <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-violet-700">
-                          {project.storage === 'server'
-                            ? t('savedProjects.cloudLabel')
-                            : t('savedProjects.localLabel')}{' '}
-                          • {new Date(project.updatedAt).toLocaleString()}
-                        </p>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void onLoadProject(project)
+                            setIsUtilityDrawerOpen(false)
+                          }}
+                          className="min-w-0 flex-1 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={loadingProjectId === project.id || deletingProjectId === project.id}
+                        >
+                          <p className="truncate text-sm font-semibold text-zinc-900 group-hover:text-violet-700">
+                            {project.name}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-zinc-500">{project.sourceUrl}</p>
+                          <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-violet-700">
+                            {project.storage === 'server'
+                              ? t('savedProjects.cloudLabel')
+                              : t('savedProjects.localLabel')}{' '}
+                            • {new Date(project.updatedAt).toLocaleString()}
+                          </p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void onDeleteProject(project)
+                          }}
+                          className="grid size-8 shrink-0 place-items-center rounded-lg text-zinc-400 transition hover:bg-white hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={loadingProjectId === project.id || deletingProjectId === project.id}
+                          aria-label={t('savedProjects.deleteAria', { name: project.name })}
+                          title={t('savedProjects.delete')}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
                     ))
                   ) : (
                     <p className="rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">

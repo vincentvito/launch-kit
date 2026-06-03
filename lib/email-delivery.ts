@@ -1,3 +1,5 @@
+import { isProductionRuntime, isProductionSafeWebhookUrl } from '@/lib/env'
+
 type DeliveryResult = {
   configured: boolean
   delivered: boolean
@@ -19,7 +21,9 @@ export async function dispatchEmailDelivery(input: {
     }
   }
 
-  const response = await fetch(endpoint, {
+  const webhookUrl = parseDeliveryWebhookUrl(endpoint)
+
+  const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -42,4 +46,23 @@ export async function dispatchEmailDelivery(input: {
     configured: true,
     delivered: true,
   }
+}
+
+function parseDeliveryWebhookUrl(value: string): string {
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    throw new Error('Invalid email delivery webhook URL.')
+  }
+
+  if (isProductionRuntime() && !isProductionSafeWebhookUrl(url.toString())) {
+    throw new Error('Email delivery webhook must use a public HTTPS URL in production.')
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('Email delivery webhook must use HTTP or HTTPS.')
+  }
+
+  return url.toString()
 }

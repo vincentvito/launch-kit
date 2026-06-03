@@ -1,8 +1,10 @@
+import { isPrivateOrInternalHost } from '@/lib/launch-kit/url-safety'
+
 type JsonRecord = Record<string, unknown>
 
 type ReplicatePrediction = {
   id: string
-  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled'
+  status: ReplicatePredictionStatus
   error?: string | null
   output?: unknown
   urls?: {
@@ -42,8 +44,13 @@ type RunReplicatePredictionInput = {
 }
 
 const DEFAULT_MODEL = 'openai/gpt-5-structured'
+const PREDICTION_STATUSES = new Set(['starting', 'processing', 'succeeded', 'failed', 'canceled'])
 const TERMINAL_STATUSES = new Set(['succeeded', 'failed', 'canceled'])
+const REPLICATE_API_ORIGIN = 'https://api.replicate.com'
+const REPLICATE_WEB_ORIGIN = 'https://replicate.com'
 const DEBUG = process.env.REPLICATE_DEBUG === '1'
+
+type ReplicatePredictionStatus = 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled'
 
 export function hasReplicateToken(): boolean {
   return Boolean(process.env.REPLICATE_API_TOKEN)
@@ -98,7 +105,12 @@ export async function runReplicateStructured<T>(
     return null
   }
 
-  let prediction = (await createResponse.json()) as ReplicatePrediction
+  const createdPrediction = normalizeReplicatePrediction(await readResponseJson(createResponse))
+  if (!createdPrediction) {
+    return null
+  }
+
+  let prediction = createdPrediction
   if (DEBUG) {
     console.info('[replicate] initial status', prediction?.status, 'id', prediction?.id)
   }
@@ -108,7 +120,7 @@ export async function runReplicateStructured<T>(
 
   const pollDeadline = Date.now() + (input.pollTimeoutMs || 360000)
   while (!TERMINAL_STATUSES.has(prediction.status) && Date.now() < pollDeadline) {
-    const getUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
+    const getUrl = getReplicatePollUrl(prediction)
     const statusResponse = await fetch(getUrl, {
       headers: {
         authorization: `Bearer ${token}`,
@@ -123,7 +135,12 @@ export async function runReplicateStructured<T>(
       return null
     }
 
-    prediction = (await statusResponse.json()) as ReplicatePrediction
+    const nextPrediction = normalizeReplicatePrediction(await readResponseJson(statusResponse))
+    if (!nextPrediction) {
+      return null
+    }
+
+    prediction = nextPrediction
 
     if (!TERMINAL_STATUSES.has(prediction.status)) {
       await sleep(2000)
@@ -209,7 +226,7 @@ async function createReplicatePrediction(input: {
     return null
   }
 
-  return (await response.json()) as ReplicatePrediction
+  return normalizeReplicatePrediction(await readResponseJson(response))
 }
 
 async function pollReplicatePrediction(
@@ -220,7 +237,7 @@ async function pollReplicatePrediction(
   const pollDeadline = Date.now() + pollTimeoutMs
 
   while (!TERMINAL_STATUSES.has(prediction.status) && Date.now() < pollDeadline) {
-    const getUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
+    const getUrl = getReplicatePollUrl(prediction)
     const statusResponse = await fetch(getUrl, {
       headers: {
         authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
@@ -239,7 +256,16 @@ async function pollReplicatePrediction(
       }
     }
 
-    prediction = (await statusResponse.json()) as ReplicatePrediction
+    const nextPrediction = normalizeReplicatePrediction(await readResponseJson(statusResponse))
+    if (!nextPrediction) {
+      return {
+        ...prediction,
+        status: 'failed',
+        error: 'Replicate poll returned an invalid prediction',
+      }
+    }
+
+    prediction = nextPrediction
 
     if (!TERMINAL_STATUSES.has(prediction.status)) {
       await sleep(2000)
@@ -259,7 +285,7 @@ async function pollReplicatePrediction(
 
 function extractReplicateOutputUrl(output: unknown): string {
   if (typeof output === 'string') {
-    return output.startsWith('http') ? output : ''
+    return normalizePublicAssetUrl(output)
   }
 
   if (Array.isArray(output)) {
@@ -275,8 +301,11 @@ function extractReplicateOutputUrl(output: unknown): string {
   if (output && typeof output === 'object') {
     const record = output as Record<string, unknown>
     const directUrl = record.url || record.uri || record.path || record.download_url
-    if (typeof directUrl === 'string' && directUrl.startsWith('http')) {
-      return directUrl
+    if (typeof directUrl === 'string') {
+      const url = normalizePublicAssetUrl(directUrl)
+      if (url) {
+        return url
+      }
     }
 
     for (const key of ['output', 'video', 'image', 'images', 'videos', 'files']) {
@@ -336,6 +365,107 @@ function parseReplicateOutput<T>(output: unknown): T | null {
   }
 
   return null
+}
+
+async function readResponseJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+function normalizeReplicatePrediction(value: unknown): ReplicatePrediction | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = typeof value.id === 'string' ? value.id.trim() : ''
+  const status = typeof value.status === 'string' ? value.status.trim() : ''
+
+  if (!id || !isReplicatePredictionStatus(status)) {
+    return null
+  }
+
+  const prediction: ReplicatePrediction = {
+    id,
+    status,
+    error:
+      typeof value.error === 'string' || value.error === null || value.error === undefined
+        ? value.error
+        : 'Replicate returned a non-string error payload',
+    output: value.output,
+    urls: {
+      get: normalizeReplicateApiUrl(isRecord(value.urls) ? value.urls.get : undefined, id),
+      web: normalizeReplicateWebUrl(isRecord(value.urls) ? value.urls.web : undefined, id),
+    },
+  }
+
+  return prediction
+}
+
+function isReplicatePredictionStatus(value: string): value is ReplicatePredictionStatus {
+  return PREDICTION_STATUSES.has(value)
+}
+
+function getReplicatePollUrl(prediction: ReplicatePrediction): string {
+  return normalizeReplicateApiUrl(prediction.urls?.get, prediction.id)
+}
+
+function normalizeReplicateApiUrl(value: unknown, predictionId: string): string {
+  const fallback = `${REPLICATE_API_ORIGIN}/v1/predictions/${encodeURIComponent(predictionId)}`
+  if (typeof value !== 'string') {
+    return fallback
+  }
+
+  try {
+    const url = new URL(value)
+    if (url.origin !== REPLICATE_API_ORIGIN || !url.pathname.startsWith('/v1/')) {
+      return fallback
+    }
+    url.hash = ''
+    return url.toString()
+  } catch {
+    return fallback
+  }
+}
+
+function normalizeReplicateWebUrl(value: unknown, predictionId: string): string {
+  const fallback = `${REPLICATE_WEB_ORIGIN}/p/${encodeURIComponent(predictionId)}`
+  if (typeof value !== 'string') {
+    return fallback
+  }
+
+  try {
+    const url = new URL(value)
+    if (url.origin !== REPLICATE_WEB_ORIGIN || !url.pathname.startsWith('/p/')) {
+      return fallback
+    }
+    url.hash = ''
+    return url.toString()
+  } catch {
+    return fallback
+  }
+}
+
+function normalizePublicAssetUrl(value: string): string {
+  try {
+    const url = new URL(value)
+    if (
+      url.protocol !== 'https:' ||
+      isPrivateOrInternalHost(url.hostname.replace(/^\[|\]$/g, ''))
+    ) {
+      return ''
+    }
+    url.hash = ''
+    return url.toString()
+  } catch {
+    return ''
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function safeJsonParse<T>(value: string): T | null {

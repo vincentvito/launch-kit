@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { ArrowRight, Link2, PlayCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { normalizePublicLaunchUrl } from '@/lib/launch-kit/public-url'
 
 type LaunchUrlHandoffProps = {
   placeholder: string
@@ -34,7 +35,7 @@ export default function LaunchUrlHandoff({
       return
     }
 
-    const normalized = normalizeUrl(trimmed)
+    const normalized = normalizePublicLaunchUrl(trimmed)
     if (!normalized) {
       setError(invalidUrl)
       return
@@ -90,19 +91,4 @@ export default function LaunchUrlHandoff({
       </form>
     </div>
   )
-}
-
-function normalizeUrl(input: string): string | null {
-  const withProtocol = /^https?:\/\//i.test(input) ? input : `https://${input}`
-
-  try {
-    const parsed = new URL(withProtocol)
-    if (!parsed.hostname || !parsed.protocol.startsWith('http')) {
-      return null
-    }
-
-    return parsed.toString()
-  } catch {
-    return null
-  }
 }
