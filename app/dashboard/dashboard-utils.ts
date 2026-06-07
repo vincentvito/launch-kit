@@ -7,7 +7,9 @@ import {
   type LaunchKit,
   type LaunchProjectSnapshot,
   type PlatformBlockId,
+  type RedditPostVariant,
   type RedditRecommendations,
+  type SubredditPostPack,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
@@ -159,18 +161,60 @@ export function formatSeoPostsForCopy(
 export function formatRedditRecommendationsForCopy(
   recommendations: RedditRecommendations,
   labels: {
+    strategy: string
     engagement: string
     selfPromotion: string
     reason: string
     postingGuidance: string
+    subredditDrafts: string
+    audienceFit: string
+    ruleSnapshot: string
+    promotionPolicy: string
+    activitySignal: string
+    suggestedFlair: string
+    bestPostType: string
+    whyItFits: string
+    riskNotes: string
+    variantMode: string
+    riskLevel: string
+    positioningNote: string
+    checklist: string
+    cta: string
   },
 ): string {
   const sections = [
+    recommendations.strategyNotes ? `${labels.strategy}: ${recommendations.strategyNotes}` : '',
     formatSubredditRecommendationSection(labels.engagement, recommendations.engagementSubreddits, labels),
     formatSubredditRecommendationSection(labels.selfPromotion, recommendations.selfPromotionSubreddits, labels),
+    formatSubredditPostPacksForCopy(recommendations.subredditPostPacks, labels),
   ].filter(Boolean)
 
   return sections.join('\n\n')
+}
+
+export function formatSubredditPostVariantForCopy(
+  variant: RedditPostVariant,
+  labels: {
+    cta: string
+    variantMode: string
+    riskLevel: string
+    positioningNote: string
+    checklist: string
+  },
+): string {
+  return [
+    variant.title,
+    variant.body,
+    variant.cta ? `${labels.cta}: ${variant.cta}` : '',
+    `${labels.variantMode}: ${variant.mode}`,
+    `${labels.riskLevel}: ${variant.riskLevel}`,
+    variant.positioningNote ? `${labels.positioningNote}: ${variant.positioningNote}` : '',
+    variant.prePostChecklist.length
+      ? `${labels.checklist}: ${variant.prePostChecklist.join(' | ')}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 function formatSubredditRecommendationSection(
@@ -193,6 +237,64 @@ function formatSubredditRecommendationSection(
         `${labels.reason}: ${recommendation.reason}`,
         `${labels.postingGuidance}: ${recommendation.postingGuidance}`,
       ].join('\n'),
+    ),
+  ].join('\n\n')
+}
+
+function formatSubredditPostPacksForCopy(
+  packs: SubredditPostPack[],
+  labels: {
+    subredditDrafts: string
+    audienceFit: string
+    ruleSnapshot: string
+    promotionPolicy: string
+    activitySignal: string
+    suggestedFlair: string
+    bestPostType: string
+    whyItFits: string
+    riskNotes: string
+    variantMode: string
+    riskLevel: string
+    positioningNote: string
+    checklist: string
+    cta: string
+  },
+): string {
+  if (!packs.length) {
+    return ''
+  }
+
+  return [
+    labels.subredditDrafts,
+    ...packs.map((pack) =>
+      [
+        `${pack.subreddit}: ${pack.url}`,
+        `${labels.audienceFit}: ${pack.audienceFit}`,
+        `${labels.ruleSnapshot}: ${pack.ruleSnapshot}`,
+        `${labels.promotionPolicy}: ${pack.promotionPolicy}`,
+        `${labels.activitySignal}: ${pack.activitySignal}`,
+        pack.suggestedFlair ? `${labels.suggestedFlair}: ${pack.suggestedFlair}` : '',
+        pack.bestPostType ? `${labels.bestPostType}: ${pack.bestPostType}` : '',
+        pack.whyItFits ? `${labels.whyItFits}: ${pack.whyItFits}` : '',
+        pack.riskNotes.length ? `${labels.riskNotes}: ${pack.riskNotes.join(' | ')}` : '',
+        ...pack.variants.map((variant) =>
+          [
+            variant.title,
+            variant.body,
+            variant.cta ? `${labels.cta}: ${variant.cta}` : '',
+            `${labels.variantMode}: ${variant.mode}`,
+            `${labels.riskLevel}: ${variant.riskLevel}`,
+            variant.positioningNote ? `${labels.positioningNote}: ${variant.positioningNote}` : '',
+            variant.prePostChecklist.length
+              ? `${labels.checklist}: ${variant.prePostChecklist.join(' | ')}`
+              : '',
+          ]
+            .filter(Boolean)
+            .join('\n'),
+        ),
+      ]
+        .filter(Boolean)
+        .join('\n'),
     ),
   ].join('\n\n')
 }
@@ -344,10 +446,24 @@ export type ExportLabels = {
   stage: string
   proofPoint: string
   socialContract: string
+  redditStrategy: string
   redditEngagementSubreddits: string
   redditSelfPromotionSubreddits: string
   redditReason: string
   redditPostingGuidance: string
+  redditSubredditDrafts: string
+  redditAudienceFit: string
+  redditRuleSnapshot: string
+  redditPromotionPolicy: string
+  redditActivitySignal: string
+  redditSuggestedFlair: string
+  redditBestPostType: string
+  redditWhyItFits: string
+  redditRiskNotes: string
+  redditVariantMode: string
+  redditRiskLevel: string
+  redditPositioningNote: string
+  redditPrePostChecklist: string
   mediaKit: string
   founderCompanyBio: string
   productOneLiner: string
@@ -407,10 +523,24 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     stage: t('output.stageLabel'),
     proofPoint: t('output.proofPointLabel'),
     socialContract: t('output.socialContractLabel'),
+    redditStrategy: t('output.reddit.strategyLabel'),
     redditEngagementSubreddits: t('output.reddit.engagementTitle'),
     redditSelfPromotionSubreddits: t('output.reddit.selfPromotionTitle'),
     redditReason: t('output.reddit.reasonLabel'),
     redditPostingGuidance: t('output.reddit.postingGuidanceLabel'),
+    redditSubredditDrafts: t('output.reddit.subredditDraftsTitle'),
+    redditAudienceFit: t('output.reddit.audienceFitLabel'),
+    redditRuleSnapshot: t('output.reddit.ruleSnapshotLabel'),
+    redditPromotionPolicy: t('output.reddit.promotionPolicyLabel'),
+    redditActivitySignal: t('output.reddit.activitySignalLabel'),
+    redditSuggestedFlair: t('output.reddit.suggestedFlairLabel'),
+    redditBestPostType: t('output.reddit.bestPostTypeLabel'),
+    redditWhyItFits: t('output.reddit.whyItFitsLabel'),
+    redditRiskNotes: t('output.reddit.riskNotesLabel'),
+    redditVariantMode: t('output.reddit.variantModeLabel'),
+    redditRiskLevel: t('output.reddit.riskLevelLabel'),
+    redditPositioningNote: t('output.reddit.positioningNoteLabel'),
+    redditPrePostChecklist: t('output.reddit.prePostChecklistLabel'),
     mediaKit: t('export.markdown.mediaKit'),
     founderCompanyBio: t('mediaKit.fields.bio'),
     productOneLiner: t('mediaKit.fields.oneLiner'),
@@ -513,10 +643,25 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
 
     if (blockId === 'reddit' && block.redditRecommendations) {
       appendRedditRecommendationsMarkdown(lines, block.redditRecommendations, {
+        strategy: labels.redditStrategy,
         engagement: labels.redditEngagementSubreddits,
         selfPromotion: labels.redditSelfPromotionSubreddits,
         reason: labels.redditReason,
         postingGuidance: labels.redditPostingGuidance,
+        subredditDrafts: labels.redditSubredditDrafts,
+        audienceFit: labels.redditAudienceFit,
+        ruleSnapshot: labels.redditRuleSnapshot,
+        promotionPolicy: labels.redditPromotionPolicy,
+        activitySignal: labels.redditActivitySignal,
+        suggestedFlair: labels.redditSuggestedFlair,
+        bestPostType: labels.redditBestPostType,
+        whyItFits: labels.redditWhyItFits,
+        riskNotes: labels.redditRiskNotes,
+        variantMode: labels.redditVariantMode,
+        riskLevel: labels.redditRiskLevel,
+        positioningNote: labels.redditPositioningNote,
+        checklist: labels.redditPrePostChecklist,
+        cta: labels.cta,
       })
     }
   }
@@ -555,10 +700,25 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
 
     if (channelId === 'reddit' && pack.redditRecommendations) {
       appendRedditRecommendationsMarkdown(lines, pack.redditRecommendations, {
+        strategy: labels.redditStrategy,
         engagement: labels.redditEngagementSubreddits,
         selfPromotion: labels.redditSelfPromotionSubreddits,
         reason: labels.redditReason,
         postingGuidance: labels.redditPostingGuidance,
+        subredditDrafts: labels.redditSubredditDrafts,
+        audienceFit: labels.redditAudienceFit,
+        ruleSnapshot: labels.redditRuleSnapshot,
+        promotionPolicy: labels.redditPromotionPolicy,
+        activitySignal: labels.redditActivitySignal,
+        suggestedFlair: labels.redditSuggestedFlair,
+        bestPostType: labels.redditBestPostType,
+        whyItFits: labels.redditWhyItFits,
+        riskNotes: labels.redditRiskNotes,
+        variantMode: labels.redditVariantMode,
+        riskLevel: labels.redditRiskLevel,
+        positioningNote: labels.redditPositioningNote,
+        checklist: labels.redditPrePostChecklist,
+        cta: labels.cta,
       })
     }
   }
@@ -589,12 +749,33 @@ function appendRedditRecommendationsMarkdown(
   lines: string[],
   recommendations: RedditRecommendations,
   labels: {
+    strategy: string
     engagement: string
     selfPromotion: string
     reason: string
     postingGuidance: string
+    subredditDrafts: string
+    audienceFit: string
+    ruleSnapshot: string
+    promotionPolicy: string
+    activitySignal: string
+    suggestedFlair: string
+    bestPostType: string
+    whyItFits: string
+    riskNotes: string
+    variantMode: string
+    riskLevel: string
+    positioningNote: string
+    checklist: string
+    cta: string
   },
 ) {
+  if (recommendations.strategyNotes) {
+    lines.push(`#### ${labels.strategy}`)
+    lines.push(recommendations.strategyNotes)
+    lines.push('')
+  }
+
   appendSubredditRecommendationMarkdown(
     lines,
     labels.engagement,
@@ -607,6 +788,7 @@ function appendRedditRecommendationsMarkdown(
     recommendations.selfPromotionSubreddits,
     labels,
   )
+  appendSubredditPostPacksMarkdown(lines, recommendations.subredditPostPacks, labels)
 }
 
 function appendSubredditRecommendationMarkdown(
@@ -629,6 +811,71 @@ function appendSubredditRecommendationMarkdown(
     lines.push(`  ${labels.postingGuidance}: ${recommendation.postingGuidance}`)
   }
   lines.push('')
+}
+
+function appendSubredditPostPacksMarkdown(
+  lines: string[],
+  packs: SubredditPostPack[],
+  labels: {
+    subredditDrafts: string
+    audienceFit: string
+    ruleSnapshot: string
+    promotionPolicy: string
+    activitySignal: string
+    suggestedFlair: string
+    bestPostType: string
+    whyItFits: string
+    riskNotes: string
+    variantMode: string
+    riskLevel: string
+    positioningNote: string
+    checklist: string
+    cta: string
+  },
+) {
+  if (!packs.length) {
+    return
+  }
+
+  lines.push(`#### ${labels.subredditDrafts}`)
+  for (const pack of packs) {
+    lines.push(`##### ${pack.subreddit}`)
+    lines.push(`- URL: ${pack.url}`)
+    lines.push(`- ${labels.audienceFit}: ${pack.audienceFit}`)
+    lines.push(`- ${labels.ruleSnapshot}: ${pack.ruleSnapshot}`)
+    lines.push(`- ${labels.promotionPolicy}: ${pack.promotionPolicy}`)
+    lines.push(`- ${labels.activitySignal}: ${pack.activitySignal}`)
+    if (pack.suggestedFlair) {
+      lines.push(`- ${labels.suggestedFlair}: ${pack.suggestedFlair}`)
+    }
+    if (pack.bestPostType) {
+      lines.push(`- ${labels.bestPostType}: ${pack.bestPostType}`)
+    }
+    if (pack.whyItFits) {
+      lines.push(`- ${labels.whyItFits}: ${pack.whyItFits}`)
+    }
+    if (pack.riskNotes.length) {
+      lines.push(`- ${labels.riskNotes}: ${pack.riskNotes.join(' | ')}`)
+    }
+    lines.push('')
+
+    for (const variant of pack.variants) {
+      lines.push(`###### ${variant.title}`)
+      lines.push(`- ${labels.variantMode}: ${variant.mode}`)
+      lines.push(`- ${labels.riskLevel}: ${variant.riskLevel}`)
+      if (variant.positioningNote) {
+        lines.push(`- ${labels.positioningNote}: ${variant.positioningNote}`)
+      }
+      if (variant.prePostChecklist.length) {
+        lines.push(`- ${labels.checklist}: ${variant.prePostChecklist.join(' | ')}`)
+      }
+      lines.push('')
+      lines.push(variant.body)
+      lines.push('')
+      lines.push(`${labels.cta}: ${variant.cta}`)
+      lines.push('')
+    }
+  }
 }
 
 export function buildPressPackHtml(project: LaunchProjectSnapshot, labels: ExportLabels): string {

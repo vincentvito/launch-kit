@@ -22,8 +22,14 @@ import {
   type PlatformBlock,
   type PlatformBlockId,
   type ProspectingState,
+  type RedditActivitySignal,
   type RedditRecommendations,
+  type RedditPostVariant,
+  type RedditPostVariantMode,
+  type RedditPromotionPolicy,
+  type RedditRiskLevel,
   type SeoGrowthState,
+  type SubredditPostPack,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 
@@ -49,8 +55,10 @@ export function createEmptyMediaKit(): MediaKit {
 
 export function createEmptyRedditRecommendations(): RedditRecommendations {
   return {
+    strategyNotes: '',
     engagementSubreddits: [],
     selfPromotionSubreddits: [],
+    subredditPostPacks: [],
   }
 }
 
@@ -1101,6 +1109,7 @@ export function normalizeRedditRecommendations(
 ): RedditRecommendations {
   const rawRecommendations = isRecord(recommendations) ? recommendations : {}
   return {
+    strategyNotes: safeString(rawRecommendations.strategyNotes) || fallback?.strategyNotes || '',
     engagementSubreddits: normalizeSubredditRecommendationList(
       rawRecommendations.engagementSubreddits,
       fallback?.engagementSubreddits,
@@ -1108,6 +1117,10 @@ export function normalizeRedditRecommendations(
     selfPromotionSubreddits: normalizeSubredditRecommendationList(
       rawRecommendations.selfPromotionSubreddits,
       fallback?.selfPromotionSubreddits,
+    ),
+    subredditPostPacks: normalizeSubredditPostPacks(
+      rawRecommendations.subredditPostPacks,
+      fallback?.subredditPostPacks,
     ),
   }
 }
@@ -1163,6 +1176,144 @@ function normalizeSubredditRecommendation(
     reason: safeString(rawRecommendation.reason),
     postingGuidance: safeString(rawRecommendation.postingGuidance),
   }
+}
+
+function normalizeSubredditPostPacks(
+  packs: unknown,
+  fallback: SubredditPostPack[] = [],
+): SubredditPostPack[] {
+  const normalized = Array.isArray(packs)
+    ? packs
+        .map((pack, index) => normalizeSubredditPostPack(pack, index))
+        .filter((pack): pack is SubredditPostPack => Boolean(pack))
+    : []
+  const selected = normalized.length > 0 ? normalized : fallback
+  const seen = new Set<string>()
+  const deduped: SubredditPostPack[] = []
+
+  for (const pack of selected) {
+    const slug = extractSubredditSlug(pack.subreddit || pack.url)
+    const key = slug.toLowerCase()
+    if (!slug || seen.has(key)) {
+      continue
+    }
+
+    seen.add(key)
+    deduped.push({
+      ...pack,
+      subreddit: `r/${slug}`,
+      url: buildSubredditUrl(slug),
+      riskNotes: safeStringArray(pack.riskNotes, 6),
+      variants: normalizeRedditPostVariants(pack.variants, slug),
+    })
+
+    if (deduped.length >= 6) {
+      break
+    }
+  }
+
+  return deduped.filter((pack) => pack.variants.length > 0)
+}
+
+function normalizeSubredditPostPack(pack: unknown, index: number): SubredditPostPack | null {
+  const rawPack = isRecord(pack) ? pack : {}
+  const slug = extractSubredditSlug(safeString(rawPack.subreddit) || safeString(rawPack.url))
+  if (!slug) {
+    return null
+  }
+
+  const variants = normalizeRedditPostVariants(rawPack.variants, slug)
+  if (!variants.length) {
+    return null
+  }
+
+  return {
+    subreddit: `r/${slug}`,
+    url: buildSubredditUrl(slug),
+    audienceFit: safeString(rawPack.audienceFit),
+    ruleSnapshot: safeString(rawPack.ruleSnapshot) ||
+      'Unverified rule snapshot. Check the current subreddit sidebar, wiki, pinned posts, and flair requirements before posting.',
+    promotionPolicy: isRedditPromotionPolicy(rawPack.promotionPolicy)
+      ? rawPack.promotionPolicy
+      : 'unknown',
+    activitySignal: isRedditActivitySignal(rawPack.activitySignal)
+      ? rawPack.activitySignal
+      : 'unknown',
+    suggestedFlair: safeString(rawPack.suggestedFlair),
+    bestPostType: safeString(rawPack.bestPostType),
+    whyItFits: safeString(rawPack.whyItFits),
+    riskNotes: safeStringArray(rawPack.riskNotes, 6),
+    variants: variants.map((variant, variantIndex) => ({
+      ...variant,
+      id: variant.id || `${slug}-variant-${index + 1}-${variantIndex + 1}`,
+    })),
+  }
+}
+
+function normalizeRedditPostVariants(value: unknown, subredditSlug: string): RedditPostVariant[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const variants: RedditPostVariant[] = []
+  for (const [index, variant] of value.entries()) {
+    const normalized = normalizeRedditPostVariant(variant, subredditSlug, index)
+    if (!normalized) {
+      continue
+    }
+
+    variants.push(normalized)
+    if (variants.length >= 4) {
+      break
+    }
+  }
+
+  return variants
+}
+
+function normalizeRedditPostVariant(
+  variant: unknown,
+  subredditSlug: string,
+  index: number,
+): RedditPostVariant | null {
+  const rawVariant = isRecord(variant) ? variant : {}
+  const title = safeString(rawVariant.title)
+  const body = safeString(rawVariant.body)
+  if (!title && !body) {
+    return null
+  }
+
+  return {
+    id: safeString(rawVariant.id) || `${subredditSlug}-variant-${index + 1}`,
+    mode: isRedditPostVariantMode(rawVariant.mode) ? rawVariant.mode : 'conservative',
+    title,
+    body,
+    cta: safeString(rawVariant.cta),
+    riskLevel: isRedditRiskLevel(rawVariant.riskLevel) ? rawVariant.riskLevel : 'medium',
+    positioningNote: safeString(rawVariant.positioningNote),
+    prePostChecklist: safeStringArray(rawVariant.prePostChecklist, 6),
+  }
+}
+
+function isRedditPromotionPolicy(value: unknown): value is RedditPromotionPolicy {
+  return (
+    value === 'unknown' ||
+    value === 'discussion_only' ||
+    value === 'self_promo_limited' ||
+    value === 'self_promo_allowed'
+  )
+}
+
+function isRedditRiskLevel(value: unknown): value is RedditRiskLevel {
+  return value === 'low' || value === 'medium' || value === 'high'
+}
+
+function isRedditActivitySignal(value: unknown): value is RedditActivitySignal {
+  return value === 'low' || value === 'medium' || value === 'high' || value === 'unknown'
+}
+
+function isRedditPostVariantMode(value: unknown): value is RedditPostVariantMode {
+  return value === 'conservative' || value === 'self_promo'
 }
 
 function normalizeHttpUrl(

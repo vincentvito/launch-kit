@@ -5,6 +5,7 @@ import {
   type LaunchProjectSnapshot,
   type PlatformBlockId,
   type RedditRecommendations,
+  type SubredditPostPack,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 
@@ -241,6 +242,12 @@ function appendRedditRecommendationsMarkdown(
   lines: string[],
   recommendations: RedditRecommendations,
 ) {
+  if (recommendations.strategyNotes) {
+    lines.push('#### Reddit Strategy Notes')
+    lines.push(recommendations.strategyNotes)
+    lines.push('')
+  }
+
   appendSubredditRecommendationMarkdown(
     lines,
     'Relevant Subreddits to Engage In',
@@ -251,6 +258,7 @@ function appendRedditRecommendationsMarkdown(
     'Self-Promotion Candidate Subreddits',
     recommendations.selfPromotionSubreddits,
   )
+  appendSubredditPostPacksMarkdown(lines, recommendations.subredditPostPacks)
 }
 
 function appendSubredditRecommendationMarkdown(
@@ -269,6 +277,52 @@ function appendSubredditRecommendationMarkdown(
     lines.push(`  Posting guidance: ${recommendation.postingGuidance}`)
   }
   lines.push('')
+}
+
+function appendSubredditPostPacksMarkdown(lines: string[], packs: SubredditPostPack[]) {
+  if (!packs.length) {
+    return
+  }
+
+  lines.push('#### Subreddit-Specific Drafts')
+  for (const pack of packs) {
+    lines.push(`##### ${pack.subreddit}`)
+    lines.push(`- URL: ${pack.url}`)
+    lines.push(`- Audience fit: ${pack.audienceFit}`)
+    lines.push(`- Rule snapshot: ${pack.ruleSnapshot}`)
+    lines.push(`- Promotion policy: ${pack.promotionPolicy}`)
+    lines.push(`- Activity signal: ${pack.activitySignal}`)
+    if (pack.suggestedFlair) {
+      lines.push(`- Suggested flair: ${pack.suggestedFlair}`)
+    }
+    if (pack.bestPostType) {
+      lines.push(`- Best post type: ${pack.bestPostType}`)
+    }
+    if (pack.whyItFits) {
+      lines.push(`- Why it fits: ${pack.whyItFits}`)
+    }
+    if (pack.riskNotes.length) {
+      lines.push(`- Risk notes: ${pack.riskNotes.join(' | ')}`)
+    }
+    lines.push('')
+
+    for (const variant of pack.variants) {
+      lines.push(`###### ${variant.title}`)
+      lines.push(`- Mode: ${variant.mode}`)
+      lines.push(`- Risk level: ${variant.riskLevel}`)
+      if (variant.positioningNote) {
+        lines.push(`- Positioning note: ${variant.positioningNote}`)
+      }
+      if (variant.prePostChecklist.length) {
+        lines.push(`- Pre-post checklist: ${variant.prePostChecklist.join(' | ')}`)
+      }
+      lines.push('')
+      lines.push(variant.body)
+      lines.push('')
+      lines.push(`CTA: ${variant.cta}`)
+      lines.push('')
+    }
+  }
 }
 
 function shouldSkipPlatformBlockInExport(

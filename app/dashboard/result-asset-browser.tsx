@@ -36,6 +36,8 @@ import {
   type LaunchAssetKind,
   type LaunchKit,
   type PlatformBlockId,
+  type RedditPostVariant,
+  type SubredditPostPack,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import {
@@ -73,6 +75,7 @@ export function ResultAssetBrowser({
   onGenerateAsset,
   generatingAssetKey,
   onCopyChannelCard,
+  onCopyRedditVariant,
   onUpdateChannelCard,
   onRegenerateChannelCard,
   onCopyPlatformBlock,
@@ -130,6 +133,7 @@ export function ResultAssetBrowser({
   onGenerateAsset: (templateId: string, format: LaunchAssetFormat) => void
   generatingAssetKey: string
   onCopyChannelCard: (channelId: ChannelPackId, cardId: string) => void
+  onCopyRedditVariant: (subreddit: string, variant: RedditPostVariant) => void
   onUpdateChannelCard: (
     channelId: ChannelPackId,
     cardId: string,
@@ -209,10 +213,24 @@ export function ResultAssetBrowser({
       proofPoint: string
       socialContract: string
       emptyChannelPack: string
+      redditStrategy: string
       redditEngagement: string
       redditSelfPromotion: string
       redditReason: string
       redditPostingGuidance: string
+      redditSubredditDrafts: string
+      redditAudienceFit: string
+      redditRuleSnapshot: string
+      redditPromotionPolicy: string
+      redditActivitySignal: string
+      redditSuggestedFlair: string
+      redditBestPostType: string
+      redditWhyItFits: string
+      redditRiskNotes: string
+      redditVariantMode: string
+      redditRiskLevel: string
+      redditPositioningNote: string
+      redditPrePostChecklist: string
       emptyOutreach: string
       emptySeo: string
     }
@@ -387,6 +405,7 @@ export function ResultAssetBrowser({
                 <ChannelPackPanel
                   pack={kit.channelPacks[channelPackId]}
                   onCopyCard={(cardId) => onCopyChannelCard(channelPackId, cardId)}
+                  onCopyRedditVariant={onCopyRedditVariant}
                   onUpdateCard={(cardId, changes) => onUpdateChannelCard(channelPackId, cardId, changes)}
                   onRegenerateCard={(cardId) => onRegenerateChannelCard(channelPackId, cardId)}
                   isGenerating={isGenerating}
@@ -1913,6 +1932,7 @@ function TrafficPlaybookPanel({
 function ChannelPackPanel({
   pack,
   onCopyCard,
+  onCopyRedditVariant,
   onUpdateCard,
   onRegenerateCard,
   isGenerating,
@@ -1921,6 +1941,7 @@ function ChannelPackPanel({
 }: {
   pack: LaunchKit['channelPacks'][ChannelPackId]
   onCopyCard: (cardId: string) => void
+  onCopyRedditVariant: (subreddit: string, variant: RedditPostVariant) => void
   onUpdateCard: (
     cardId: string,
     changes: Pick<ChannelCard, 'title' | 'body' | 'cta'>,
@@ -1940,17 +1961,33 @@ function ChannelPackPanel({
     proofPoint: string
     socialContract: string
     emptyChannelPack: string
+    redditStrategy: string
     redditEngagement: string
     redditSelfPromotion: string
     redditReason: string
     redditPostingGuidance: string
+    redditSubredditDrafts: string
+    redditAudienceFit: string
+    redditRuleSnapshot: string
+    redditPromotionPolicy: string
+    redditActivitySignal: string
+    redditSuggestedFlair: string
+    redditBestPostType: string
+    redditWhyItFits: string
+    redditRiskNotes: string
+    redditVariantMode: string
+    redditRiskLevel: string
+    redditPositioningNote: string
+    redditPrePostChecklist: string
   }
 }) {
   const redditRecommendations = pack.id === 'reddit' ? pack.redditRecommendations : undefined
   const hasRedditRecommendations = Boolean(
     redditRecommendations &&
-      (redditRecommendations.engagementSubreddits.length > 0 ||
-        redditRecommendations.selfPromotionSubreddits.length > 0),
+      (redditRecommendations.strategyNotes ||
+        redditRecommendations.engagementSubreddits.length > 0 ||
+        redditRecommendations.selfPromotionSubreddits.length > 0 ||
+        redditRecommendations.subredditPostPacks.length > 0),
   )
   const hidesPostTitle = pack.id === 'x'
 
@@ -2086,22 +2123,41 @@ function ChannelPackPanel({
       )}
 
       {hasRedditRecommendations && redditRecommendations ? (
-        <div className="grid gap-5 rounded-xl border border-violet-100 bg-white p-4 md:grid-cols-2">
-          <SubredditRecommendationList
-            title={labels.redditEngagement}
-            recommendations={redditRecommendations.engagementSubreddits}
-            labels={{
-              reason: labels.redditReason,
-              postingGuidance: labels.redditPostingGuidance,
-            }}
-          />
-          <SubredditRecommendationList
-            title={labels.redditSelfPromotion}
-            recommendations={redditRecommendations.selfPromotionSubreddits}
-            labels={{
-              reason: labels.redditReason,
-              postingGuidance: labels.redditPostingGuidance,
-            }}
+        <div className="space-y-3 rounded-xl border border-violet-100 bg-white p-4">
+          {redditRecommendations.strategyNotes ? (
+            <div className="rounded-lg border border-violet-100 bg-violet-50/45 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.redditStrategy}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-700">
+                {redditRecommendations.strategyNotes}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <SubredditRecommendationList
+              title={labels.redditEngagement}
+              recommendations={redditRecommendations.engagementSubreddits}
+              labels={{
+                reason: labels.redditReason,
+                postingGuidance: labels.redditPostingGuidance,
+              }}
+            />
+            <SubredditRecommendationList
+              title={labels.redditSelfPromotion}
+              recommendations={redditRecommendations.selfPromotionSubreddits}
+              labels={{
+                reason: labels.redditReason,
+                postingGuidance: labels.redditPostingGuidance,
+              }}
+            />
+          </div>
+
+          <SubredditPostPackList
+            packs={redditRecommendations.subredditPostPacks}
+            onCopyVariant={onCopyRedditVariant}
+            labels={labels}
           />
         </div>
       ) : null}
@@ -2254,6 +2310,201 @@ function SubredditRecommendationList({
         ))}
       </ul>
     </section>
+  )
+}
+
+function SubredditPostPackList({
+  packs,
+  onCopyVariant,
+  labels,
+}: {
+  packs: SubredditPostPack[]
+  onCopyVariant: (subreddit: string, variant: RedditPostVariant) => void
+  labels: {
+    copy: string
+    redditSubredditDrafts: string
+    redditAudienceFit: string
+    redditRuleSnapshot: string
+    redditPromotionPolicy: string
+    redditActivitySignal: string
+    redditSuggestedFlair: string
+    redditBestPostType: string
+    redditWhyItFits: string
+    redditRiskNotes: string
+    redditVariantMode: string
+    redditRiskLevel: string
+    redditPositioningNote: string
+    redditPrePostChecklist: string
+    cta: string
+  }
+}) {
+  if (!packs.length) {
+    return null
+  }
+
+  return (
+    <section className="border-t border-violet-100 pt-4">
+      <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+        {labels.redditSubredditDrafts}
+      </h4>
+      <div className="mt-3 space-y-4">
+        {packs.map((pack) => (
+          <article key={pack.subreddit} className="rounded-lg border border-violet-100 bg-violet-50/25 p-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <a
+                  href={pack.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:text-violet-900"
+                >
+                  {pack.subreddit}
+                  <ExternalLink className="size-3" />
+                </a>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-600">{pack.audienceFit}</p>
+              </div>
+              <div className="flex flex-wrap justify-end gap-1.5">
+                <SubredditMetaBadge label={labels.redditPromotionPolicy} value={pack.promotionPolicy} />
+                <SubredditMetaBadge label={labels.redditActivitySignal} value={pack.activitySignal} />
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <SubredditMetaRow label={labels.redditRuleSnapshot} value={pack.ruleSnapshot} />
+              <SubredditMetaRow label={labels.redditSuggestedFlair} value={pack.suggestedFlair} />
+              <SubredditMetaRow label={labels.redditBestPostType} value={pack.bestPostType} />
+              <SubredditMetaRow label={labels.redditWhyItFits} value={pack.whyItFits} />
+            </div>
+
+            {pack.riskNotes.length ? (
+              <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-800">
+                  {labels.redditRiskNotes}
+                </p>
+                <ul className="mt-1 space-y-1 text-xs leading-relaxed text-zinc-700">
+                  {pack.riskNotes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <div className="mt-3 grid gap-3 xl:grid-cols-2">
+              {pack.variants.map((variant) => (
+                <SubredditVariantDraft
+                  key={variant.id}
+                  subreddit={pack.subreddit}
+                  variant={variant}
+                  onCopy={onCopyVariant}
+                  labels={labels}
+                />
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function SubredditVariantDraft({
+  subreddit,
+  variant,
+  onCopy,
+  labels,
+}: {
+  subreddit: string
+  variant: RedditPostVariant
+  onCopy: (subreddit: string, variant: RedditPostVariant) => void
+  labels: {
+    copy: string
+    redditVariantMode: string
+    redditRiskLevel: string
+    redditPositioningNote: string
+    redditPrePostChecklist: string
+    cta: string
+  }
+}) {
+  const riskClass = variant.riskLevel === 'high'
+    ? 'border-rose-200 bg-rose-50 text-rose-700'
+    : variant.riskLevel === 'medium'
+      ? 'border-amber-200 bg-amber-50 text-amber-800'
+      : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+
+  return (
+    <article className="rounded-lg border border-violet-100 bg-white p-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+            {labels.redditVariantMode}: {variant.mode.replaceAll('_', ' ')}
+          </p>
+          <h5 className="mt-1 text-sm font-semibold leading-snug text-zinc-900">{variant.title}</h5>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${riskClass}`}>
+            {labels.redditRiskLevel}: {variant.riskLevel}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onCopy(subreddit, variant)}
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+          >
+            <Copy className="mr-1.5 size-3.5" />
+            {labels.copy}
+          </Button>
+        </div>
+      </div>
+
+      <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{variant.body}</p>
+      {variant.cta ? (
+        <p className="mt-3 text-sm font-semibold text-violet-700">
+          {labels.cta}: {variant.cta}
+        </p>
+      ) : null}
+      {variant.positioningNote ? (
+        <p className="mt-3 text-xs leading-relaxed text-zinc-600">
+          <span className="font-semibold text-zinc-700">{labels.redditPositioningNote}:</span>{' '}
+          {variant.positioningNote}
+        </p>
+      ) : null}
+      {variant.prePostChecklist.length ? (
+        <div className="mt-3 rounded-lg border border-violet-100 bg-violet-50/35 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+            {labels.redditPrePostChecklist}
+          </p>
+          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-zinc-700">
+            {variant.prePostChecklist.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </article>
+  )
+}
+
+function SubredditMetaRow({ label, value }: { label: string; value: string }) {
+  if (!value) {
+    return null
+  }
+
+  return (
+    <p className="text-xs leading-relaxed text-zinc-600">
+      <span className="font-semibold text-zinc-700">{label}:</span> {value}
+    </p>
+  )
+}
+
+function SubredditMetaBadge({ label, value }: { label: string; value: string }) {
+  if (!value) {
+    return null
+  }
+
+  return (
+    <span className="rounded-full border border-violet-100 bg-white px-2 py-1 text-[11px] font-semibold text-zinc-600">
+      {label}: {value}
+    </span>
   )
 }
 

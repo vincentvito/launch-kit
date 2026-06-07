@@ -196,6 +196,8 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
     cta: 'Share what would make this more useful',
     notes: 'Transparent and discussion-first, with a direct community question.',
     redditRecommendations: {
+      strategyNotes:
+        'Lead with subreddit fit and risk. Use r/SaaS for discussion-first workflow critique, r/SideProject for a more direct show-and-ask post, and verify current rules/flairs before posting any link.',
       engagementSubreddits: [
         {
           name: 'r/startups',
@@ -234,6 +236,128 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
           url: 'https://www.reddit.com/r/MicroSaas/',
           reason: 'A fit for lean SaaS tooling and founder-led experiments.',
           postingGuidance: 'Frame it around the niche, build process, and current traction; verify promo rules before linking.',
+        },
+      ],
+      subredditPostPacks: [
+        {
+          subreddit: 'r/SideProject',
+          url: 'https://www.reddit.com/r/SideProject/',
+          audienceFit: 'Makers who are open to early tools, rough demos, and specific feedback asks.',
+          ruleSnapshot:
+            'Unverified rule snapshot. Check current sidebar rules, flair options, and pinned posts before sharing a link.',
+          promotionPolicy: 'self_promo_limited',
+          activitySignal: 'medium',
+          suggestedFlair: 'Showcase or Feedback, if available',
+          bestPostType: 'Transparent build/share post with a focused critique request.',
+          whyItFits:
+            'Launch Kit can be framed as a side-project workflow and a request for other builders to critique generated launch output.',
+          riskNotes: [
+            'Ask for concrete feedback, not only traffic.',
+            'Avoid reposting the same direct pitch across similar project subreddits.',
+            'Remove the link if current rules are stricter than expected.',
+          ],
+          variants: [
+            {
+              id: 'sideproject-conservative',
+              mode: 'conservative',
+              title: 'How do you adapt launch copy for different communities?',
+              body:
+                'I am trying to understand how other builders handle launch copy across different communities.\n\nThe product story may be one thing, but HN, Reddit, LinkedIn, Product Hunt, and email all punish different kinds of laziness.\n\nI am building Launch Kit around this problem, but I am more interested in the workflow question: what parts of a launch story should stay consistent, and what should change by channel?',
+              cta: 'Ask for launch workflow feedback; omit the link unless rules allow it.',
+              riskLevel: 'low',
+              positioningNote:
+                'Discussion-first and link-optional. Best when the community is sensitive to promotion.',
+              prePostChecklist: [
+                'Check current flair and self-promotion rules.',
+                'Disclose that you are the builder if you mention Launch Kit.',
+                'Make the question useful even if no one clicks a link.',
+              ],
+            },
+            {
+              id: 'sideproject-self-promo-soft',
+              mode: 'self_promo',
+              title: 'I built Launch Kit: one product URL to channel-native launch drafts',
+              body:
+                'I built Launch Kit because launch prep kept turning into the same story rewritten for too many rooms.\n\nPaste one product URL, review the extracted brief, then get drafts for Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a light media kit.\n\nI am the builder, so this is self-promotion if links are allowed here. I would value blunt feedback on which generated output feels least publishable and what would make it better.',
+              cta: 'Try the sample and critique one output',
+              riskLevel: 'medium',
+              positioningNote:
+                'Direct product mention with a critique ask. Use only where project sharing is currently allowed.',
+              prePostChecklist: [
+                'Use the required showcase or feedback flair.',
+                'Mention that links can be removed if not allowed.',
+                'Do not reuse this exact post across multiple subreddits.',
+              ],
+            },
+            {
+              id: 'sideproject-self-promo-direct',
+              mode: 'self_promo',
+              title: 'Launch Kit turns one product URL into a focused launch kit',
+              body:
+                'I am the builder of Launch Kit. It is made for founders who have a product ready, but still need Product Hunt copy, Show HN, Reddit drafts, X posts, LinkedIn copy, email, subreddit guidance, and media kit basics.\n\nThe goal is not to auto-post. It is to create a better first draft for each channel so the founder can review and edit with the right social contract in mind.\n\nIf self-promotion is allowed here, I would appreciate product feedback more than praise.',
+              cta: 'Open the sample Launch Kit dashboard',
+              riskLevel: 'high',
+              positioningNote:
+                'Most promotional variant. Save it for communities that clearly allow launch/showcase posts.',
+              prePostChecklist: [
+                'Verify self-promotion is allowed today.',
+                'Use the correct flair and disclose builder status.',
+                'Add a screenshot or demo proof if the community expects it.',
+              ],
+            },
+          ],
+        },
+        {
+          subreddit: 'r/SaaS',
+          url: 'https://www.reddit.com/r/SaaS/',
+          audienceFit:
+            'SaaS founders and operators who discuss positioning, launch channels, onboarding, pricing, and early growth.',
+          ruleSnapshot:
+            'Unverified rule snapshot. Treat direct self-promotion as risky unless current rules, pinned posts, or flairs explicitly allow it.',
+          promotionPolicy: 'discussion_only',
+          activitySignal: 'medium',
+          suggestedFlair: 'Feedback or Discussion, if available',
+          bestPostType: 'Problem-first SaaS workflow discussion with product context after the question.',
+          whyItFits:
+            'Launch Kit fits if the post is about SaaS launch workflow quality, not a bare launch announcement.',
+          riskNotes: [
+            'Lead with a SaaS launch lesson or workflow question.',
+            'Avoid a direct link unless current rules allow it.',
+            'Make the product mention secondary to the discussion.',
+          ],
+          variants: [
+            {
+              id: 'saas-conservative',
+              mode: 'conservative',
+              title: 'How do you keep SaaS launch copy from becoming generic?',
+              body:
+                'I am curious how other SaaS founders keep launch copy useful when the same product story has to show up in different places.\n\nProduct Hunt needs a crisp promise. HN wants humility. Reddit wants context. LinkedIn needs the operator lesson. Email needs relevance fast.\n\nI am building around this problem, but the bigger question is process: do you start with one source narrative and adapt it, or write each channel from scratch?',
+              cta: 'Ask for SaaS launch process feedback',
+              riskLevel: 'low',
+              positioningNote: 'Safest r/SaaS angle because the post can stand without a product link.',
+              prePostChecklist: [
+                'Check whether product links are allowed.',
+                'Keep the SaaS workflow question above the product mention.',
+                'Use only sourced proof if adding examples.',
+              ],
+            },
+            {
+              id: 'saas-self-promo-soft',
+              mode: 'self_promo',
+              title: 'I built a SaaS launch-copy workflow and want feedback on the approach',
+              body:
+                'I built Launch Kit for founders who are ready to launch but still have to turn one product story into Product Hunt, HN, Reddit, X, LinkedIn, email, and media kit copy.\n\nThe workflow is: paste URL, review extracted brief, generate channel-native drafts, then edit before publishing.\n\nI am the builder. If feedback posts are allowed here, I would value critique on the approach: is the useful part the writing, the channel-specific guidance, or the exportable launch kit?',
+              cta: 'Critique the sample workflow',
+              riskLevel: 'high',
+              positioningNote:
+                'Contains direct product context. Use only if r/SaaS current rules allow feedback/self-promo posts.',
+              prePostChecklist: [
+                'Verify current r/SaaS self-promotion and flair rules.',
+                'Ask for critique on the launch workflow, not only product signups.',
+                'Be ready to remove the link and keep discussion in the comments.',
+              ],
+            },
+          ],
         },
       ],
     },

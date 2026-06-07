@@ -986,10 +986,24 @@
       "copyNotesPrefix": "Notas",
       "tabsAriaLabel": "Pestanas de salidas generadas",
       "reddit": {
+        "strategyLabel": "Estrategia para Reddit",
         "engagementTitle": "Subreddits relevantes para participar",
         "selfPromotionTitle": "Subreddits candidatos para self-promotion",
         "reasonLabel": "Razon",
-        "postingGuidanceLabel": "Guia de publicacion"
+        "postingGuidanceLabel": "Guia de publicacion",
+        "subredditDraftsTitle": "Borradores por subreddit",
+        "audienceFitLabel": "Encaje de audiencia",
+        "ruleSnapshotLabel": "Resumen de reglas",
+        "promotionPolicyLabel": "Politica de promocion",
+        "activitySignalLabel": "Senal de actividad",
+        "suggestedFlairLabel": "Flair sugerido",
+        "bestPostTypeLabel": "Mejor tipo de post",
+        "whyItFitsLabel": "Por que encaja",
+        "riskNotesLabel": "Notas de riesgo",
+        "variantModeLabel": "Variante",
+        "riskLevelLabel": "Riesgo",
+        "positioningNoteLabel": "Nota de posicionamiento",
+        "prePostChecklistLabel": "Checklist antes de publicar"
       }
     },
     "platformLabels": {
@@ -1582,6 +1596,7 @@
       "projectDeleted": "Proyecto eliminado.",
       "blockCopied": "Bloque de {platform} copiado al portapapeles.",
       "channelCardCopied": "Tarjeta de {channel} copiada al portapapeles.",
+      "redditVariantCopied": "Borrador de {subreddit} copiado al portapapeles.",
       "urlPrefilled": "URL precargada desde la landing. Extrae cuando quieras.",
       "demoLoaded": "Kit de ejemplo cargado. Puedes editar o regenerar cualquier bloque.",
       "leadsExported": "CSV de leads exportado.",

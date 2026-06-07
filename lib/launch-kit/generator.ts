@@ -18,8 +18,10 @@ import {
   type OutreachVariant,
   type PlatformBlock,
   type PlatformBlockId,
+  type RedditPostVariant,
   type RedditRecommendations,
   type SeoPostPack,
+  type SubredditPostPack,
   type SubredditRecommendation,
 } from '@/lib/launch-kit/types'
 import {
@@ -51,10 +53,16 @@ type GenerateInput = {
 }
 
 type RawSubredditRecommendation = Partial<SubredditRecommendation>
+type RawRedditPostVariant = Partial<RedditPostVariant>
+type RawSubredditPostPack = Partial<Omit<SubredditPostPack, 'variants'>> & {
+  variants?: RawRedditPostVariant[]
+}
 
 type RawRedditRecommendations = {
+  strategyNotes?: string
   engagementSubreddits?: RawSubredditRecommendation[]
   selfPromotionSubreddits?: RawSubredditRecommendation[]
+  subredditPostPacks?: RawSubredditPostPack[]
 }
 
 type RawPlatformBlock = {
@@ -163,10 +171,70 @@ const SUBREDDIT_RECOMMENDATION_SCHEMA = {
   required: ['name', 'url', 'reason', 'postingGuidance'],
 } as const
 
+const REDDIT_POST_VARIANT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    id: STRING_SCHEMA,
+    mode: { type: 'string', enum: ['conservative', 'self_promo'] },
+    title: STRING_SCHEMA,
+    body: STRING_SCHEMA,
+    cta: STRING_SCHEMA,
+    riskLevel: { type: 'string', enum: ['low', 'medium', 'high'] },
+    positioningNote: STRING_SCHEMA,
+    prePostChecklist: { type: 'array', items: STRING_SCHEMA, maxItems: 6 },
+  },
+  required: [
+    'id',
+    'mode',
+    'title',
+    'body',
+    'cta',
+    'riskLevel',
+    'positioningNote',
+    'prePostChecklist',
+  ],
+} as const
+
+const SUBREDDIT_POST_PACK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    subreddit: STRING_SCHEMA,
+    url: STRING_SCHEMA,
+    audienceFit: STRING_SCHEMA,
+    ruleSnapshot: STRING_SCHEMA,
+    promotionPolicy: {
+      type: 'string',
+      enum: ['unknown', 'discussion_only', 'self_promo_limited', 'self_promo_allowed'],
+    },
+    activitySignal: { type: 'string', enum: ['low', 'medium', 'high', 'unknown'] },
+    suggestedFlair: STRING_SCHEMA,
+    bestPostType: STRING_SCHEMA,
+    whyItFits: STRING_SCHEMA,
+    riskNotes: { type: 'array', items: STRING_SCHEMA, maxItems: 6 },
+    variants: { type: 'array', items: REDDIT_POST_VARIANT_SCHEMA, minItems: 2, maxItems: 4 },
+  },
+  required: [
+    'subreddit',
+    'url',
+    'audienceFit',
+    'ruleSnapshot',
+    'promotionPolicy',
+    'activitySignal',
+    'suggestedFlair',
+    'bestPostType',
+    'whyItFits',
+    'riskNotes',
+    'variants',
+  ],
+} as const
+
 const REDDIT_RECOMMENDATIONS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
+    strategyNotes: STRING_SCHEMA,
     engagementSubreddits: {
       type: 'array',
       items: SUBREDDIT_RECOMMENDATION_SCHEMA,
@@ -177,8 +245,18 @@ const REDDIT_RECOMMENDATIONS_SCHEMA = {
       items: SUBREDDIT_RECOMMENDATION_SCHEMA,
       maxItems: 6,
     },
+    subredditPostPacks: {
+      type: 'array',
+      items: SUBREDDIT_POST_PACK_SCHEMA,
+      maxItems: 6,
+    },
   },
-  required: ['engagementSubreddits', 'selfPromotionSubreddits'],
+  required: [
+    'strategyNotes',
+    'engagementSubreddits',
+    'selfPromotionSubreddits',
+    'subredditPostPacks',
+  ],
 } as const
 
 const REDDIT_PLATFORM_BLOCK_SCHEMA = {
@@ -977,9 +1055,14 @@ function buildLaunchKitInstructions(
     lines.push(
       '',
       'Reddit recommendation rules:',
-      '- Return redditRecommendations with engagementSubreddits and selfPromotionSubreddits.',
-      '- Each list may contain up to 6 relevant subreddits with name, url, reason, and postingGuidance.',
-      '- Use r/name format and remind users to check current rules/flairs before self-promotion.',
+      '- Return redditRecommendations with strategyNotes, engagementSubreddits, selfPromotionSubreddits, and subredditPostPacks.',
+      '- Analyze the relevant subreddit fit first, then draft posts for the best-fit subreddits. Do not write one generic Reddit post for every community.',
+      '- Each subredditPostPack must target one subreddit and include audienceFit, ruleSnapshot, promotionPolicy, activitySignal, suggestedFlair, bestPostType, whyItFits, riskNotes, and variants.',
+      '- ruleSnapshot must be conservative unless current rule evidence is present in the brief. If rules are not verified, explicitly say "Unverified rule snapshot" and tell the user what to check.',
+      '- For each subredditPostPack, create at least one conservative discussion-first variant and at least one more aggressive self_promo variant. Use riskLevel and riskNotes honestly.',
+      '- Conservative variants should work without a link, lead with community value, disclose builder role, and ask for feedback or discussion.',
+      '- Self_promo variants may mention the product earlier and include a clearer CTA, but they must still disclose the builder role, avoid spam cadence, and include a checklist to verify rules/flair before posting.',
+      '- Use r/name format and remind users to check current rules, flairs, pinned posts, and wiki pages before self-promotion.',
     )
   }
 
@@ -1219,11 +1302,11 @@ function buildOutputContract(
   const contract: Record<string, string> = {}
 
   if (selectedBlocks.length > 0) {
-    contract.platformBlocks = `Object keyed only by these platform ids: ${selectedBlocks.join(', ')}. Each value has title, body, cta, notes, and redditRecommendations only for reddit.`
+    contract.platformBlocks = `Object keyed only by these platform ids: ${selectedBlocks.join(', ')}. Each value has title, body, cta, notes, and redditRecommendations only for reddit. Reddit recommendations include strategyNotes, engagementSubreddits, selfPromotionSubreddits, and subredditPostPacks.`
   }
 
   if (selectedChannelPackIds.length > 0) {
-    contract.channelPacks = `Object keyed only by these channel pack ids: ${selectedChannelPackIds.join(', ')}. Each value has notes, cards, and redditRecommendations only for reddit.`
+    contract.channelPacks = `Object keyed only by these channel pack ids: ${selectedChannelPackIds.join(', ')}. Each value has notes, cards, and redditRecommendations only for reddit. Reddit recommendations include strategyNotes, engagementSubreddits, selfPromotionSubreddits, and subredditPostPacks.`
     contract.channelCards =
       'Each requested card has id, title, body, cta, proofPoint, stage, format, socialContractNote, and qualityChecks.'
   }
@@ -1251,6 +1334,105 @@ function growthOutputKey(blockId: GrowthBlockId): string {
   }
 
   return keys[blockId]
+}
+
+function buildRedditResearchSeed(brief: ExtractedBrief) {
+  const haystack = [
+    brief.productName,
+    brief.positioning,
+    brief.icp,
+    ...brief.targetUsers,
+    ...brief.painPoints,
+    ...brief.valueProps,
+    ...brief.keyClaims,
+    ...brief.keywordResearch.clusters.flatMap((cluster) => [
+      cluster.topic,
+      ...cluster.keywords,
+      ...cluster.contentAngles,
+    ]),
+  ]
+    .join(' ')
+    .toLowerCase()
+
+  const candidateCatalog = [
+    {
+      subreddit: 'r/startups',
+      fit: 'Founder validation, launch lessons, and startup operator discussion.',
+      caution: 'Often strict about promotion; lead with a lesson, question, or postmortem.',
+      signals: ['startup', 'founder', 'funding', 'startup', 'b2b'],
+    },
+    {
+      subreddit: 'r/SaaS',
+      fit: 'SaaS founder feedback, distribution experiments, and product-building discussion.',
+      caution: 'Self-promo tolerance varies by thread and flair; verify current rules.',
+      signals: ['saas', 'subscription', 'b2b', 'founder', 'mrr'],
+    },
+    {
+      subreddit: 'r/SideProject',
+      fit: 'Indie project launches, early feedback, and show-what-you-built posts.',
+      caution: 'Usually better for transparent maker posts than polished launch copy.',
+      signals: ['side project', 'indie', 'maker', 'solo founder', 'tool'],
+    },
+    {
+      subreddit: 'r/Entrepreneur',
+      fit: 'Business-building lessons, founder decisions, and market validation.',
+      caution: 'Frame around the business lesson, not only the product.',
+      signals: ['entrepreneur', 'business', 'founder', 'sales', 'growth'],
+    },
+    {
+      subreddit: 'r/ProductManagement',
+      fit: 'Product workflow, prioritization, roadmap, and user-research angles.',
+      caution: 'Avoid vendor pitch; ask about product process or tradeoffs.',
+      signals: ['product manager', 'product management', 'roadmap', 'feature', 'workflow'],
+    },
+    {
+      subreddit: 'r/webdev',
+      fit: 'Developer tools, web app implementation, and technical build discussion.',
+      caution: 'Needs technical substance; marketing copy will usually miss.',
+      signals: ['developer', 'web app', 'api', 'javascript', 'typescript', 'frontend', 'backend'],
+    },
+    {
+      subreddit: 'r/nocode',
+      fit: 'No-code tools, automation workflows, and builder demos.',
+      caution: 'Share workflow value and disclose commercial intent clearly.',
+      signals: ['no-code', 'nocode', 'automation', 'zapier', 'workflow'],
+    },
+    {
+      subreddit: 'r/marketing',
+      fit: 'Launch messaging, campaign planning, and channel strategy.',
+      caution: 'Use a marketing problem/lesson angle rather than a product announcement.',
+      signals: ['marketing', 'campaign', 'seo', 'content', 'growth'],
+    },
+    {
+      subreddit: 'r/productivity',
+      fit: 'Personal productivity workflows and tools that reduce repetitive work.',
+      caution: 'Self-promo is often sensitive; ask for workflow feedback.',
+      signals: ['productivity', 'workflow', 'organize', 'time', 'focus'],
+    },
+    {
+      subreddit: 'r/artificial',
+      fit: 'AI product discussion, use cases, and practical AI workflow critique.',
+      caution: 'Only use when AI is central and avoid generic AI hype.',
+      signals: ['ai', 'artificial intelligence', 'llm', 'model', 'automation'],
+    },
+  ]
+
+  const matched = candidateCatalog.filter((candidate) =>
+    candidate.signals.some((signal) => haystack.includes(signal)),
+  )
+
+  return {
+    guidance:
+      'Use this as an unverified starting point only. Pick the communities that best match the brief, infer rules conservatively, and tell the user to verify current rules, flairs, pinned posts, and wiki pages.',
+    briefDerivedSearchHints: [
+      brief.icp,
+      ...brief.targetUsers.slice(0, 3),
+      ...brief.keywordResearch.clusters.slice(0, 3).map((cluster) => cluster.topic),
+    ].filter(Boolean),
+    candidateSubreddits: (matched.length > 0 ? matched : candidateCatalog.slice(0, 5)).map(
+      ({ subreddit, fit, caution }) => ({ subreddit, fit, caution }),
+    ),
+  }
 }
 
 function buildLaunchKitPrompt(
@@ -1293,6 +1475,9 @@ function buildLaunchKitPrompt(
       ),
       channelCardTarget,
       requiredChannelCards: buildRequiredChannelCards(selectedChannelPackIds, channelCardTarget),
+      redditResearchSeed: selectedBlocks.includes('reddit') || selectedChannelPackIds.includes('reddit')
+        ? buildRedditResearchSeed(brief)
+        : null,
       brief,
       outputContract: buildOutputContract(
         selectedBlocks,
@@ -2245,6 +2430,8 @@ function fallbackRedditRecommendations(brief: ExtractedBrief): RedditRecommendat
   const category = brief.keywordResearch.clusters[0]?.topic || brief.positioning || 'the product category'
 
   return {
+    strategyNotes:
+      'Start with subreddit fit, not a generic Reddit post. Use discussion-first variants in strict communities and reserve self-promo variants for communities where current rules, flair, and pinned posts clearly allow it.',
     engagementSubreddits: [
       {
         name: 'r/startups',
@@ -2319,6 +2506,142 @@ function fallbackRedditRecommendations(brief: ExtractedBrief): RedditRecommendat
         url: 'https://www.reddit.com/r/EntrepreneurRideAlong/',
         reason: 'Works for transparent build stories, launch experiments, and progress updates.',
         postingGuidance: 'Share the journey, numbers, and next experiment instead of a bare launch link.',
+      },
+    ],
+    subredditPostPacks: [
+      fallbackSubredditPostPack({
+        subreddit: 'r/SideProject',
+        product,
+        audience,
+        pain: brief.painPoints[0] || `getting ${category} launched without generic promotion`,
+        value: brief.valueProps[0] || brief.positioning || 'a clearer launch workflow',
+        cta: brief.cta || 'Try it and share feedback',
+        audienceFit: 'Makers and builders who are open to early products, demos, and specific feedback requests.',
+        promotionPolicy: 'self_promo_limited',
+        activitySignal: 'medium',
+        suggestedFlair: 'Showcase or Feedback, if available',
+        bestPostType: 'Transparent build/share post with a clear feedback ask.',
+        whyItFits: `${product} can be framed as a side-project workflow and feedback request for other builders.`,
+        riskNotes: [
+          'Check current flair and self-promotion rules before linking.',
+          'Avoid cross-posting the same pitch across similar project subreddits.',
+          'Ask for specific feedback instead of only asking people to try it.',
+        ],
+      }),
+      fallbackSubredditPostPack({
+        subreddit: 'r/SaaS',
+        product,
+        audience,
+        pain: brief.painPoints[0] || `solving ${category} for SaaS teams`,
+        value: brief.valueProps[0] || brief.positioning || 'a more focused SaaS workflow',
+        cta: brief.cta || 'Review the workflow',
+        audienceFit: 'SaaS founders and operators who discuss positioning, onboarding, launch, pricing, and growth experiments.',
+        promotionPolicy: 'discussion_only',
+        activitySignal: 'medium',
+        suggestedFlair: 'Feedback or Discussion, if available',
+        bestPostType: 'Problem-first discussion or launch lesson, with product context after the question.',
+        whyItFits: `${product} is relevant if the post focuses on the SaaS workflow problem rather than a naked launch announcement.`,
+        riskNotes: [
+          'Treat self-promotion as risky unless current rules explicitly allow it.',
+          'Lead with a lesson, tradeoff, or question other SaaS builders can answer.',
+          'Remove links if the community expects discussion-first posts.',
+        ],
+      }),
+      fallbackSubredditPostPack({
+        subreddit: 'r/startups',
+        product,
+        audience,
+        pain: brief.painPoints[0] || `launching ${category} with enough customer signal`,
+        value: brief.valueProps[0] || brief.positioning || 'a more concrete path from product story to launch assets',
+        cta: brief.cta || 'Share feedback on the launch approach',
+        audienceFit: 'Startup founders and operators who respond to lessons, experiments, and hard-won launch context.',
+        promotionPolicy: 'discussion_only',
+        activitySignal: 'high',
+        suggestedFlair: 'Discussion, Feedback, or Lessons Learned, if available',
+        bestPostType: 'Founder lesson or validation question. Product mention should be secondary.',
+        whyItFits: `${product} can fit when framed as a startup launch lesson for ${audience}, not as a launch blast.`,
+        riskNotes: [
+          'High removal risk for direct product promotion.',
+          'Do not include a link unless current rules clearly allow it.',
+          'Make the post useful even if the product name is removed.',
+        ],
+      }),
+    ],
+  }
+}
+
+function fallbackSubredditPostPack(input: {
+  subreddit: string
+  product: string
+  audience: string
+  pain: string
+  value: string
+  cta: string
+  audienceFit: string
+  promotionPolicy: SubredditPostPack['promotionPolicy']
+  activitySignal: SubredditPostPack['activitySignal']
+  suggestedFlair: string
+  bestPostType: string
+  whyItFits: string
+  riskNotes: string[]
+}): SubredditPostPack {
+  const slug = input.subreddit.replace(/^r\//i, '')
+  const conservativeRisk = input.promotionPolicy === 'self_promo_allowed' ? 'low' : 'medium'
+
+  return {
+    subreddit: `r/${slug}`,
+    url: `https://www.reddit.com/r/${slug}/`,
+    audienceFit: input.audienceFit,
+    ruleSnapshot:
+      'Unverified rule snapshot. Check the current sidebar, wiki, pinned posts, removal reasons, and flair requirements before posting.',
+    promotionPolicy: input.promotionPolicy,
+    activitySignal: input.activitySignal,
+    suggestedFlair: input.suggestedFlair,
+    bestPostType: input.bestPostType,
+    whyItFits: input.whyItFits,
+    riskNotes: input.riskNotes,
+    variants: [
+      {
+        id: `${slug.toLowerCase()}-conservative`,
+        mode: 'conservative',
+        title: `How are you handling ${input.pain}?`,
+        body: `I am trying to understand how other people handle this: ${input.pain}.\n\nFor context, I am building ${input.product} for ${input.audience}, but I am more interested in the workflow than dropping a link.\n\nThe useful outcome I am aiming for is: ${input.value}.\n\nIf you deal with this, what would make a solution credible enough to try? What would make it feel like yet another tool that misses the point?`,
+        cta: 'Ask for workflow feedback; omit the link unless rules allow it.',
+        riskLevel: conservativeRisk,
+        positioningNote: 'Discussion-first and link-optional. Best for stricter subreddits.',
+        prePostChecklist: [
+          'Check current rules, pinned posts, and required flair.',
+          'Disclose that you are the builder.',
+          'Remove links if the subreddit prefers discussion-only posts.',
+        ],
+      },
+      {
+        id: `${slug.toLowerCase()}-self-promo-soft`,
+        mode: 'self_promo',
+        title: `I built ${input.product} for ${input.audience} and would value feedback`,
+        body: `I built ${input.product} because I kept seeing this problem: ${input.pain}.\n\nThe product is for ${input.audience}. The practical outcome I am trying to create is: ${input.value}.\n\nI am the builder, so this is self-promotion if links are allowed here. I would genuinely value feedback on whether the workflow makes sense, what feels unclear, and what would stop you from trying it.`,
+        cta: input.cta,
+        riskLevel: input.promotionPolicy === 'self_promo_allowed' ? 'medium' : 'high',
+        positioningNote: 'More direct product mention, but still asks for critique instead of only traffic.',
+        prePostChecklist: [
+          'Only post if current rules allow self-promotion or feedback requests.',
+          'Use the required self-promo or feedback flair.',
+          'Add a short comment with extra context instead of repeating the pitch.',
+        ],
+      },
+      {
+        id: `${slug.toLowerCase()}-self-promo-direct`,
+        mode: 'self_promo',
+        title: `${input.product}: a tool for ${input.audience}`,
+        body: `I am the builder of ${input.product}. It is meant to help ${input.audience} with this problem: ${input.pain}.\n\nWhat it does: ${input.value}.\n\nI am sharing it here because this community has people who understand the workflow and can tell me where the positioning is wrong. If self-promotion is allowed, I would appreciate direct product feedback more than praise.`,
+        cta: input.cta,
+        riskLevel: 'high',
+        positioningNote: 'Most aggressive variant. Use only in communities that explicitly allow product sharing.',
+        prePostChecklist: [
+          'Verify self-promotion is allowed today.',
+          'Add proof or a demo detail before publishing.',
+          'Do not repost this variant across multiple subreddits.',
+        ],
       },
     ],
   }

@@ -66,9 +66,41 @@ export type SubredditRecommendation = {
   postingGuidance: string
 }
 
+export type RedditPromotionPolicy = 'unknown' | 'discussion_only' | 'self_promo_limited' | 'self_promo_allowed'
+export type RedditRiskLevel = 'low' | 'medium' | 'high'
+export type RedditActivitySignal = 'low' | 'medium' | 'high' | 'unknown'
+export type RedditPostVariantMode = 'conservative' | 'self_promo'
+
+export type RedditPostVariant = {
+  id: string
+  mode: RedditPostVariantMode
+  title: string
+  body: string
+  cta: string
+  riskLevel: RedditRiskLevel
+  positioningNote: string
+  prePostChecklist: string[]
+}
+
+export type SubredditPostPack = {
+  subreddit: string
+  url: string
+  audienceFit: string
+  ruleSnapshot: string
+  promotionPolicy: RedditPromotionPolicy
+  activitySignal: RedditActivitySignal
+  suggestedFlair: string
+  bestPostType: string
+  whyItFits: string
+  riskNotes: string[]
+  variants: RedditPostVariant[]
+}
+
 export type RedditRecommendations = {
+  strategyNotes: string
   engagementSubreddits: SubredditRecommendation[]
   selfPromotionSubreddits: SubredditRecommendation[]
+  subredditPostPacks: SubredditPostPack[]
 }
 
 export type PlatformBlock = {

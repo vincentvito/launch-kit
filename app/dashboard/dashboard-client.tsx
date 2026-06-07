@@ -22,6 +22,7 @@ import {
   type LaunchProjectSnapshot,
   type PlatformBlockId,
   type ProjectSummary,
+  type RedditPostVariant,
 } from '@/lib/launch-kit/types'
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 import { FREE_CHANNEL_PACK_IDS, FREE_PLATFORM_BLOCK_IDS } from '@/lib/launch-kit/plans'
@@ -44,6 +45,7 @@ import {
   formatOutreachPackForCopy,
   formatRedditRecommendationsForCopy,
   formatSeoPostsForCopy,
+  formatSubredditPostVariantForCopy,
   getExportLabels,
   hasGeneratedResultsInKit,
   parseNumberFilter,
@@ -739,10 +741,25 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     const redditRecommendations =
       blockId === 'reddit' && block.redditRecommendations
         ? formatRedditRecommendationsForCopy(block.redditRecommendations, {
+            strategy: t('output.reddit.strategyLabel'),
             engagement: t('output.reddit.engagementTitle'),
             selfPromotion: t('output.reddit.selfPromotionTitle'),
             reason: t('output.reddit.reasonLabel'),
             postingGuidance: t('output.reddit.postingGuidanceLabel'),
+            subredditDrafts: t('output.reddit.subredditDraftsTitle'),
+            audienceFit: t('output.reddit.audienceFitLabel'),
+            ruleSnapshot: t('output.reddit.ruleSnapshotLabel'),
+            promotionPolicy: t('output.reddit.promotionPolicyLabel'),
+            activitySignal: t('output.reddit.activitySignalLabel'),
+            suggestedFlair: t('output.reddit.suggestedFlairLabel'),
+            bestPostType: t('output.reddit.bestPostTypeLabel'),
+            whyItFits: t('output.reddit.whyItFitsLabel'),
+            riskNotes: t('output.reddit.riskNotesLabel'),
+            variantMode: t('output.reddit.variantModeLabel'),
+            riskLevel: t('output.reddit.riskLevelLabel'),
+            positioningNote: t('output.reddit.positioningNoteLabel'),
+            checklist: t('output.reddit.prePostChecklistLabel'),
+            cta: t('output.copyCtaPrefix'),
           })
         : ''
 
@@ -778,6 +795,19 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
       }),
     )
     setSuccess(t('messages.channelCardCopied', { channel: kit.channelPacks[channelId].label }))
+  }
+
+  const copyRedditVariant = async (subreddit: string, variant: RedditPostVariant) => {
+    await navigator.clipboard.writeText(
+      formatSubredditPostVariantForCopy(variant, {
+        cta: t('output.copyCtaPrefix'),
+        variantMode: t('output.reddit.variantModeLabel'),
+        riskLevel: t('output.reddit.riskLevelLabel'),
+        positioningNote: t('output.reddit.positioningNoteLabel'),
+        checklist: t('output.reddit.prePostChecklistLabel'),
+      }),
+    )
+    setSuccess(t('messages.redditVariantCopied', { subreddit }))
   }
 
   const updateChannelCard = (
@@ -1749,6 +1779,9 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                         onGenerateAsset={(templateId, format) => void onGenerateAsset(templateId, format)}
                         generatingAssetKey={generatingAssetKey}
                         onCopyChannelCard={(channelId, cardId) => void copyChannelCard(channelId, cardId)}
+                        onCopyRedditVariant={(subreddit, variant) =>
+                          void copyRedditVariant(subreddit, variant)
+                        }
                         onUpdateChannelCard={updateChannelCard}
                         onRegenerateChannelCard={(channelId, cardId) =>
                           void regenerateChannelCard(channelId, cardId)
@@ -1814,10 +1847,24 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             proofPoint: t('output.proofPointLabel'),
                             socialContract: t('output.socialContractLabel'),
                             emptyChannelPack: t('growth.outputs.emptyChannelPack'),
+                            redditStrategy: t('output.reddit.strategyLabel'),
                             redditEngagement: t('output.reddit.engagementTitle'),
                             redditSelfPromotion: t('output.reddit.selfPromotionTitle'),
                             redditReason: t('output.reddit.reasonLabel'),
                             redditPostingGuidance: t('output.reddit.postingGuidanceLabel'),
+                            redditSubredditDrafts: t('output.reddit.subredditDraftsTitle'),
+                            redditAudienceFit: t('output.reddit.audienceFitLabel'),
+                            redditRuleSnapshot: t('output.reddit.ruleSnapshotLabel'),
+                            redditPromotionPolicy: t('output.reddit.promotionPolicyLabel'),
+                            redditActivitySignal: t('output.reddit.activitySignalLabel'),
+                            redditSuggestedFlair: t('output.reddit.suggestedFlairLabel'),
+                            redditBestPostType: t('output.reddit.bestPostTypeLabel'),
+                            redditWhyItFits: t('output.reddit.whyItFitsLabel'),
+                            redditRiskNotes: t('output.reddit.riskNotesLabel'),
+                            redditVariantMode: t('output.reddit.variantModeLabel'),
+                            redditRiskLevel: t('output.reddit.riskLevelLabel'),
+                            redditPositioningNote: t('output.reddit.positioningNoteLabel'),
+                            redditPrePostChecklist: t('output.reddit.prePostChecklistLabel'),
                             emptyOutreach: t('growth.outputs.emptyOutreach'),
                             emptySeo: t('growth.outputs.emptySeo'),
                           },

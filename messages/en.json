@@ -986,10 +986,24 @@
       "copyNotesPrefix": "Notes",
       "tabsAriaLabel": "Generated output tabs",
       "reddit": {
+        "strategyLabel": "Reddit strategy",
         "engagementTitle": "Relevant subreddits to engage in",
         "selfPromotionTitle": "Self-promotion candidate subreddits",
         "reasonLabel": "Reason",
-        "postingGuidanceLabel": "Posting guidance"
+        "postingGuidanceLabel": "Posting guidance",
+        "subredditDraftsTitle": "Subreddit-specific drafts",
+        "audienceFitLabel": "Audience fit",
+        "ruleSnapshotLabel": "Rule snapshot",
+        "promotionPolicyLabel": "Promotion policy",
+        "activitySignalLabel": "Activity signal",
+        "suggestedFlairLabel": "Suggested flair",
+        "bestPostTypeLabel": "Best post type",
+        "whyItFitsLabel": "Why it fits",
+        "riskNotesLabel": "Risk notes",
+        "variantModeLabel": "Variant",
+        "riskLevelLabel": "Risk",
+        "positioningNoteLabel": "Positioning note",
+        "prePostChecklistLabel": "Pre-post checklist"
       }
     },
     "platformLabels": {
@@ -1582,6 +1596,7 @@
       "projectDeleted": "Project deleted.",
       "blockCopied": "{platform} block copied to clipboard.",
       "channelCardCopied": "{channel} card copied to clipboard.",
+      "redditVariantCopied": "{subreddit} draft copied to clipboard.",
       "urlPrefilled": "URL prefilled from landing. Extract when ready.",
       "demoLoaded": "Sample launch kit loaded. You can edit or regenerate any block.",
       "leadsExported": "Lead CSV exported.",
