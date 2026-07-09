@@ -1,13 +1,13 @@
 {
   "App": {
     "meta": {
-      "title": "Launch Kit",
+      "title": "shipdaddy",
       "description": "Turn one product URL into launch copy, exports, and premium growth assets.",
-      "siteName": "Launch Kit"
+      "siteName": "shipdaddy"
     }
   },
   "HomePage": {
-    "title": "Launch Kit",
+    "title": "shipdaddy",
     "description": "Turn one product URL into launch-ready copy and growth assets."
   },
   "LanguageSwitcher": {
@@ -17,7 +17,7 @@
   },
   "Auth": {
     "meta": {
-      "title": "Sign in | Launch Kit",
+      "title": "Sign in | shipdaddy",
       "description": "Sign in to save launch projects, exports, and premium growth work."
     },
     "title": "Sign in to your account",
@@ -66,30 +66,30 @@
   "Legal": {
     "privacy": {
       "meta": {
-        "title": "Privacy | Launch Kit",
-        "description": "How Launch Kit handles account, waitlist, product URL, and generated content data."
+        "title": "Privacy | shipdaddy",
+        "description": "How shipdaddy handles account, product URL, and generated content data."
       },
       "back": "Back to home",
       "eyebrow": "Privacy",
       "title": "Privacy policy",
-      "description": "Launch Kit stores only the data needed to run the product and improve launch workflows.",
+      "description": "shipdaddy stores only the data needed to run the product and improve launch workflows.",
       "items": [
-        "We collect account details, waitlist emails, saved launch projects, user profile fields, billing identifiers, usage events, and product URLs or content you submit for generation.",
+        "We collect account details, saved launch projects, user profile fields, billing identifiers, usage events, and product URLs or content you submit for generation.",
         "Submitted URLs may be fetched and analyzed so the app can build a product brief. Generated outputs and saved projects may be stored with your account.",
-        "Premium billing data is handled by the configured billing provider. Launch Kit stores customer and subscription identifiers, not full payment card data.",
+        "Premium billing data is handled by the configured billing provider. shipdaddy stores customer and subscription identifiers, not full payment card data.",
         "We use API keys and provider credentials only on the server. Generated AI and media providers may process submitted prompts according to their own terms.",
-        "You can request deletion of account, profile, waitlist, and saved project data by contacting support for the deployed product."
+        "You can request deletion of account, profile, and saved project data by contacting support for the deployed product."
       ]
     },
     "terms": {
       "meta": {
-        "title": "Terms | Launch Kit",
-        "description": "Terms for using Launch Kit generated content, exports, prospecting, and premium workflows."
+        "title": "Terms | shipdaddy",
+        "description": "Terms for using shipdaddy generated content, exports, prospecting, and premium workflows."
       },
       "back": "Back to home",
       "eyebrow": "Terms",
       "title": "Terms of service",
-      "description": "Use Launch Kit as a launch planning tool, and review outputs before publishing or contacting anyone.",
+      "description": "Use shipdaddy as a launch planning tool, and review outputs before publishing or contacting anyone.",
       "items": [
         "You are responsible for the product URLs, prompts, contact lists, and content you submit, and for reviewing generated copy before publishing.",
         "Prospecting, backlink, and outreach features are planning aids. You must comply with platform rules, email laws, privacy rules, and recipient consent requirements.",
@@ -99,132 +99,14 @@
       ]
     }
   },
-  "WaitingList": {
-    "meta": {
-      "title": "shipdaddy — join the launch crew",
-      "description": "Turn one product URL into a focused launch kit, then unlock SEO, outreach, demos, and creative assets with Premium."
-    },
-    "nav": {
-      "brand": "Launch Kit",
-      "sub": "Editorial launch engine for builders",
-      "logoPrefix": "ship",
-      "logoSuffix": "daddy",
-      "prelaunch": "pre-launch · waitlist open"
-    },
-    "hero": {
-      "badge": "Coming soon",
-      "title": "Launch day copy,",
-      "titleHighlight": "before launch day",
-      "description": "Stop guessing what to write first. Shipdaddy turns one URL into the launch copy, subreddit guidance, email announcement, and media kit you can use today.",
-      "descriptionEmphasis": "Premium unlocks SEO, outreach, demos, and creative assets.",
-      "titleLine1": "launch everywhere.",
-      "titleLine2": "from one URL.",
-      "eyebrow": "your focused launch kit"
-    },
-    "painPosts": [
-      { "text": "spent 6 hrs writing the same launch post for 8 platforms. someone end my suffering.", "c": 268, "tag": "rewriting hell" },
-      { "text": "one generic post reused everywhere. the voice dies the second i copy-paste it.", "c": 252, "tag": "voice" },
-      { "text": "x thread, reddit post, subreddit list, launch email — all in different docs. why.", "c": 280, "tag": "tool sprawl" },
-      { "text": "PH tomorrow. HN draft? not written. press blurb? lmao. wish me luck.", "c": 30, "tag": "launch day" },
-      { "text": "writing 'professional' LinkedIn copy drains the will to live out of me.", "c": 200, "tag": "linkedin" },
-      { "text": "what do you mean reddit doesn't want my polished landing-page copy.", "c": 320, "tag": "reddit" },
-      { "text": "which subreddit can i post in without getting instantly roasted or removed?", "c": 180, "tag": "subreddits" },
-      { "text": "showHN draft attempt #4. still sounds like a corporate brochure.", "c": 60, "tag": "hacker news" },
-      { "text": "rewrote the same product story 9 times for 9 channels today. 9.", "c": 110, "tag": "rewriting hell" },
-      { "text": "product ready. launch copy not ready. one human. one weekend. send help.", "c": 8, "tag": "alone" },
-      { "text": "i love coding. i love shipping. i HATE writing launch copy.", "c": 340, "tag": "copy" },
-      { "text": "i need useful launch copy first, not another giant growth dashboard.", "c": 90, "tag": "focus" },
-      { "text": "indie hackers wants the build-in-public story. linkedin wants polish. same product.", "c": 220, "tag": "indie hackers" },
-      { "text": "basic launch kit first. fancy ads and demo scripts can wait until the copy works.", "c": 160, "tag": "scope" },
-      { "text": "x wants a sharp hook. reddit wants context. linkedin wants polish. same product.", "c": 140, "tag": "platform fit" },
-      { "text": "every community has its own unwritten rules and i learn them the hard way each launch.", "c": 40, "tag": "social contract" },
-      { "text": "premium growth work is useful, but only after the launch story is clear.", "c": 290, "tag": "growth" },
-      { "text": "one URL, one story, ten platforms. there has to be a better way to do this.", "c": 250, "tag": "one brief" }
-    ],
-    "ticker": [
-      "one product URL · launch content generated",
-      "free launch kit · one structured brief",
-      "Product Hunt · Hacker News · Reddit · Indie Hackers",
-      "X · LinkedIn · Email · Media Kit",
-      "subreddit picks · where to post",
-      "premium · SEO · backlinks · outreach",
-      "premium · product demo · creative assets",
-      "founder-to-founder · no fluff",
-      "review it · then post"
-    ],
-    "form": {
-      "placeholder": "founder@yourstartup.com",
-      "submit": "View sample",
-      "helper": "Enter an email to unlock the generated Shipdaddy launch sample.",
-      "invalidEmail": "That does not look like an email. Try again.",
-      "success": "You are on the list. We will email you when early access opens.",
-      "error": "Something went wrong. Please try again.",
-      "stats": {
-        "launchChannels": {
-          "n": "6",
-          "label": "core outputs"
-        },
-        "seo": {
-          "n": "Premium",
-          "label": "growth unlock"
-        },
-        "outreach": {
-          "n": "1",
-          "label": "focused brief"
-        }
-      }
-    },
-    "sample": {
-      "unlocked": "Sample unlocked",
-      "generatedFor": "Generated launch kit for Shipdaddy",
-      "subtitle": "A sample run for Shipdaddy using the real generation profile: source-grounded launch copy first, then premium SEO, outreach, demo, creative prompts, and media-kit notes from the same brief.",
-      "inputUrl": "Input URL",
-      "contentYouGet": "Content you get",
-      "contentSummary": "Source-grounded launch kit first. Premium growth system when ready.",
-      "channels": "Generated channels",
-      "generatedCopy": "Generated copy",
-      "mediaAssets": "Visual assets",
-      "seoPlan": "SEO",
-      "subreddits": "Subreddits",
-      "outreach": "Outreach",
-      "mediaKit": "Media kit",
-      "cta": "CTA",
-      "notes": "Why it works",
-      "savedFor": "Preview saved for",
-      "generatedSystem": "Generated launch content",
-      "xPosts": "X posts",
-      "redditPost": "Reddit post",
-      "prospects": "Premium prospects",
-      "productDemo": "Product Demo",
-      "fullResults": "Full generated results"
-    },
-    "highlights": {
-      "one": {
-        "title": "One URL in",
-        "body": "Paste your product link and get a structured launch brief."
-      },
-      "two": {
-        "title": "Every channel out",
-        "body": "Platform-tailored posts for HN, Reddit, LinkedIn, and more."
-      },
-      "three": {
-        "title": "Press-ready assets",
-        "body": "Media kit and press pack included with every kit."
-      }
-    },
-    "footer": {
-      "copyright": "Launch Kit. All rights reserved.",
-      "tagline": "Early access opens soon."
-    }
-  },
   "Landing": {
     "meta": {
-      "title": "Launch Kit — Editorial launch engine",
+      "title": "shipdaddy — AI launch workspace",
       "description": "Turn one product URL into a useful launch kit, then upgrade for SEO, backlinks, outreach, and creative assets."
     },
     "nav": {
-      "brand": "Launch Kit",
-      "sub": "Editorial launch engine for builders",
+      "brand": "shipdaddy",
+      "sub": "AI launch workspace for builders",
       "proof": "Transformation",
       "voices": "Voices",
       "media": "Growth",
@@ -236,7 +118,7 @@
       "badge": "Show, do not tell",
       "title": "From one product URL to",
       "titleHighlight": "a launch kit you can use",
-      "description": "Launch Kit extracts your brief, writes the core launch copy, suggests subreddit angles, and packages a lightweight media kit. Premium adds the growth work: SEO, backlinks, outreach, and creative assets.",
+      "description": "shipdaddy extracts your brief, writes the core launch copy, suggests subreddit angles, and packages a lightweight media kit. Premium adds the growth work: SEO, backlinks, outreach, and creative assets.",
       "urlPlaceholder": "Paste your product URL (for example, https://yourproduct.com)",
       "ctaPrimary": "Try with your URL",
       "ctaSecondary": "View full sample kit",
@@ -330,14 +212,14 @@
       }
     },
     "footer": {
-      "copyright": "Launch Kit. All rights reserved.",
+      "copyright": "shipdaddy. All rights reserved.",
       "tagline": "Free: one URL to launch kit. Premium: SEO, backlinks, outreach, and creative assets."
     }
   },
   "Pricing": {
     "meta": {
-      "title": "Pricing | Launch Kit",
-      "description": "Simple pricing for Launch Kit: free launch copy, premium growth systems."
+      "title": "Pricing | shipdaddy",
+      "description": "Simple pricing for shipdaddy: free launch copy, premium growth systems."
     },
     "nav": {
       "label": "Pricing",
@@ -391,10 +273,10 @@
   },
   "Changelog": {
     "meta": {
-      "title": "Changelog | Launch Kit",
-      "description": "Notable Launch Kit product and production-readiness updates."
+      "title": "Changelog | shipdaddy",
+      "description": "Notable shipdaddy product and production-readiness updates."
     },
-    "brand": "Launch Kit",
+    "brand": "shipdaddy",
     "title": "Changelog",
     "description": "Notable product and production-readiness updates are documented here.",
     "backHome": "Back to home",
@@ -414,7 +296,7 @@
             "type": "added",
             "items": [
               "Production readiness preflight for required deployment environment, billing, auth, AI, and database-provider checks",
-              "Persisted Launch Kit usage, jobs, plans, rate limits, billing routes, health checks, and readiness checks",
+              "Persisted shipdaddy usage, jobs, plans, rate limits, billing routes, health checks, and readiness checks",
               "Story-first X post generation with titleless exports and channel-specific launch copy behavior"
             ]
           },
@@ -435,7 +317,7 @@
           {
             "type": "added",
             "items": [
-              "Initial Launch Kit experience on the standard app stack",
+              "Initial shipdaddy experience on the standard app stack",
               "Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma 7, Better Auth, and next-intl",
               "Zero-config local startup with SQLite defaults and a documented Postgres production path"
             ]
@@ -444,15 +326,14 @@
       }
     ],
     "moreHistory": "Ready to turn a product URL into launch assets?",
-    "homeCta": "Open Launch Kit"
+    "homeCta": "Open shipdaddy"
   },
   "LaunchKit": {
     "tagline": "Free launch kit, premium growth engine",
     "signOut": "Sign out",
     "signIn": "Sign in",
     "workflowHeader": {
-      "title": "Guided Launch Workflow",
-      "description": "One clear step at a time. Ingest, refine, then publish channel-ready launch assets."
+      "title": "Guided Launch Workflow"
     },
     "stepStatus": {
       "locked": "Locked",
@@ -467,8 +348,8 @@
       "step2Title": "Confirm Basics",
       "step2Description": "Confirm the essentials before generating launch content.",
       "step3Label": "Step 3",
-      "step3Title": "Launch Content + Export",
-      "step3Description": "Review generated content, regenerate tabs, and export your kit.",
+      "step3Title": "Dashboard",
+      "step3Description": "Review, regenerate, save, and export from one workspace.",
       "step3Summary": "{count} generated blocks",
       "step4Label": "Step 4",
       "step4Title": "Launch Content + Export",
@@ -524,13 +405,13 @@
       }
     },
     "extractionFeedback": {
-      "readingSite": "Reading the website structure",
-      "extractingConcept": "Extracting the product concept",
-      "mappingAudience": "Researching the target audience",
-      "findingFriction": "Finding pain points and friction",
-      "capturingVoice": "Capturing tone of voice",
-      "collectingProof": "Collecting claims and proof points",
-      "buildingBrief": "Building the editable launch brief"
+      "readingSite": "We are reading the page content and finding the product signals.",
+      "extractingConcept": "We are extracting what the product does and why it exists.",
+      "mappingAudience": "We are identifying the customer, buyer, and strongest use cases.",
+      "findingFriction": "We are mapping the pain points your launch copy should speak to.",
+      "capturingVoice": "We are learning the brand voice so the brief does not sound generic.",
+      "collectingProof": "We are separating real proof points from vague marketing claims.",
+      "buildingBrief": "We are turning the findings into an editable launch brief."
     },
     "generationFeedback": {
       "title": "Building your launch kit",
@@ -574,6 +455,57 @@
       "bodyLabel": "Body",
       "ctaLabel": "CTA",
       "notesLabel": "Notes",
+      "productHunt": {
+        "tagline": "Tagline",
+        "description": "Launch description",
+        "tags": "Launch tags",
+        "firstComment": "First comment"
+      },
+      "hackerNews": {
+        "showHnTitle": "Show HN title",
+        "postBody": "Post body",
+        "feedbackAsk": "Feedback ask",
+        "discussionSeed": "Discussion seed"
+      },
+      "redditPost": {
+        "postTitle": "Post title",
+        "postBody": "Post body",
+        "builderDisclosure": "Builder disclosure",
+        "discussionQuestion": "Discussion question",
+        "linkPolicyNote": "Rules note"
+      },
+      "indieHackers": {
+        "postTitle": "Post title",
+        "founderStory": "Founder story",
+        "lesson": "Lesson",
+        "proofOrMetric": "Proof or metric",
+        "nextExperiment": "Next experiment",
+        "feedbackAsk": "Feedback ask"
+      },
+      "linkedinPost": {
+        "hook": "Hook",
+        "postBody": "Post body",
+        "proofPoint": "Proof point",
+        "closingCta": "Closing CTA"
+      },
+      "shortVideo": {
+        "title": "Title",
+        "hook": "Hook",
+        "spokenScript": "Spoken script",
+        "visualBeats": "Visual beats",
+        "onScreenText": "On-screen text",
+        "retentionCue": "Retention cue",
+        "closeCta": "Close CTA"
+      },
+      "emailAnnouncement": {
+        "subject": "Subject",
+        "previewText": "Preview text",
+        "greeting": "Greeting",
+        "opening": "Opening",
+        "body": "Email body",
+        "ctaText": "CTA text",
+        "signoff": "Signoff"
+      },
       "subjectLabel": "Subject",
       "outlineLabel": "Outline",
       "clusterLabel": "Cluster",
@@ -642,7 +574,7 @@
       },
       "channelGroups": {
         "launch_platforms": {
-          "title": "Free Launch Kit",
+          "title": "Free kit",
           "description": "The core copy and exports users get after URL ingest."
         },
         "marketplaces": {
@@ -1007,7 +939,7 @@
     },
     "export": {
       "markdown": {
-        "launchKitPrefix": "Launch Kit",
+        "launchKitPrefix": "shipdaddy",
         "sourceUrl": "Source URL",
         "language": "Language",
         "brief": "Brief",

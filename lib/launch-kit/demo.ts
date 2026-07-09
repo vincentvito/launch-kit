@@ -21,9 +21,9 @@ const DEMO_TIMESTAMP = '2026-05-21T08:00:00.000Z'
 function buildDemoBrief(sourceUrl: string): ExtractedBrief {
   return {
     sourceUrl,
-    productName: 'Launch Kit',
+    productName: 'shipdaddy',
     positioning:
-      'Launch Kit turns one product URL into focused launch copy, subreddit guidance, an email announcement, and a lightweight media kit, with Premium growth work available from the same brief.',
+      'shipdaddy turns one product URL into focused launch copy, subreddit guidance, an email announcement, and a lightweight media kit, with Premium growth work available from the same brief.',
     targetUsers: [
       'Solo SaaS founders preparing a public launch',
       'Indie hackers shipping frequent product updates',
@@ -53,7 +53,7 @@ function buildDemoBrief(sourceUrl: string): ExtractedBrief {
     ],
     voiceGuide:
       'Use a founder-to-founder voice that is sharp, practical, and candid about launch work. Keep the writing specific to the channel, avoid generic AI phrases and inflated proof, and make every output feel like it was written by someone who understands each community.',
-    cta: 'Try Launch Kit with your product URL',
+    cta: 'Try shipdaddy with your product URL',
     language: 'en',
     sourceHighlights: [
       'One URL, one focused launch kit.',
@@ -70,7 +70,7 @@ function buildDemoBrief(sourceUrl: string): ExtractedBrief {
     keywordResearch: {
       generatedAt: DEMO_TIMESTAMP,
       notes:
-        'Clustered from Launch Kit positioning, dashboard workflows, and founder launch intent.',
+        'Clustered from shipdaddy positioning, dashboard workflows, and founder launch intent.',
       clusters: [
         {
           id: 'cluster-launch-kit-generator',
@@ -135,7 +135,7 @@ function demoCard(
   body: string,
   cta: string,
   socialContractNote: string,
-  proofPoint = 'Launch Kit demo generates core launch copy, subreddit guidance, and media kit assets from one source brief.',
+  proofPoint = 'shipdaddy demo generates core launch copy, subreddit guidance, and media kit assets from one source brief.',
 ): ChannelCard {
   return {
     id,
@@ -158,29 +158,55 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
   product_hunt: {
     id: 'product_hunt',
     label: PLATFORM_LABELS.product_hunt,
-    title: 'Launch Kit - One URL to a focused launch kit',
+    title: 'shipdaddy - One URL to a focused launch kit',
     body:
-      'Launch Kit turns one product URL into the launch work founders need first: Product Hunt copy, Show HN, Reddit, X, LinkedIn, Indie Hackers, an email announcement, subreddit guidance, and a lightweight media kit.\n\nPremium unlocks SEO, backlinks, outreach, product demo beats, and creative assets once the launch story is clear.',
-    cta: 'Try Launch Kit with your product URL',
+      'shipdaddy turns one product URL into the launch work founders need first: Product Hunt copy, Show HN, Reddit, X, LinkedIn, Indie Hackers, an email announcement, subreddit guidance, and a lightweight media kit.\n\nPremium unlocks SEO, backlinks, outreach, product demo beats, and creative assets once the launch story is clear.',
+    cta: 'Try shipdaddy with your product URL',
     notes: 'Maker-friendly and outcome-led, with the full workflow visible.',
+    productHunt: {
+      tagline: 'One URL to a focused launch kit',
+      description:
+        'shipdaddy turns one product URL into launch-ready Product Hunt copy, Show HN, Reddit, LinkedIn, email, subreddit guidance, and a lightweight media kit. Premium unlocks SEO, backlinks, outreach, demo beats, and creative assets once the launch story is clear.',
+      tags: ['Marketing', 'Productivity', 'SaaS'],
+      firstComment:
+        'Hi Product Hunt - I built shipdaddy because launch prep kept turning into repetitive rewriting work.\n\nThe problem: one product story does not fit every launch channel. Product Hunt, HN, Reddit, LinkedIn, and email all need different structure, proof, and tone.\n\nI would love feedback on the extraction quality, the Product Hunt fields, and which channel output feels least ready to publish.',
+    },
   },
   hacker_news: {
     id: 'hacker_news',
     label: PLATFORM_LABELS.hacker_news,
-    title: 'Show HN: Launch Kit - URL to launch assets for founders',
+    title: 'Show HN: shipdaddy - URL to launch assets for founders',
     body:
-      'I built Launch Kit because launch prep kept turning into repetitive rewriting work.\n\nThe flow is intentionally simple: paste a product URL, review the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a lightweight media kit.\n\nSEO, backlinks, outreach, product demo beats, and creative assets are Premium because they are higher-leverage growth work.\n\nWould appreciate feedback on the extraction quality and per-channel voice.',
+      'I built shipdaddy because launch prep kept turning into repetitive rewriting work.\n\nThe flow is intentionally simple: paste a product URL, review the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a lightweight media kit.\n\nSEO, backlinks, outreach, product demo beats, and creative assets are Premium because they are higher-leverage growth work.\n\nWould appreciate feedback on the extraction quality and per-channel voice.',
     cta: 'Try it and share blunt feedback',
     notes: 'Humble, specific, and feedback-oriented for HN.',
+    hackerNews: {
+      showHnTitle: 'Show HN: shipdaddy - URL to launch assets for founders',
+      postBody:
+        'I built shipdaddy because launch prep kept turning into repetitive rewriting work.\n\nThe flow is intentionally simple: paste a product URL, review the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a lightweight media kit.\n\nSEO, backlinks, outreach, product demo beats, and creative assets are Premium because they are higher-leverage growth work.',
+      feedbackAsk: 'Would appreciate feedback on the extraction quality and per-channel voice.',
+      discussionSeed:
+        'Where would you want a tool like this to stay deterministic instead of letting the model decide?',
+    },
   },
   reddit: {
     id: 'reddit',
     label: PLATFORM_LABELS.reddit,
     title: 'Built a launch dashboard that rewrites one product URL for each channel',
     body:
-      'I kept seeing the same launch problem: the product story is one thing, but every community expects a different style.\n\nLaunch Kit extracts a brief from a URL and generates the core launch copy founders usually need first: Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a light media kit.\n\nThe goal is not to spam every channel. It is to stop pretending one generic announcement fits everywhere.\n\nIf you launch products, which output would you trust least: HN, Reddit, LinkedIn, or email?',
+      'I kept seeing the same launch problem: the product story is one thing, but every community expects a different style.\n\nshipdaddy extracts a brief from a URL and generates the core launch copy founders usually need first: Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a light media kit.\n\nThe goal is not to spam every channel. It is to stop pretending one generic announcement fits everywhere.\n\nIf you launch products, which output would you trust least: HN, Reddit, LinkedIn, or email?',
     cta: 'Share what would make this more useful',
     notes: 'Transparent and discussion-first, with a direct community question.',
+    reddit: {
+      postTitle: 'Built a launch dashboard that rewrites one product URL for each channel',
+      postBody:
+        'I kept seeing the same launch problem: the product story is one thing, but every community expects a different style.\n\nshipdaddy extracts a brief from a URL and generates the core launch copy founders usually need first: Product Hunt, Show HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and a light media kit.\n\nThe goal is not to spam every channel. It is to stop pretending one generic announcement fits everywhere.',
+      builderDisclosure: 'I am the builder of shipdaddy.',
+      discussionQuestion:
+        'If you launch products, which output would you trust least: HN, Reddit, LinkedIn, or email?',
+      linkPolicyNote:
+        'Check current subreddit rules and flair before linking; use this as a discussion post when self-promotion is not allowed.',
+    },
     redditRecommendations: {
       engagementSubreddits: [
         {
@@ -229,45 +255,103 @@ const DEMO_BLOCKS: Record<PlatformBlockId, PlatformBlock> = {
     label: PLATFORM_LABELS.indie_hackers,
     title: 'I turned my launch checklist into a URL-to-launch-kit workflow',
     body:
-      'Launch Kit is my attempt to make launch prep less fragmented.\n\nWhat it does: extracts a product brief from a URL, generates the core launch copy, recommends Reddit angles, and creates a lightweight media kit.\n\nThe opinion: founders should keep one source narrative, then adapt the delivery to each launch room instead of rewriting from scratch.\n\nNext experiment: keeping Premium growth work useful without making the free launch kit feel heavy.',
+      'shipdaddy is my attempt to make launch prep less fragmented.\n\nWhat it does: extracts a product brief from a URL, generates the core launch copy, recommends Reddit angles, and creates a lightweight media kit.\n\nThe opinion: founders should keep one source narrative, then adapt the delivery to each launch room instead of rewriting from scratch.\n\nNext experiment: keeping Premium growth work useful without making the free launch kit feel heavy.',
     cta: 'Follow the build and test the sample kit',
     notes: 'Build-in-public structure with product opinion and next experiment.',
+    indieHackers: {
+      postTitle: 'I turned my launch checklist into a URL-to-launch-kit workflow',
+      founderStory:
+        'shipdaddy is my attempt to make launch prep less fragmented: one product URL becomes an editable brief, core launch copy, Reddit angles, email, and a lightweight media kit.',
+      lesson:
+        'The useful constraint is one source narrative with different delivery for each launch room.',
+      proofOrMetric:
+        'The sample dashboard generates core channels, subreddit guidance, markdown export, and a press pack from one structured brief.',
+      nextExperiment:
+        'Keep Premium growth work useful without making the free launch kit feel heavy.',
+      feedbackAsk: 'Which generated channel would you improve first?',
+    },
   },
   linkedin: {
     id: 'linkedin',
     label: PLATFORM_LABELS.linkedin,
-    title: 'Launch Kit helps founders turn one product URL into a focused launch kit',
+    title: 'shipdaddy helps founders turn one product URL into a focused launch kit',
     body:
-      'Launch day should not be eight blank documents and a scattered asset folder.\n\nLaunch Kit extracts one structured product brief, then generates the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a lightweight media kit.\n\nThe result: one narrative, adapted to each channel, with exports in the same dashboard. Premium adds SEO, backlinks, outreach, demo beats, and creative when the story is ready.',
+      'Launch day should not be eight blank documents and a scattered asset folder.\n\nshipdaddy extracts one structured product brief, then generates the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a lightweight media kit.\n\nThe result: one narrative, adapted to each channel, with exports in the same dashboard. Premium adds SEO, backlinks, outreach, demo beats, and creative when the story is ready.',
     cta: 'Try it on your next product launch',
     notes: 'Professional and systems-oriented for LinkedIn.',
+    linkedin: {
+      hook: 'Launch day should not be eight blank documents and a scattered asset folder.',
+      postBody:
+        'shipdaddy extracts one structured product brief, then generates the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a lightweight media kit.\n\nThe result: one narrative, adapted to each channel, with exports in the same dashboard.',
+      proofPoint:
+        'The sample workflow includes generated launch channels, subreddit guidance, markdown export, and press pack export.',
+      closingCta: 'Try it on your next product launch',
+    },
   },
   tiktok: {
     id: 'tiktok',
     label: PLATFORM_LABELS.tiktok,
     title: 'TikTok Script: Premium video beats from the launch brief',
     body:
-      'Hook (0-2s): Launching should not mean rewriting your story ten times.\nRetention beat (3-7s): First, Launch Kit turns one URL into the core launch kit.\nStory beat (8-18s): Premium then turns the confirmed story into short-form hooks, scenes, and creative beats.\nClose (19-24s): Prove the message first. Make the media second.',
+      'Hook (0-2s): Launching should not mean rewriting your story ten times.\nRetention beat (3-7s): First, shipdaddy turns one URL into the core launch kit.\nStory beat (8-18s): Premium then turns the confirmed story into short-form hooks, scenes, and creative beats.\nClose (19-24s): Prove the message first. Make the media second.',
     cta: 'Unlock Premium video beats',
     notes: 'Fast visual beats with a clear upgrade path.',
+    tiktok: {
+      hook: 'Launching should not mean rewriting your story ten times.',
+      spokenScript:
+        'Launching should not mean rewriting your story ten times. First, shipdaddy turns one URL into the core launch kit. Then Premium can turn the confirmed story into short-form hooks, scenes, and creative beats. Prove the message first. Make the media second.',
+      visualBeats: [
+        'Show scattered launch docs.',
+        'Paste one URL into shipdaddy.',
+        'Show platform outputs appearing in the dashboard.',
+        'Point at the review/export step.',
+      ],
+      onScreenText: ['One URL', 'Native launch outputs', 'Review before posting'],
+      closeCta: 'Unlock Premium video beats',
+    },
   },
   youtube_shorts: {
     id: 'youtube_shorts',
     label: PLATFORM_LABELS.youtube_shorts,
     title: 'YouTube Shorts Script: Free launch kit to walkthrough beats',
     body:
-      'Open: Most product launches start with the same problem: one story, too many channels.\nMiddle: Launch Kit reads your product URL, builds an editable brief, and turns it into launch copy, subreddit guidance, email, and media kit basics.\nPremium beat: Reuse that confirmed story for walkthrough scenes and ad-ready creative.\nEnd: Start with one URL. Leave with a launch kit.',
-    cta: 'Open the sample Launch Kit dashboard',
+      'Open: Most product launches start with the same problem: one story, too many channels.\nMiddle: shipdaddy reads your product URL, builds an editable brief, and turns it into launch copy, subreddit guidance, email, and media kit basics.\nPremium beat: Reuse that confirmed story for walkthrough scenes and ad-ready creative.\nEnd: Start with one URL. Leave with a launch kit.',
+    cta: 'Open the sample shipdaddy dashboard',
     notes: 'Narrative rhythm designed for a concise product walkthrough.',
+    youtubeShorts: {
+      title: 'One product URL to a launch kit',
+      hook: 'Most product launches start with one story and too many channels.',
+      spokenScript:
+        'Most product launches start with the same problem: one story, too many channels. shipdaddy reads your product URL, builds an editable brief, and turns it into launch copy, subreddit guidance, email, and media kit basics. Reuse that confirmed story for walkthrough scenes and ad-ready creative.',
+      visualBeats: [
+        'Open on a messy launch checklist.',
+        'Show the URL-to-brief flow.',
+        'Show Product Hunt, HN, Reddit, and email tabs.',
+        'End on the export controls.',
+      ],
+      retentionCue: 'Show how the same brief changes by channel.',
+      closeCta: 'Open the sample shipdaddy dashboard',
+    },
   },
   email_announcement: {
     id: 'email_announcement',
     label: PLATFORM_LABELS.email_announcement,
-    title: 'Subject: Launch Kit turns one URL into a focused launch kit',
+    title: 'Subject: shipdaddy turns one URL into a focused launch kit',
     body:
-      'Hi there,\n\nLaunch Kit is built for founders who want launch day to feel organized instead of fragmented.\n\nPaste your product URL, confirm the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and media kit basics.\n\nIf you usually rewrite the same story channel by channel, this gives you one narrative system and a real dashboard to work from.',
-    cta: 'Try Launch Kit with your product URL',
+      'Hi there,\n\nshipdaddy is built for founders who want launch day to feel organized instead of fragmented.\n\nPaste your product URL, confirm the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and media kit basics.\n\nIf you usually rewrite the same story channel by channel, this gives you one narrative system and a real dashboard to work from.',
+    cta: 'Try shipdaddy with your product URL',
     notes: 'Clear value summary with workflow and low-friction CTA.',
+    emailAnnouncement: {
+      subject: 'shipdaddy turns one URL into a focused launch kit',
+      previewText: 'Generate launch copy, subreddit guidance, email, and media kit basics from one brief.',
+      greeting: 'Hi there,',
+      opening:
+        'shipdaddy is built for founders who want launch day to feel organized instead of fragmented.',
+      body:
+        'Paste your product URL, confirm the extracted brief, then generate the core launch kit: Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit recommendations, and media kit basics.\n\nIf you usually rewrite the same story channel by channel, this gives you one narrative system and a real dashboard to work from.',
+      ctaText: 'Try shipdaddy with your product URL',
+      signoff: 'Thanks,\nThe shipdaddy team',
+    },
   },
 }
 
@@ -281,8 +365,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'x-build-in-public',
         'pre_launch',
         'Build-in-public update',
-        'Building Launch Kit in public',
-        'I thought Launch Kit would mostly be a copy generator.\n\nThe harder problem was messier: founders usually have one true product story, but every launch channel punishes a different kind of laziness.\n\nSo the product now starts with one URL, turns it into an editable brief, then adapts the story for each room.',
+        'Building shipdaddy in public',
+        'I thought shipdaddy would mostly be a copy generator.\n\nThe harder problem was messier: founders usually have one true product story, but every launch channel punishes a different kind of laziness.\n\nSo the product now starts with one URL, turns it into an editable brief, then adapts the story for each room.',
         'Follow the build or try the sample dashboard',
         'X works best when the post feels like a lived build, launch, or distribution lesson.',
       ),
@@ -290,17 +374,17 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'x-launch-post',
         'launch_day',
         'Launch post',
-        'Launch Kit is live',
-        'I got tired of launch prep turning into eight blank docs and a half-remembered product story.\n\nSo I built Launch Kit.\n\nPaste one product URL, review the extracted brief, then generate native drafts for Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a media kit.\n\nThe goal is not more posts. It is fewer lazy translations.',
-        'Try Launch Kit with your product URL',
+        'shipdaddy is live',
+        'I got tired of launch prep turning into eight blank docs and a half-remembered product story.\n\nSo I built shipdaddy.\n\nPaste one product URL, review the extracted brief, then generate native drafts for Product Hunt, HN, Reddit, X, LinkedIn, Indie Hackers, email, subreddit guidance, and a media kit.\n\nThe goal is not more posts. It is fewer lazy translations.',
+        'Try shipdaddy with your product URL',
         'Keep the launch direct and useful without pretending one post fits every channel.',
       ),
       demoCard(
         'x-lesson-post',
         'evergreen',
         'Lesson post',
-        'The lesson behind Launch Kit',
-        'Launch lesson: the same message can be true and still feel wrong in the wrong room.\n\nHN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\nLaunch Kit exists because distribution is translation, not copy-paste.',
+        'The lesson behind shipdaddy',
+        'Launch lesson: the same message can be true and still feel wrong in the wrong room.\n\nHN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\nshipdaddy exists because distribution is translation, not copy-paste.',
         'Share the channel you distrust most',
         'A useful X lesson should make the audience want to reply with their own experience.',
       ),
@@ -308,8 +392,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'x-short-thread',
         'launch_day',
         'Short thread',
-        'Why I built Launch Kit',
-        '1/ I used to think launches failed because the announcement was weak.\n\n2/ Now I think a lot of them fail because the same story gets pasted into rooms with different rules.\n\n3/ HN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\n4/ I built Launch Kit around that idea: keep one narrative, adapt the delivery.\n\n5/ The part I am still testing is where automation helps and where the founder has to stay close to the story.',
+        'Why I built shipdaddy',
+        '1/ I used to think launches failed because the announcement was weak.\n\n2/ Now I think a lot of them fail because the same story gets pasted into rooms with different rules.\n\n3/ HN wants humility. Reddit wants context. LinkedIn wants the operator lesson. X wants the sharp public learning.\n\n4/ I built shipdaddy around that idea: keep one narrative, adapt the delivery.\n\n5/ The part I am still testing is where automation helps and where the founder has to stay close to the story.',
         'Open the sample launch kit',
         'Threads should build a clear argument with each post earning the next one.',
       ),
@@ -333,7 +417,7 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'linkedin-founder-launch',
         'launch_day',
         'Founder launch post',
-        'Launch Kit turns one URL into a focused launch kit',
+        'shipdaddy turns one URL into a focused launch kit',
         DEMO_BLOCKS.linkedin.body,
         'Try it on your next product launch',
         'LinkedIn expects a professional but human post with a clear operator lesson.',
@@ -343,7 +427,7 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'evergreen',
         'Lesson post',
         'One story, different rooms',
-        'A launch message can be accurate and still fail because it ignores the room.\n\nProduct Hunt needs a crisp promise. HN needs humility. Reddit needs context. LinkedIn needs the business reason it matters.\n\nLaunch Kit is built around that constraint: one source narrative, different delivery by channel.',
+        'A launch message can be accurate and still fail because it ignores the room.\n\nProduct Hunt needs a crisp promise. HN needs humility. Reddit needs context. LinkedIn needs the business reason it matters.\n\nshipdaddy is built around that constraint: one source narrative, different delivery by channel.',
         'Tell me which channel is hardest to write for',
         'Use a practical insight instead of a polished announcement.',
       ),
@@ -351,8 +435,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'linkedin-proof',
         'follow_up',
         'Proof post',
-        'What the Launch Kit demo includes',
-        'The current Launch Kit demo generates the core launch channels, subreddit guidance, a media kit, markdown export, and press pack export from one structured brief.\n\nThe next quality bar is sharper channel-native output: X timeline posts, cautious Reddit variants, and a clearer Premium path for growth assets.',
+        'What the shipdaddy demo includes',
+        'The current shipdaddy demo generates the core launch channels, subreddit guidance, a media kit, markdown export, and press pack export from one structured brief.\n\nThe next quality bar is sharper channel-native output: X timeline posts, cautious Reddit variants, and a clearer Premium path for growth assets.',
         'Open the sample dashboard',
         'Proof should stay specific to observed product capabilities, not invented traction.',
       ),
@@ -360,8 +444,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'linkedin-follow-up',
         'follow_up',
         'Follow-up post',
-        'The next Launch Kit experiment',
-        'Next experiment for Launch Kit: make the generated content less like generic launch copy and more like a real founder showing up in each channel.\n\nThat means build-in-public posts for X, discussion-first Reddit drafts, visual creative briefs for Instagram, and scripts that work for short video.',
+        'The next shipdaddy experiment',
+        'Next experiment for shipdaddy: make the generated content less like generic launch copy and more like a real founder showing up in each channel.\n\nThat means build-in-public posts for X, discussion-first Reddit drafts, visual creative briefs for Instagram, and scripts that work for short video.',
         'Share the output you would improve first',
         'Follow-up posts should show what changed and invite concrete feedback.',
       ),
@@ -372,8 +456,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
     label: CHANNEL_PACK_LABELS.threads,
     notes: 'Casual, conversational posts that feel easy to reply to.',
     cards: [
-      demoCard('threads-launch-story', 'launch_day', 'Casual launch story', 'Launch Kit on Threads', 'Launch prep kept turning into too many docs, so I built Launch Kit.\n\nOne URL becomes an editable brief, then channel-native launch drafts, subreddit guidance, email copy, and a media kit.\n\nThe useful part is not writing more. It is writing for the room.', 'Try it with your product URL', 'Threads should feel conversational and low-pressure.'),
-      demoCard('threads-build-note', 'pre_launch', 'Build note', 'What changed in Launch Kit', 'Working on making Launch Kit less generic by giving each social channel its own content pack.\n\nX gets build-in-public posts. Reddit gets cautious and self-promo versions. Instagram and short video get creative briefs, not just captions.', 'Follow the next build note', 'Build notes should sound like progress, not a press release.'),
+      demoCard('threads-launch-story', 'launch_day', 'Casual launch story', 'shipdaddy on Threads', 'Launch prep kept turning into too many docs, so I built shipdaddy.\n\nOne URL becomes an editable brief, then channel-native launch drafts, subreddit guidance, email copy, and a media kit.\n\nThe useful part is not writing more. It is writing for the room.', 'Try it with your product URL', 'Threads should feel conversational and low-pressure.'),
+      demoCard('threads-build-note', 'pre_launch', 'Build note', 'What changed in shipdaddy', 'Working on making shipdaddy less generic by giving each social channel its own content pack.\n\nX gets build-in-public posts. Reddit gets cautious and self-promo versions. Instagram and short video get creative briefs, not just captions.', 'Follow the next build note', 'Build notes should sound like progress, not a press release.'),
       demoCard('threads-question', 'follow_up', 'Reply-driving question', 'Which channel is hardest?', 'Question for anyone who has launched a product: which channel is hardest to write for without sounding awkward?\n\nFor me it is Reddit, because the difference between useful context and self-promo is very real.', 'Reply with the hardest channel', 'Threads posts should leave an obvious opening for replies.'),
       demoCard('threads-follow-up', 'follow_up', 'Follow-up post', 'What I learned from launch copy', 'The more I test launch drafts, the more convinced I am that the product narrative should be stable and the delivery should change.\n\nSame story. Different room. Different proof. Different ask.', 'Try the sample launch kit', 'Keep follow-up posts short and grounded in learning.'),
     ],
@@ -396,7 +480,7 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
         'reddit-self-promo-launch',
         'launch_day',
         'Self-promo launch post',
-        'I built Launch Kit: one product URL to channel-native launch assets',
+        'I built shipdaddy: one product URL to channel-native launch assets',
         DEMO_BLOCKS.reddit.body,
         'Try it and tell me which output feels weakest',
         'Use only in communities that allow self-promotion; disclose that you built it.',
@@ -410,8 +494,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
     notes: 'Build-in-public posts with tradeoffs, experiments, proof, and next steps.',
     cards: [
       demoCard('indie-hackers-founder-launch', 'launch_day', 'Founder launch story', DEMO_BLOCKS.indie_hackers.title, DEMO_BLOCKS.indie_hackers.body, DEMO_BLOCKS.indie_hackers.cta, 'Indie Hackers rewards transparent founder context and next experiments.'),
-      demoCard('indie-hackers-lesson', 'evergreen', 'Build lesson', 'The build lesson behind Launch Kit', 'The lesson so far: launch copy is less about writing one perfect announcement and more about translating the same narrative for different trust norms.\n\nI am now treating each platform as a separate product surface.', 'Follow the next experiment', 'Share a real build lesson, not just product positioning.'),
-      demoCard('indie-hackers-proof', 'follow_up', 'Proof and learnings', 'Early proof from the Launch Kit demo', 'The demo now creates core launch channels, subreddit guidance, media kit, markdown export, and press pack export from one brief.\n\nThe open question is quality: which generated output would founders actually trust enough to publish?', 'Try the sample and critique one tab', 'Use product proof only; do not invent traction.'),
+      demoCard('indie-hackers-lesson', 'evergreen', 'Build lesson', 'The build lesson behind shipdaddy', 'The lesson so far: launch copy is less about writing one perfect announcement and more about translating the same narrative for different trust norms.\n\nI am now treating each platform as a separate product surface.', 'Follow the next experiment', 'Share a real build lesson, not just product positioning.'),
+      demoCard('indie-hackers-proof', 'follow_up', 'Proof and learnings', 'Early proof from the shipdaddy demo', 'The demo now creates core launch channels, subreddit guidance, media kit, markdown export, and press pack export from one brief.\n\nThe open question is quality: which generated output would founders actually trust enough to publish?', 'Try the sample and critique one tab', 'Use product proof only; do not invent traction.'),
       demoCard('indie-hackers-next-experiment', 'follow_up', 'Next experiment', 'Next experiment: native channel packs', 'Next experiment: replacing single generic social drafts with full native channel packs.\n\nX gets build-in-public. Reddit gets cautious and self-promo versions. Instagram and short video get creative briefs. Outreach moves to its own area.', 'Tell me which channel to improve first', 'Make the experiment specific enough for other builders to react.'),
     ],
   },
@@ -420,10 +504,10 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
     label: CHANNEL_PACK_LABELS.instagram,
     notes: 'Visual-first captions and creative briefs; no actual media is generated in this pass.',
     cards: [
-      demoCard('instagram-carousel-brief', 'launch_day', 'Carousel creative brief', 'Launch Kit carousel', 'Slide 1: Launch day should not be eight blank docs.\nSlide 2: Paste one product URL.\nSlide 3: Review the extracted brief.\nSlide 4: Generate native drafts for each channel.\nSlide 5: Export the kit and keep iterating.\nCaption: Built for founders who want launch prep to feel organized.', 'Try Launch Kit with your URL', 'Instagram needs visual structure before caption polish.'),
-      demoCard('instagram-caption', 'launch_day', 'Launch caption', 'Launch Kit caption', 'Launch Kit turns one product URL into platform-native launch copy, subreddit guidance, email, and a media kit.\n\nPremium can turn the confirmed story into visual-first creative later.', 'Open the sample dashboard', 'Caption should support real screenshots or founder footage.'),
-      demoCard('instagram-story-sequence', 'follow_up', 'Story sequence', 'Launch Kit stories', 'Story 1: Poll - which launch channel is hardest?\nStory 2: Show the URL to brief workflow.\nStory 3: Show generated channel tabs.\nStory 4: Ask for one output to critique.', 'Vote in the poll or try the sample', 'Stories should invite lightweight interaction.'),
-      demoCard('instagram-reel-brief', 'evergreen', 'Reel creative brief', 'Launch Kit Reel brief', 'Hook overlay: Launch copy should not start from eight blank pages.\nShot 1: Founder opening the product URL.\nShot 2: Brief extraction.\nShot 3: Channel cards.\nShot 4: Export/share moment.', 'Try it with your product URL', 'Reels need a visible workflow and a clear first beat.'),
+      demoCard('instagram-carousel-brief', 'launch_day', 'Carousel creative brief', 'shipdaddy carousel', 'Slide 1: Launch day should not be eight blank docs.\nSlide 2: Paste one product URL.\nSlide 3: Review the extracted brief.\nSlide 4: Generate native drafts for each channel.\nSlide 5: Export the kit and keep iterating.\nCaption: Built for founders who want launch prep to feel organized.', 'Try shipdaddy with your URL', 'Instagram needs visual structure before caption polish.'),
+      demoCard('instagram-caption', 'launch_day', 'Launch caption', 'shipdaddy caption', 'shipdaddy turns one product URL into platform-native launch copy, subreddit guidance, email, and a media kit.\n\nPremium can turn the confirmed story into visual-first creative later.', 'Open the sample dashboard', 'Caption should support real screenshots or founder footage.'),
+      demoCard('instagram-story-sequence', 'follow_up', 'Story sequence', 'shipdaddy stories', 'Story 1: Poll - which launch channel is hardest?\nStory 2: Show the URL to brief workflow.\nStory 3: Show generated channel tabs.\nStory 4: Ask for one output to critique.', 'Vote in the poll or try the sample', 'Stories should invite lightweight interaction.'),
+      demoCard('instagram-reel-brief', 'evergreen', 'Reel creative brief', 'shipdaddy Reel brief', 'Hook overlay: Launch copy should not start from eight blank pages.\nShot 1: Founder opening the product URL.\nShot 2: Brief extraction.\nShot 3: Channel cards.\nShot 4: Export/share moment.', 'Try it with your product URL', 'Reels need a visible workflow and a clear first beat.'),
     ],
   },
   tiktok: {
@@ -432,8 +516,8 @@ const DEMO_CHANNEL_PACKS: Record<ChannelPackId, ChannelPack> = {
     notes: 'Founder-led short-video scripts with hook, beats, proof slot, and comment prompt.',
     cards: [
       demoCard('tiktok-founder-script', 'launch_day', 'Founder video script', DEMO_BLOCKS.tiktok.title, DEMO_BLOCKS.tiktok.body, DEMO_BLOCKS.tiktok.cta, 'TikTok needs a fast hook and visible transformation.'),
-      demoCard('tiktok-problem-script', 'evergreen', 'Problem to fix script', 'TikTok: one story, too many channels', 'Hook: Your launch copy is probably not one post.\nBeat 1: Show Product Hunt, HN, Reddit, LinkedIn, and email tabs.\nBeat 2: Explain that each channel has a different social contract.\nBeat 3: Show Launch Kit turning one URL into adapted drafts.\nClose: Try it with your URL.', 'Comment with the hardest channel', 'Short video scripts need a concrete visual sequence.'),
-      demoCard('tiktok-comment-prompt', 'follow_up', 'Comment prompt', 'TikTok comment prompt', 'Comment prompt: Which launch channel would you never trust a generic draft for?\n\nI am using the answers to improve Launch Kit channel packs.', 'Comment with the channel', 'Comment prompts should gather useful product feedback.'),
+      demoCard('tiktok-problem-script', 'evergreen', 'Problem to fix script', 'TikTok: one story, too many channels', 'Hook: Your launch copy is probably not one post.\nBeat 1: Show Product Hunt, HN, Reddit, LinkedIn, and email tabs.\nBeat 2: Explain that each channel has a different social contract.\nBeat 3: Show shipdaddy turning one URL into adapted drafts.\nClose: Try it with your URL.', 'Comment with the hardest channel', 'Short video scripts need a concrete visual sequence.'),
+      demoCard('tiktok-comment-prompt', 'follow_up', 'Comment prompt', 'TikTok comment prompt', 'Comment prompt: Which launch channel would you never trust a generic draft for?\n\nI am using the answers to improve shipdaddy channel packs.', 'Comment with the channel', 'Comment prompts should gather useful product feedback.'),
     ],
   },
   youtube_shorts: {
@@ -454,7 +538,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
       generatedAt: DEMO_TIMESTAMP,
       score: 94,
       summary:
-        'Launch Kit has clear category positioning, strong workflow language, and enough structured output examples to support launch-focused SEO and LLM answer visibility.',
+        'shipdaddy has clear category positioning, strong workflow language, and enough structured output examples to support launch-focused SEO and LLM answer visibility.',
       strengths: [
         'Clear product category: launch kit generator for founders',
         'Specific workflow language around URL extraction, channel outputs, media kits, SEO, and outreach',
@@ -486,7 +570,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         },
       ],
       llmReadinessNotes: [
-        'Use direct answer blocks that define Launch Kit in one or two sentences.',
+        'Use direct answer blocks that define shipdaddy in one or two sentences.',
         'Add tables comparing channel expectations and generated output types.',
         'Keep product naming consistent across page titles, headings, examples, and CTAs.',
       ],
@@ -502,7 +586,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         targetKeywords: ['product launch kit', 'launch kit generator', 'startup launch content generator'],
         tableIdeas: [
           'Launch asset, purpose, channel, owner',
-          'Manual workflow vs. Launch Kit workflow',
+          'Manual workflow vs. shipdaddy workflow',
         ],
         outline: [
           'Direct definition of a product launch kit',
@@ -514,7 +598,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
           'Open with a concise answer block.',
           'Include a table of launch assets by channel.',
         ],
-        cta: 'Try Launch Kit with your product URL',
+        cta: 'Try shipdaddy with your product URL',
       },
       {
         id: 'demo-blog-2',
@@ -531,14 +615,14 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         outline: [
           'Why one generic announcement underperforms',
           'Social contract differences by platform',
-          'Rewrite examples from one Launch Kit brief',
+          'Rewrite examples from one shipdaddy brief',
           'Quality checks before posting',
         ],
         llmNotes: [
           'Use descriptive H2s for each platform.',
           'Add concrete examples rather than abstract advice.',
         ],
-        cta: 'Open the sample Launch Kit dashboard',
+        cta: 'Open the sample shipdaddy dashboard',
       },
       {
         id: 'demo-blog-3',
@@ -598,7 +682,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         contactEmail: 'partners@saasworthy.com',
         scrapedSummary: 'SaaS comparison directory with product categories and software listing pages.',
         relevanceReason:
-          'Launch Kit fits a product launch, marketing workflow, and founder tooling category.',
+          'shipdaddy fits a product launch, marketing workflow, and founder tooling category.',
         backlinkAngle: 'Directory listing for launch copy and founder marketing workflows',
         costToList: null,
         estimatedTraffic: 140000,
@@ -610,9 +694,9 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         valueScore: 83,
         status: 'first_contact',
         listIds: ['demo-list-high-value'],
-        customizedEmailSubject: 'Launch Kit for SaaS Worthy',
+        customizedEmailSubject: 'shipdaddy for SaaS Worthy',
         customizedEmailBody:
-          'Hi Listings Team,\n\nI came across SaaS Worthy while researching launch and marketing workflow directories. Launch Kit helps founders turn one product URL into channel-ready launch assets, press kits, SEO strategy, and outreach workflows.\n\nThe most relevant angle for your readers is a launch copy and founder marketing workflow listing.\n\nIf useful, I can send a concise listing blurb, screenshots, and category details.',
+          'Hi Listings Team,\n\nI came across SaaS Worthy while researching launch and marketing workflow directories. shipdaddy helps founders turn one product URL into channel-ready launch assets, press kits, SEO strategy, and outreach workflows.\n\nThe most relevant angle for your readers is a launch copy and founder marketing workflow listing.\n\nIf useful, I can send a concise listing blurb, screenshots, and category details.',
         source: 'demo-seed',
         discoveredAt: DEMO_TIMESTAMP,
         lastContactedAt: DEMO_TIMESTAMP,
@@ -626,7 +710,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         contactEmail: 'content@growthmentor.com',
         scrapedSummary: 'Growth and marketing blog covering acquisition, SEO, and startup workflows.',
         relevanceReason:
-          'Launch Kit can contribute a practical launch workflow article with SEO and outreach examples.',
+          'shipdaddy can contribute a practical launch workflow article with SEO and outreach examples.',
         backlinkAngle: 'Guest post on turning launch messaging into a repeatable growth workflow',
         costToList: null,
         estimatedTraffic: 74000,
@@ -640,7 +724,7 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         listIds: ['demo-list-high-value'],
         customizedEmailSubject: 'Practical launch workflow idea for GrowthMentor',
         customizedEmailBody:
-          'Hi Content Team,\n\nI found GrowthMentor while researching startup growth workflows. Launch Kit turns one product URL into a focused launch kit, then Premium adds SEO content strategy, backlink planning, and reviewed outreach drafts for lean teams.\n\nA practical guest article could show how founders adapt one product story for Product Hunt, HN, Reddit, LinkedIn, SEO, and backlinks.\n\nHappy to send a tight outline.',
+          'Hi Content Team,\n\nI found GrowthMentor while researching startup growth workflows. shipdaddy turns one product URL into a focused launch kit, then Premium adds SEO content strategy, backlink planning, and reviewed outreach drafts for lean teams.\n\nA practical guest article could show how founders adapt one product story for Product Hunt, HN, Reddit, LinkedIn, SEO, and backlinks.\n\nHappy to send a tight outline.',
         source: 'demo-seed',
         discoveredAt: DEMO_TIMESTAMP,
         lastContactedAt: '',
@@ -661,9 +745,9 @@ function buildDemoSeoGrowth(): SeoGrowthState {
         id: 'demo-backlink-email-job-1',
         status: 'completed',
         prospectIds: ['demo-backlink-saasworthy'],
-        subject: 'Launch Kit for SaaS Worthy',
+        subject: 'shipdaddy for SaaS Worthy',
         bodyPreview:
-          'I came across SaaS Worthy while researching launch and marketing workflow directories. Launch Kit helps founders turn one product URL into channel-ready launch assets...',
+          'I came across SaaS Worthy while researching launch and marketing workflow directories. shipdaddy helps founders turn one product URL into channel-ready launch assets...',
         createdAt: DEMO_TIMESTAMP,
         completedAt: DEMO_TIMESTAMP,
       },
@@ -683,13 +767,13 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
     channelPacks: DEMO_CHANNEL_PACKS,
     mediaKit: {
       founderCompanyBio:
-        'Launch Kit is built for founders and small teams that need a practical launch workflow without assembling copy docs, subreddit research, email drafts, and press basics by hand.',
+        'shipdaddy is built for founders and small teams that need a practical launch workflow without assembling copy docs, subreddit research, email drafts, and press basics by hand.',
       productOneLiner:
-        'Launch Kit turns one product URL into platform-tailored launch content, subreddit guidance, email, and a lightweight media kit.',
+        'shipdaddy turns one product URL into platform-tailored launch content, subreddit guidance, email, and a lightweight media kit.',
       boilerplate:
-        'Launch Kit is a focused launch-content workspace for founders and lean startup teams. It extracts a structured brief from a product URL, generates channel-native launch copy, recommends subreddit angles, creates an email announcement, and packages a lightweight media kit. Premium adds SEO, backlinks, outreach, product demo beats, and creative assets from the same source narrative.',
+        'shipdaddy is a focused launch-content workspace for founders and lean startup teams. It extracts a structured brief from a product URL, generates channel-native launch copy, recommends subreddit angles, creates an email announcement, and packages a lightweight media kit. Premium adds SEO, backlinks, outreach, product demo beats, and creative assets from the same source narrative.',
       pressRelease:
-        'Launch Kit today introduced a guided workflow that converts a single product URL into a focused launch kit. The app generates platform-specific copy for Product Hunt, Hacker News, Reddit, X, Indie Hackers, LinkedIn, and email, plus subreddit recommendations, a lightweight media kit, markdown export, and press pack export.',
+        'shipdaddy today introduced a guided workflow that converts a single product URL into a focused launch kit. The app generates platform-specific copy for Product Hunt, Hacker News, Reddit, X, Indie Hackers, LinkedIn, and email, plus subreddit recommendations, a lightweight media kit, markdown export, and press pack export.',
       keyVisualsChecklist: [
         'Dashboard screenshot with generated output tabs',
         'Brief extraction and editing workflow',
@@ -699,7 +783,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         'Example launch channel collage',
       ],
       screenshotsAndLogos:
-        'Use dashboard screenshots, output tab previews, subreddit recommendation cards, and the Launch Kit sparkle mark for launch submissions and press coverage.',
+        'Use dashboard screenshots, output tab previews, subreddit recommendation cards, and the shipdaddy sparkle mark for launch submissions and press coverage.',
       contactDetails:
         `Website: ${sourceUrl}\nContact details: Not detected in the source website evidence.`,
     },
@@ -713,27 +797,27 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         channel: 'linkedin',
         notes: 'Use concise workflow framing with a founder-to-founder tone.',
         personalizationTemplate:
-          'Hi {{firstName}} - noticed {{company}} is preparing launches in {{category}}. Launch Kit turns one product URL into a focused launch kit.',
+          'Hi {{firstName}} - noticed {{company}} is preparing launches in {{category}}. shipdaddy turns one product URL into a focused launch kit.',
         variants: [
           {
             id: 'linkedin-v1',
             title: 'Founder workflow',
             message:
-              'Hi {{firstName}}, Launch Kit helps founders turn one product URL into Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one brief.',
+              'Hi {{firstName}}, shipdaddy helps founders turn one product URL into Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one brief.',
             cta: 'Want a sample kit for your product page?',
           },
           {
             id: 'linkedin-v2',
             title: 'Launch prep pain',
             message:
-              'Most teams lose time rewriting the same launch story for every channel. Launch Kit keeps one source narrative and adapts it to each platform.',
+              'Most teams lose time rewriting the same launch story for every channel. shipdaddy keeps one source narrative and adapts it to each platform.',
             cta: 'Open to a quick walkthrough?',
           },
           {
             id: 'linkedin-v3',
             title: 'Growth workflow angle',
             message:
-              'Launch Kit starts with the free launch kit, then Premium adds SEO, backlink planning, outreach drafts, demo beats, and creative assets from the same brief.',
+              'shipdaddy starts with the free launch kit, then Premium adds SEO, backlink planning, outreach drafts, demo beats, and creative assets from the same brief.',
             cta: 'Should I send the sample dashboard?',
           },
         ],
@@ -742,27 +826,27 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         channel: 'x',
         notes: 'Short, direct founder DM style.',
         personalizationTemplate:
-          'Hey {{firstName}} - Launch Kit turns one URL into a focused launch kit, with Premium growth assets when ready.',
+          'Hey {{firstName}} - shipdaddy turns one URL into a focused launch kit, with Premium growth assets when ready.',
         variants: [
           {
             id: 'x-v1',
             title: 'Direct DM',
             message:
-              'Hey {{firstName}} - if launch prep keeps turning into copy chaos, Launch Kit turns one URL into channel-ready launch assets.',
+              'Hey {{firstName}} - if launch prep keeps turning into copy chaos, shipdaddy turns one URL into channel-ready launch assets.',
             cta: 'Want a sample run?',
           },
           {
             id: 'x-v2',
             title: 'Demo angle',
             message:
-              'I made the sample dashboard self-hosted: Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit from one Launch Kit brief.',
+              'I made the sample dashboard self-hosted: Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit from one shipdaddy brief.',
             cta: 'Want the link?',
           },
           {
             id: 'x-v3',
             title: 'Outcome angle',
             message:
-              'One product URL -> one editable brief -> core launch copy first, Premium growth assets later. That is the Launch Kit workflow.',
+              'One product URL -> one editable brief -> core launch copy first, Premium growth assets later. That is the shipdaddy workflow.',
             cta: 'Can I run it on your product page?',
           },
         ],
@@ -778,7 +862,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             title: 'Concise intro',
             subject: 'One URL to a focused launch kit',
             message:
-              'Hi {{firstName}},\n\nLaunch Kit helps founders generate Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one product URL.',
+              'Hi {{firstName}},\n\nshipdaddy helps founders generate Product Hunt, HN, Reddit, X, LinkedIn, email, subreddit guidance, and media kit basics from one product URL.',
             cta: 'Want me to generate a sample kit for your product page?',
           },
           {
@@ -786,7 +870,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             title: 'Pain-point opener',
             subject: 'If launch copy is slowing the release',
             message:
-              'Hi {{firstName}},\n\nMany teams lose momentum rewriting the same product story for every channel. Launch Kit extracts one brief, adapts the core launch copy, and keeps Premium growth work separate until the message is clear.',
+              'Hi {{firstName}},\n\nMany teams lose momentum rewriting the same product story for every channel. shipdaddy extracts one brief, adapts the core launch copy, and keeps Premium growth work separate until the message is clear.',
             cta: 'Open to a quick walkthrough this week?',
           },
           {
@@ -794,7 +878,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             title: 'SEO growth opener',
             subject: 'Launch content plus SEO/backlink planning',
             message:
-              'Hi {{firstName}},\n\nLaunch Kit pairs a focused free launch kit with Premium SEO analysis, blog strategy, backlink prospects, and reviewed outreach drafts so the launch story can keep compounding after launch day.',
+              'Hi {{firstName}},\n\nshipdaddy pairs a focused free launch kit with Premium SEO analysis, blog strategy, backlink prospects, and reviewed outreach drafts so the launch story can keep compounding after launch day.',
             cta: 'Should I send the sample dashboard?',
           },
         ],
@@ -806,7 +890,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
           keywordTopic: 'Launch kit generator',
           title: 'What Is a Product Launch Kit? A Practical Guide for Founders',
           metaDescription:
-            'Learn what belongs in a product launch kit and how Launch Kit creates channel-ready assets from one product URL.',
+            'Learn what belongs in a product launch kit and how shipdaddy creates channel-ready assets from one product URL.',
           outline: [
             'What a product launch kit includes',
             'Why one source brief matters',
@@ -814,8 +898,8 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             'How to export and reuse the kit',
           ],
           draft:
-            'A product launch kit is the working set of copy, subreddit guidance, email, press basics, and exportable materials a team needs before announcing a product. Launch Kit builds that kit from one URL and one editable brief.',
-          cta: 'Try Launch Kit with your product URL.',
+            'A product launch kit is the working set of copy, subreddit guidance, email, press basics, and exportable materials a team needs before announcing a product. shipdaddy builds that kit from one URL and one editable brief.',
+          cta: 'Try shipdaddy with your product URL.',
         },
         {
           id: 'seo-pack-2',
@@ -831,8 +915,8 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
             'Final review checklist',
           ],
           draft:
-            'Each launch channel rewards a different style. Launch Kit keeps the product story consistent while changing the structure, tone, proof, and CTA for each destination.',
-          cta: 'Open the sample Launch Kit dashboard.',
+            'Each launch channel rewards a different style. shipdaddy keeps the product story consistent while changing the structure, tone, proof, and CTA for each destination.',
+          cta: 'Open the sample shipdaddy dashboard.',
         },
       ],
       followUpSequences: [
@@ -846,7 +930,7 @@ function buildDemoKit(sourceUrl: string): LaunchKit {
         },
         {
           day: 'Day 7',
-          message: 'Close with a lighter ask: run Launch Kit on their product URL.',
+          message: 'Close with a lighter ask: run shipdaddy on their product URL.',
         },
       ],
     },
@@ -875,7 +959,7 @@ export function createDemoSnapshot(sourceUrl = DEMO_SOURCE_URL): LaunchProjectSn
 
   return {
     id: 'demo-launch-kit',
-    name: 'Launch Kit Sample Project',
+    name: 'shipdaddy Sample Project',
     sourceUrl,
     language: brief.language,
     brief,

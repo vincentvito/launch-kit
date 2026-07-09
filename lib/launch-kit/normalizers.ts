@@ -9,22 +9,30 @@ import {
   type ChannelCardStage,
   type ChannelPack,
   type ChannelPackId,
+  type EmailAnnouncementLaunchContent,
   type ExtractedBrief,
   type GeneratedLaunchAsset,
   type GeneratedLaunchAssetStatus,
   type GrowthAssets,
+  type HackerNewsLaunchContent,
+  type IndieHackersLaunchContent,
   type KeywordResearch,
   type LaunchAssetFormat,
   type LaunchAssetKind,
   type LaunchAssetMediaType,
   type LaunchKit,
+  type LinkedInLaunchContent,
   type MediaKit,
   type PlatformBlock,
   type PlatformBlockId,
+  type ProductHuntLaunchContent,
   type ProspectingState,
+  type RedditLaunchContent,
   type RedditRecommendations,
   type SeoGrowthState,
   type SubredditRecommendation,
+  type TikTokLaunchContent,
+  type YouTubeShortsLaunchContent,
 } from '@/lib/launch-kit/types'
 
 export function createEmptyKeywordResearch(): KeywordResearch {
@@ -51,6 +59,192 @@ export function createEmptyRedditRecommendations(): RedditRecommendations {
   return {
     engagementSubreddits: [],
     selfPromotionSubreddits: [],
+  }
+}
+
+export function createEmptyProductHuntLaunchContent(): ProductHuntLaunchContent {
+  return {
+    tagline: '',
+    description: '',
+    tags: [],
+    firstComment: '',
+  }
+}
+
+export function createEmptyHackerNewsLaunchContent(): HackerNewsLaunchContent {
+  return {
+    showHnTitle: '',
+    postBody: '',
+    feedbackAsk: '',
+    discussionSeed: '',
+  }
+}
+
+export function createEmptyRedditLaunchContent(): RedditLaunchContent {
+  return {
+    postTitle: '',
+    postBody: '',
+    builderDisclosure: '',
+    discussionQuestion: '',
+    linkPolicyNote: '',
+  }
+}
+
+export function createEmptyIndieHackersLaunchContent(): IndieHackersLaunchContent {
+  return {
+    postTitle: '',
+    founderStory: '',
+    lesson: '',
+    proofOrMetric: '',
+    nextExperiment: '',
+    feedbackAsk: '',
+  }
+}
+
+export function createEmptyLinkedInLaunchContent(): LinkedInLaunchContent {
+  return {
+    hook: '',
+    postBody: '',
+    proofPoint: '',
+    closingCta: '',
+  }
+}
+
+export function createEmptyTikTokLaunchContent(): TikTokLaunchContent {
+  return {
+    hook: '',
+    spokenScript: '',
+    visualBeats: [],
+    onScreenText: [],
+    closeCta: '',
+  }
+}
+
+export function createEmptyYouTubeShortsLaunchContent(): YouTubeShortsLaunchContent {
+  return {
+    title: '',
+    hook: '',
+    spokenScript: '',
+    visualBeats: [],
+    retentionCue: '',
+    closeCta: '',
+  }
+}
+
+export function createEmptyEmailAnnouncementLaunchContent(): EmailAnnouncementLaunchContent {
+  return {
+    subject: '',
+    previewText: '',
+    greeting: '',
+    opening: '',
+    body: '',
+    ctaText: '',
+    signoff: '',
+  }
+}
+
+export function normalizeProductHuntLaunchContent(
+  content: Partial<ProductHuntLaunchContent> | null | undefined,
+  fallback: Partial<ProductHuntLaunchContent> = {},
+): ProductHuntLaunchContent {
+  return {
+    tagline: limitText(content?.tagline || fallback.tagline || '', 60),
+    description: limitText(content?.description || fallback.description || '', 500),
+    tags: normalizeProductHuntTags(content?.tags || fallback.tags),
+    firstComment: (content?.firstComment || fallback.firstComment || '').trim(),
+  }
+}
+
+export function normalizeHackerNewsLaunchContent(
+  content: Partial<HackerNewsLaunchContent> | null | undefined,
+  fallback: Partial<HackerNewsLaunchContent> = {},
+): HackerNewsLaunchContent {
+  return {
+    showHnTitle: safeString(content?.showHnTitle || fallback.showHnTitle),
+    postBody: safeString(content?.postBody || fallback.postBody),
+    feedbackAsk: safeString(content?.feedbackAsk || fallback.feedbackAsk),
+    discussionSeed: safeString(content?.discussionSeed || fallback.discussionSeed),
+  }
+}
+
+export function normalizeRedditLaunchContent(
+  content: Partial<RedditLaunchContent> | null | undefined,
+  fallback: Partial<RedditLaunchContent> = {},
+): RedditLaunchContent {
+  return {
+    postTitle: safeString(content?.postTitle || fallback.postTitle),
+    postBody: safeString(content?.postBody || fallback.postBody),
+    builderDisclosure: safeString(content?.builderDisclosure || fallback.builderDisclosure),
+    discussionQuestion: safeString(content?.discussionQuestion || fallback.discussionQuestion),
+    linkPolicyNote: safeString(content?.linkPolicyNote || fallback.linkPolicyNote),
+  }
+}
+
+export function normalizeIndieHackersLaunchContent(
+  content: Partial<IndieHackersLaunchContent> | null | undefined,
+  fallback: Partial<IndieHackersLaunchContent> = {},
+): IndieHackersLaunchContent {
+  return {
+    postTitle: safeString(content?.postTitle || fallback.postTitle),
+    founderStory: safeString(content?.founderStory || fallback.founderStory),
+    lesson: safeString(content?.lesson || fallback.lesson),
+    proofOrMetric: safeString(content?.proofOrMetric || fallback.proofOrMetric),
+    nextExperiment: safeString(content?.nextExperiment || fallback.nextExperiment),
+    feedbackAsk: safeString(content?.feedbackAsk || fallback.feedbackAsk),
+  }
+}
+
+export function normalizeLinkedInLaunchContent(
+  content: Partial<LinkedInLaunchContent> | null | undefined,
+  fallback: Partial<LinkedInLaunchContent> = {},
+): LinkedInLaunchContent {
+  return {
+    hook: safeString(content?.hook || fallback.hook),
+    postBody: safeString(content?.postBody || fallback.postBody),
+    proofPoint: safeString(content?.proofPoint || fallback.proofPoint),
+    closingCta: safeString(content?.closingCta || fallback.closingCta),
+  }
+}
+
+export function normalizeTikTokLaunchContent(
+  content: Partial<TikTokLaunchContent> | null | undefined,
+  fallback: Partial<TikTokLaunchContent> = {},
+): TikTokLaunchContent {
+  return {
+    hook: safeString(content?.hook || fallback.hook),
+    spokenScript: safeString(content?.spokenScript || fallback.spokenScript),
+    visualBeats: normalizeStringList(content?.visualBeats, fallback.visualBeats, 8),
+    onScreenText: normalizeStringList(content?.onScreenText, fallback.onScreenText, 8),
+    closeCta: safeString(content?.closeCta || fallback.closeCta),
+  }
+}
+
+export function normalizeYouTubeShortsLaunchContent(
+  content: Partial<YouTubeShortsLaunchContent> | null | undefined,
+  fallback: Partial<YouTubeShortsLaunchContent> = {},
+): YouTubeShortsLaunchContent {
+  return {
+    title: safeString(content?.title || fallback.title),
+    hook: safeString(content?.hook || fallback.hook),
+    spokenScript: safeString(content?.spokenScript || fallback.spokenScript),
+    visualBeats: normalizeStringList(content?.visualBeats, fallback.visualBeats, 8),
+    retentionCue: safeString(content?.retentionCue || fallback.retentionCue),
+    closeCta: safeString(content?.closeCta || fallback.closeCta),
+  }
+}
+
+export function normalizeEmailAnnouncementLaunchContent(
+  content: Partial<EmailAnnouncementLaunchContent> | null | undefined,
+  fallback: Partial<EmailAnnouncementLaunchContent> = {},
+): EmailAnnouncementLaunchContent {
+  return {
+    subject: safeString(content?.subject || fallback.subject),
+    previewText: safeString(content?.previewText || fallback.previewText),
+    greeting: safeString(content?.greeting || fallback.greeting),
+    opening: safeString(content?.opening || fallback.opening),
+    body: safeString(content?.body || fallback.body),
+    ctaText: safeString(content?.ctaText || fallback.ctaText),
+    signoff: safeString(content?.signoff || fallback.signoff),
   }
 }
 
@@ -125,6 +319,30 @@ export function createEmptyPlatformBlocks(): Record<PlatformBlockId, PlatformBlo
       body: '',
       cta: '',
       notes: '',
+      ...(platformId === 'product_hunt'
+        ? { productHunt: createEmptyProductHuntLaunchContent() }
+        : {}),
+      ...(platformId === 'hacker_news'
+        ? { hackerNews: createEmptyHackerNewsLaunchContent() }
+        : {}),
+      ...(platformId === 'reddit'
+        ? { reddit: createEmptyRedditLaunchContent() }
+        : {}),
+      ...(platformId === 'indie_hackers'
+        ? { indieHackers: createEmptyIndieHackersLaunchContent() }
+        : {}),
+      ...(platformId === 'linkedin'
+        ? { linkedin: createEmptyLinkedInLaunchContent() }
+        : {}),
+      ...(platformId === 'tiktok'
+        ? { tiktok: createEmptyTikTokLaunchContent() }
+        : {}),
+      ...(platformId === 'youtube_shorts'
+        ? { youtubeShorts: createEmptyYouTubeShortsLaunchContent() }
+        : {}),
+      ...(platformId === 'email_announcement'
+        ? { emailAnnouncement: createEmptyEmailAnnouncementLaunchContent() }
+        : {}),
       ...(platformId === 'reddit'
         ? { redditRecommendations: createEmptyRedditRecommendations() }
         : {}),
@@ -247,17 +465,7 @@ export function normalizeKit(
       continue
     }
 
-    platformBlocks[blockId] = {
-      id: blockId,
-      label: block.label || PLATFORM_LABELS[blockId],
-      title: block.title || '',
-      body: block.body || '',
-      cta: block.cta || '',
-      notes: block.notes || '',
-      ...(blockId === 'reddit'
-        ? { redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations) }
-      : {}),
-    }
+    platformBlocks[blockId] = normalizePlatformBlock(blockId, block)
   }
 
   const channelPacks = normalizeChannelPacks(kit?.channelPacks, platformBlocks)
@@ -327,6 +535,222 @@ export function normalizeKit(
     },
     seoGrowth: normalizeSeoGrowthState(kit?.seoGrowth),
   }
+}
+
+function normalizePlatformBlock(
+  blockId: PlatformBlockId,
+  block: Partial<PlatformBlock>,
+): PlatformBlock {
+  const notes = safeString(block.notes)
+
+  if (blockId === 'product_hunt') {
+    const productHunt = normalizeProductHuntLaunchContent(block.productHunt, {
+      tagline: block.title,
+      description: block.body,
+      firstComment: block.body,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: productHunt.tagline || safeString(block.title),
+      body: productHunt.description || safeString(block.body),
+      cta: safeString(block.cta),
+      notes,
+      productHunt,
+    }
+  }
+
+  if (blockId === 'hacker_news') {
+    const hackerNews = normalizeHackerNewsLaunchContent(block.hackerNews, {
+      showHnTitle: block.title,
+      postBody: block.body,
+      feedbackAsk: block.cta,
+      discussionSeed: block.notes,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: hackerNews.showHnTitle || safeString(block.title),
+      body: [hackerNews.postBody, hackerNews.feedbackAsk, hackerNews.discussionSeed]
+        .filter(Boolean)
+        .join('\n\n') || safeString(block.body),
+      cta: hackerNews.feedbackAsk || safeString(block.cta),
+      notes,
+      hackerNews,
+    }
+  }
+
+  if (blockId === 'reddit') {
+    const reddit = normalizeRedditLaunchContent(block.reddit, {
+      postTitle: block.title,
+      postBody: block.body,
+      builderDisclosure: 'I am the builder.',
+      discussionQuestion: block.cta,
+      linkPolicyNote: block.notes,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: reddit.postTitle || safeString(block.title),
+      body: [reddit.postBody, reddit.builderDisclosure, reddit.discussionQuestion]
+        .filter(Boolean)
+        .join('\n\n') || safeString(block.body),
+      cta: reddit.discussionQuestion || safeString(block.cta),
+      notes,
+      reddit,
+      redditRecommendations: normalizeRedditRecommendations(block.redditRecommendations),
+    }
+  }
+
+  if (blockId === 'indie_hackers') {
+    const indieHackers = normalizeIndieHackersLaunchContent(block.indieHackers, {
+      postTitle: block.title,
+      founderStory: block.body,
+      feedbackAsk: block.cta,
+      nextExperiment: block.notes,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: indieHackers.postTitle || safeString(block.title),
+      body: [
+        indieHackers.founderStory,
+        indieHackers.lesson,
+        indieHackers.proofOrMetric,
+        indieHackers.nextExperiment,
+        indieHackers.feedbackAsk,
+      ].filter(Boolean).join('\n\n') || safeString(block.body),
+      cta: indieHackers.feedbackAsk || safeString(block.cta),
+      notes,
+      indieHackers,
+    }
+  }
+
+  if (blockId === 'linkedin') {
+    const linkedin = normalizeLinkedInLaunchContent(block.linkedin, {
+      hook: block.title,
+      postBody: block.body,
+      proofPoint: block.notes,
+      closingCta: block.cta,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: linkedin.hook || safeString(block.title),
+      body: [linkedin.hook, linkedin.postBody, linkedin.proofPoint, linkedin.closingCta]
+        .filter(Boolean)
+        .join('\n\n') || safeString(block.body),
+      cta: linkedin.closingCta || safeString(block.cta),
+      notes,
+      linkedin,
+    }
+  }
+
+  if (blockId === 'tiktok') {
+    const tiktok = normalizeTikTokLaunchContent(block.tiktok, {
+      hook: block.title,
+      spokenScript: block.body,
+      closeCta: block.cta,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: tiktok.hook || safeString(block.title),
+      body: [
+        tiktok.hook,
+        tiktok.spokenScript,
+        ...tiktok.visualBeats,
+        ...tiktok.onScreenText,
+      ].filter(Boolean).join('\n\n') || safeString(block.body),
+      cta: tiktok.closeCta || safeString(block.cta),
+      notes,
+      tiktok,
+    }
+  }
+
+  if (blockId === 'youtube_shorts') {
+    const youtubeShorts = normalizeYouTubeShortsLaunchContent(block.youtubeShorts, {
+      title: block.title,
+      hook: block.title,
+      spokenScript: block.body,
+      closeCta: block.cta,
+    })
+
+    return {
+      id: blockId,
+      label: block.label || PLATFORM_LABELS[blockId],
+      title: youtubeShorts.title || youtubeShorts.hook || safeString(block.title),
+      body: [
+        youtubeShorts.hook,
+        youtubeShorts.spokenScript,
+        ...youtubeShorts.visualBeats,
+        youtubeShorts.retentionCue,
+      ].filter(Boolean).join('\n\n') || safeString(block.body),
+      cta: youtubeShorts.closeCta || safeString(block.cta),
+      notes,
+      youtubeShorts,
+    }
+  }
+
+  const emailAnnouncement = normalizeEmailAnnouncementLaunchContent(block.emailAnnouncement, {
+    subject: block.title,
+    body: block.body,
+    ctaText: block.cta,
+    previewText: block.notes,
+  })
+
+  return {
+    id: blockId,
+    label: block.label || PLATFORM_LABELS[blockId],
+    title: emailAnnouncement.subject || safeString(block.title),
+    body: [
+      emailAnnouncement.previewText,
+      emailAnnouncement.greeting,
+      emailAnnouncement.opening,
+      emailAnnouncement.body,
+      emailAnnouncement.ctaText,
+      emailAnnouncement.signoff,
+    ].filter(Boolean).join('\n\n') || safeString(block.body),
+    cta: emailAnnouncement.ctaText || safeString(block.cta),
+    notes,
+    emailAnnouncement,
+  }
+}
+
+function normalizeProductHuntTags(tags: unknown): string[] {
+  return Array.isArray(tags)
+    ? tags
+        .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+        .filter(Boolean)
+        .slice(0, 3)
+    : []
+}
+
+function limitText(value: string, maxLength: number): string {
+  const trimmed = value.trim()
+  return trimmed.length > maxLength ? trimmed.slice(0, maxLength).trim() : trimmed
+}
+
+function normalizeStringList(
+  values: unknown,
+  fallback: string[] | undefined,
+  maxItems: number,
+): string[] {
+  const normalized = Array.isArray(values)
+    ? values.map((item) => safeString(item)).filter(Boolean).slice(0, maxItems)
+    : []
+
+  return normalized.length > 0
+    ? normalized
+    : Array.isArray(fallback)
+      ? fallback.map((item) => safeString(item)).filter(Boolean).slice(0, maxItems)
+      : []
 }
 
 export function normalizeChannelPacks(

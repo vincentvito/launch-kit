@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import {
   BarChart3,
   BookOpenText,
@@ -50,7 +50,7 @@ import {
   type TrafficChannelGroupId,
   type TrafficChannelId,
 } from './dashboard-config'
-import { editorialSerif } from './dashboard-fonts'
+import { displaySans } from './dashboard-fonts'
 import { FilterField, MediaField } from './dashboard-ui'
 import {
   formatCost,
@@ -117,6 +117,7 @@ export function ResultAssetBrowser({
   onImportEmailList,
   onPersonalizeEmailOutreach,
   onSendOutreachEmail,
+  toolbar,
   labels,
   t,
 }: {
@@ -178,6 +179,7 @@ export function ResultAssetBrowser({
   onImportEmailList: () => void
   onPersonalizeEmailOutreach: () => void
   onSendOutreachEmail: () => void
+  toolbar?: ReactNode
   labels: {
     title: string
     subtitle: string
@@ -202,6 +204,57 @@ export function ResultAssetBrowser({
       body: string
       cta: string
       notes: string
+      productHunt: {
+        tagline: string
+        description: string
+        tags: string
+        firstComment: string
+      }
+      hackerNews: {
+        showHnTitle: string
+        postBody: string
+        feedbackAsk: string
+        discussionSeed: string
+      }
+      redditPost: {
+        postTitle: string
+        postBody: string
+        builderDisclosure: string
+        discussionQuestion: string
+        linkPolicyNote: string
+      }
+      indieHackers: {
+        postTitle: string
+        founderStory: string
+        lesson: string
+        proofOrMetric: string
+        nextExperiment: string
+        feedbackAsk: string
+      }
+      linkedinPost: {
+        hook: string
+        postBody: string
+        proofPoint: string
+        closingCta: string
+      }
+      shortVideo: {
+        title: string
+        hook: string
+        spokenScript: string
+        visualBeats: string
+        onScreenText: string
+        retentionCue: string
+        closeCta: string
+      }
+      emailAnnouncement: {
+        subject: string
+        previewText: string
+        greeting: string
+        opening: string
+        body: string
+        ctaText: string
+        signoff: string
+      }
       subject: string
       outline: string
       format: string
@@ -234,19 +287,18 @@ export function ResultAssetBrowser({
   }
 
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white p-3 shadow-sm">
-      <div className="grid gap-3 md:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="rounded-xl border border-violet-100 bg-violet-50/45 p-3 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto">
-          <div className="mb-3">
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+    <div className="min-h-[calc(100vh-8rem)] min-[500px]:pl-[216px] md:pl-[244px] lg:pl-[284px] xl:pl-[304px]">
+      <div className="grid gap-4 lg:block">
+        <aside className="max-h-[52vh] overflow-y-auto rounded-lg border border-zinc-200 bg-[#fffffb] p-2 shadow-sm min-[500px]:fixed min-[500px]:bottom-4 min-[500px]:left-4 min-[500px]:top-[80px] min-[500px]:z-20 min-[500px]:w-[196px] min-[500px]:max-h-none md:left-6 md:w-[220px] lg:left-8 lg:top-[88px] lg:w-[260px] xl:w-[280px]">
+          <div className="mb-2 px-2 pt-1">
+            <h3 className={`${displaySans.className} text-lg leading-tight text-zinc-900`}>
               {labels.title}
             </h3>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-600">{labels.subtitle}</p>
           </div>
 
           <div className="space-y-2">
-            <div className="rounded-lg border border-violet-100 bg-white/70 p-2">
-              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+            <div className="rounded-lg border border-zinc-200 bg-white p-2">
+              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-700">
                 {t('results.sidebar.channels')}
               </p>
               <div className="space-y-2">
@@ -254,29 +306,26 @@ export function ResultAssetBrowser({
                   const isOpen = openGroups[group.id]
 
                   return (
-                    <div key={group.id} className="rounded-lg border border-violet-100 bg-white/75">
+                    <div key={group.id} className="rounded-lg border border-zinc-200 bg-white">
                       <button
                         type="button"
                         onClick={() => toggleGroup(group.id)}
-                        className="flex w-full items-start justify-between gap-2 px-3 py-2 text-left"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
                       >
-                        <span>
-                          <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                        <span className="min-w-0">
+                          <span className="block truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
                             {t(`results.channelGroups.${group.id}.title`)}
-                          </span>
-                          <span className="mt-0.5 block text-xs leading-relaxed text-zinc-500">
-                            {t(`results.channelGroups.${group.id}.description`)}
                           </span>
                         </span>
                         {isOpen ? (
-                          <ChevronUp className="mt-0.5 size-4 shrink-0 text-violet-600" />
+                          <ChevronUp className="size-4 shrink-0 text-zinc-500" />
                         ) : (
-                          <ChevronDown className="mt-0.5 size-4 shrink-0 text-violet-600" />
+                          <ChevronDown className="size-4 shrink-0 text-zinc-500" />
                         )}
                       </button>
 
                       {isOpen ? (
-                        <div className="space-y-1.5 border-t border-violet-100 p-2">
+                        <div className="space-y-1 border-t border-zinc-100 p-1.5">
                           {group.channels.map((channelId) => {
                             const isActive = activeSection === 'channels' && activeChannel === channelId
                             const isPremium = isPremiumTrafficChannel(channelId)
@@ -287,28 +336,26 @@ export function ResultAssetBrowser({
                                 type="button"
                                 onClick={() => onChannelChange(channelId)}
                                 aria-current={isActive ? 'page' : undefined}
-                                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${
+                                className={`flex w-full items-center gap-2 rounded-md border px-2.5 py-2 text-left text-sm font-medium transition ${
                                   isActive
-                                    ? 'border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20'
-                                    : 'border-violet-100 bg-white text-zinc-700 hover:border-violet-300 hover:bg-violet-50'
+                                    ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm shadow-zinc-900/15'
+                                    : 'border-transparent bg-white text-zinc-700 hover:border-zinc-200 hover:bg-zinc-50'
                                 }`}
                               >
-                                <span className={isActive ? 'text-white' : 'text-violet-600'}>
+                                <span className={isActive ? 'text-white' : 'text-sky-700'}>
                                   <TrafficChannelIcon channelId={channelId} />
                                 </span>
                                 <span className="min-w-0 flex-1">
                                   <span className="block truncate">{t(`results.channels.${channelId}.title`)}</span>
-                                  <span className={`block truncate text-[11px] ${isActive ? 'text-violet-100' : 'text-zinc-500'}`}>
-                                    {t(`results.channels.${channelId}.description`)}
-                                  </span>
                                 </span>
                                 {isPremium ? (
                                   <span
-                                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
-                                      isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                                    aria-label={t('plans.badges.premium')}
+                                    className={`shrink-0 rounded-full p-1 ${
+                                      isActive ? 'bg-white/15 text-white' : 'bg-amber-100 text-amber-800'
                                     }`}
                                   >
-                                    {t('plans.badges.premium')}
+                                    <Lock className="size-3" />
                                   </span>
                                 ) : null}
                               </button>
@@ -322,8 +369,8 @@ export function ResultAssetBrowser({
               </div>
             </div>
 
-            <div className="rounded-lg border border-violet-100 bg-white/70 p-2">
-              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+            <div className="rounded-lg border border-zinc-200 bg-white p-2">
+              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-700">
                 {t('results.sidebar.assets')}
               </p>
               <div className="space-y-1.5">
@@ -337,28 +384,26 @@ export function ResultAssetBrowser({
                       type="button"
                       onClick={() => onAssetKindChange(assetKind)}
                       aria-current={isActive ? 'page' : undefined}
-                      className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${
+                      className={`flex w-full items-center gap-2 rounded-md border px-2.5 py-2 text-left text-sm font-medium transition ${
                         isActive
-                          ? 'border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20'
-                          : 'border-violet-100 bg-white text-zinc-700 hover:border-violet-300 hover:bg-violet-50'
+                          ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm shadow-zinc-900/15'
+                          : 'border-transparent bg-white text-zinc-700 hover:border-zinc-200 hover:bg-zinc-50'
                       }`}
                     >
-                      <span className={isActive ? 'text-white' : 'text-violet-600'}>
+                      <span className={isActive ? 'text-white' : 'text-sky-700'}>
                         <AssetKindIcon assetKind={assetKind} />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate">{t(`results.assets.kinds.${assetKind}.title`)}</span>
-                        <span className={`block truncate text-[11px] ${isActive ? 'text-violet-100' : 'text-zinc-500'}`}>
-                          {t(`results.assets.kinds.${assetKind}.description`)}
-                        </span>
                       </span>
                       {isPremium ? (
                         <span
-                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
-                            isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                          aria-label={t('plans.badges.premium')}
+                          className={`shrink-0 rounded-full p-1 ${
+                            isActive ? 'bg-white/15 text-white' : 'bg-amber-100 text-amber-800'
                           }`}
                         >
-                          {t('plans.badges.premium')}
+                          <Lock className="size-3" />
                         </span>
                       ) : null}
                     </button>
@@ -369,7 +414,9 @@ export function ResultAssetBrowser({
           </div>
         </aside>
 
-        <div className="min-w-0 rounded-xl border border-violet-100 bg-violet-50/30 p-3">
+        <div className="min-w-0 space-y-4">
+          {toolbar}
+
           {activeSection === 'channels' && activeChannelIsPremium ? (
             <PremiumGatePanel
               title={activeChannelTitle}
@@ -651,7 +698,7 @@ function PremiumGatePanel({
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">
                 {t('plans.badges.premium')}
               </p>
-              <h3 className={`${editorialSerif.className} mt-1 text-2xl leading-tight text-zinc-900`}>
+              <h3 className={`${displaySans.className} mt-1 text-2xl leading-tight text-zinc-900`}>
                 {title}
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">{description}</p>
@@ -713,7 +760,7 @@ function AssetLibraryPanel({
             <AssetKindIcon assetKind={activeAssetKind} />
           </span>
           <div>
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
               {t(`results.assets.kinds.${activeAssetKind}.title`)}
             </h3>
             <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">
@@ -927,7 +974,7 @@ function SeoAnalysisChannelPanel({
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+          <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
             {t('growth.seo.analysis.title')}
           </h3>
           <p className="mt-1 text-xs text-zinc-600">{t('results.focus.websiteSeo')}</p>
@@ -993,7 +1040,7 @@ function KeywordResearchChannelPanel({
 
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
-      <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+      <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
         {t('growth.keywordResearch.title')}
       </h3>
       <p className="mt-1 text-xs text-zinc-600">{brief?.keywordResearch.notes || t('growth.keywordResearch.description')}</p>
@@ -1056,7 +1103,7 @@ function BlogCadenceChannelPanel({
       <div className="rounded-xl border border-violet-100 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
               {t('growth.seo.blog.title')}
             </h3>
             <p className="mt-1 text-xs text-zinc-600">{t('growth.seo.blog.description')}</p>
@@ -1127,7 +1174,7 @@ function GeoVisibilityChannelPanel({
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+          <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
             {t('results.channels.geo_llm_visibility.title')}
           </h3>
           <p className="mt-1 text-xs text-zinc-600">{t('results.focus.geo')}</p>
@@ -1194,7 +1241,7 @@ function EmailContactsChannelPanel({
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+          <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
             {t('results.channels.email_scrape_contacts.title')}
           </h3>
           <p className="mt-1 text-xs text-zinc-600">{t('results.email.scrapeDescription')}</p>
@@ -1250,7 +1297,7 @@ function EmailImportChannelPanel({
 }) {
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
-      <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+      <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
         {t('results.channels.email_import_list.title')}
       </h3>
       <p className="mt-1 text-xs text-zinc-600">{t('results.email.importDescription')}</p>
@@ -1297,19 +1344,9 @@ function EmailAutomationChannelPanel({
   onPersonalizeEmailOutreach: () => void
   onSendOutreachEmail: () => void
   isEmailActionRunning: boolean
-  outputLabels: {
-    copy: string
-    regenerate: string
-    title: string
-    body: string
-    cta: string
-    notes: string
+  outputLabels: PlatformBlockPanelLabels & {
     subject: string
     outline: string
-    redditEngagement: string
-    redditSelfPromotion: string
-    redditReason: string
-    redditPostingGuidance: string
     emptyOutreach: string
     emptySeo: string
   }
@@ -1326,7 +1363,7 @@ function EmailAutomationChannelPanel({
       <div className="rounded-xl border border-violet-100 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
               {t('results.channels.email_automation.title')}
             </h3>
             <p className="mt-1 text-xs text-zinc-600">{t('results.email.automationDescription')}</p>
@@ -1530,7 +1567,7 @@ function BacklinkChannelPanel({
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+          <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
             {t('growth.seo.backlinks.title')}
           </h3>
           <p className="mt-1 max-w-3xl text-xs text-zinc-600">{t('growth.seo.backlinks.description')}</p>
@@ -1788,7 +1825,7 @@ function MediaKitChannelPanel({
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>{labels.title}</h3>
+        <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>{labels.title}</h3>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
@@ -1850,7 +1887,7 @@ function TrafficPlaybookPanel({
             <TrafficChannelIcon channelId={channelId} />
           </span>
           <div>
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
               {t(`results.channels.${channelId}.title`)}
             </h3>
             <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">
@@ -1931,6 +1968,12 @@ function ChannelPackPanel({
     body: string
     cta: string
     notes: string
+    productHunt: {
+      tagline: string
+      description: string
+      tags: string
+      firstComment: string
+    }
     format: string
     stage: string
     proofPoint: string
@@ -1955,7 +1998,7 @@ function ChannelPackPanel({
       <div className="rounded-xl border border-violet-100 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+            <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
               {pack.label}
             </h3>
             {pack.notes ? (
@@ -2105,6 +2148,70 @@ function ChannelPackPanel({
   )
 }
 
+type PlatformBlockPanelLabels = {
+  copy: string
+  regenerate: string
+  title: string
+  body: string
+  cta: string
+  notes: string
+  productHunt: {
+    tagline: string
+    description: string
+    tags: string
+    firstComment: string
+  }
+  hackerNews: {
+    showHnTitle: string
+    postBody: string
+    feedbackAsk: string
+    discussionSeed: string
+  }
+  redditPost: {
+    postTitle: string
+    postBody: string
+    builderDisclosure: string
+    discussionQuestion: string
+    linkPolicyNote: string
+  }
+  indieHackers: {
+    postTitle: string
+    founderStory: string
+    lesson: string
+    proofOrMetric: string
+    nextExperiment: string
+    feedbackAsk: string
+  }
+  linkedinPost: {
+    hook: string
+    postBody: string
+    proofPoint: string
+    closingCta: string
+  }
+  shortVideo: {
+    title: string
+    hook: string
+    spokenScript: string
+    visualBeats: string
+    onScreenText: string
+    retentionCue: string
+    closeCta: string
+  }
+  emailAnnouncement: {
+    subject: string
+    previewText: string
+    greeting: string
+    opening: string
+    body: string
+    ctaText: string
+    signoff: string
+  }
+  redditEngagement: string
+  redditSelfPromotion: string
+  redditReason: string
+  redditPostingGuidance: string
+}
+
 function PlatformBlockPanel({
   displayLabel,
   block,
@@ -2120,19 +2227,9 @@ function PlatformBlockPanel({
   onRegenerate: () => void
   isGenerating: boolean
   feedbackText: string
-  labels: {
-    copy: string
-    regenerate: string
-    title: string
-    body: string
-    cta: string
-    notes: string
-    redditEngagement: string
-    redditSelfPromotion: string
-    redditReason: string
-    redditPostingGuidance: string
-  }
+  labels: PlatformBlockPanelLabels
 }) {
+  const productHunt = block.id === 'product_hunt' ? block.productHunt : undefined
   const redditRecommendations = block.id === 'reddit' ? block.redditRecommendations : undefined
   const hasRedditRecommendations = Boolean(
     redditRecommendations &&
@@ -2143,7 +2240,7 @@ function PlatformBlockPanel({
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>{displayLabel}</h3>
+        <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>{displayLabel}</h3>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {feedbackText ? (
             <p aria-live="polite" className="text-sm font-medium text-violet-700">
@@ -2172,17 +2269,65 @@ function PlatformBlockPanel({
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{labels.title}</p>
-      <p className="text-sm font-medium text-zinc-800">{block.title}</p>
+      {productHunt ? (
+        <div className="mt-4 space-y-4">
+          <section>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.productHunt.tagline}
+              </p>
+              <span className="text-xs text-zinc-500">{productHunt.tagline.length}/60</span>
+            </div>
+            <p className="text-sm font-medium text-zinc-800">{productHunt.tagline}</p>
+          </section>
 
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{labels.body}</p>
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{block.body}</p>
+          <section>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+                {labels.productHunt.description}
+              </p>
+              <span className="text-xs text-zinc-500">{productHunt.description.length}/500</span>
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
+              {productHunt.description}
+            </p>
+          </section>
 
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{labels.cta}</p>
-      <p className="text-sm font-semibold text-violet-700">{block.cta}</p>
+          <section>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+              {labels.productHunt.tags}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {productHunt.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </section>
 
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{labels.notes}</p>
-      <p className="text-sm text-zinc-600">{block.notes}</p>
+          <section>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+              {labels.productHunt.firstComment}
+            </p>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
+              {productHunt.firstComment}
+            </p>
+          </section>
+
+          <section>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
+              {labels.notes}
+            </p>
+            <p className="text-sm text-zinc-600">{block.notes}</p>
+          </section>
+        </div>
+      ) : (
+        <NativePlatformFields block={block} labels={labels} />
+      )}
 
       {hasRedditRecommendations && redditRecommendations ? (
         <div className="mt-5 grid gap-5 border-t border-violet-100 pt-4 md:grid-cols-2">
@@ -2205,6 +2350,162 @@ function PlatformBlockPanel({
         </div>
       ) : null}
     </div>
+  )
+}
+
+function NativePlatformFields({
+  block,
+  labels,
+}: {
+  block: LaunchKit['platformBlocks'][PlatformBlockId]
+  labels: PlatformBlockPanelLabels
+}) {
+  if (block.hackerNews) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.hackerNews.showHnTitle} value={block.hackerNews.showHnTitle} strong />
+        <NativeTextField label={labels.hackerNews.postBody} value={block.hackerNews.postBody} multiline />
+        <NativeTextField label={labels.hackerNews.feedbackAsk} value={block.hackerNews.feedbackAsk} />
+        <NativeTextField label={labels.hackerNews.discussionSeed} value={block.hackerNews.discussionSeed} />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.reddit) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.redditPost.postTitle} value={block.reddit.postTitle} strong />
+        <NativeTextField label={labels.redditPost.postBody} value={block.reddit.postBody} multiline />
+        <NativeTextField label={labels.redditPost.builderDisclosure} value={block.reddit.builderDisclosure} />
+        <NativeTextField label={labels.redditPost.discussionQuestion} value={block.reddit.discussionQuestion} />
+        <NativeTextField label={labels.redditPost.linkPolicyNote} value={block.reddit.linkPolicyNote} muted />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.indieHackers) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.indieHackers.postTitle} value={block.indieHackers.postTitle} strong />
+        <NativeTextField label={labels.indieHackers.founderStory} value={block.indieHackers.founderStory} multiline />
+        <NativeTextField label={labels.indieHackers.lesson} value={block.indieHackers.lesson} />
+        <NativeTextField label={labels.indieHackers.proofOrMetric} value={block.indieHackers.proofOrMetric} />
+        <NativeTextField label={labels.indieHackers.nextExperiment} value={block.indieHackers.nextExperiment} />
+        <NativeTextField label={labels.indieHackers.feedbackAsk} value={block.indieHackers.feedbackAsk} />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.linkedin) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.linkedinPost.hook} value={block.linkedin.hook} strong />
+        <NativeTextField label={labels.linkedinPost.postBody} value={block.linkedin.postBody} multiline />
+        <NativeTextField label={labels.linkedinPost.proofPoint} value={block.linkedin.proofPoint} />
+        <NativeTextField label={labels.linkedinPost.closingCta} value={block.linkedin.closingCta} strong />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.tiktok) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.shortVideo.hook} value={block.tiktok.hook} strong />
+        <NativeTextField label={labels.shortVideo.spokenScript} value={block.tiktok.spokenScript} multiline />
+        <NativeListField label={labels.shortVideo.visualBeats} items={block.tiktok.visualBeats} />
+        <NativeListField label={labels.shortVideo.onScreenText} items={block.tiktok.onScreenText} />
+        <NativeTextField label={labels.shortVideo.closeCta} value={block.tiktok.closeCta} strong />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.youtubeShorts) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.shortVideo.title} value={block.youtubeShorts.title} strong />
+        <NativeTextField label={labels.shortVideo.hook} value={block.youtubeShorts.hook} />
+        <NativeTextField label={labels.shortVideo.spokenScript} value={block.youtubeShorts.spokenScript} multiline />
+        <NativeListField label={labels.shortVideo.visualBeats} items={block.youtubeShorts.visualBeats} />
+        <NativeTextField label={labels.shortVideo.retentionCue} value={block.youtubeShorts.retentionCue} />
+        <NativeTextField label={labels.shortVideo.closeCta} value={block.youtubeShorts.closeCta} strong />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  if (block.emailAnnouncement) {
+    return (
+      <div className="mt-4 space-y-4">
+        <NativeTextField label={labels.emailAnnouncement.subject} value={block.emailAnnouncement.subject} strong />
+        <NativeTextField label={labels.emailAnnouncement.previewText} value={block.emailAnnouncement.previewText} />
+        <NativeTextField label={labels.emailAnnouncement.greeting} value={block.emailAnnouncement.greeting} />
+        <NativeTextField label={labels.emailAnnouncement.opening} value={block.emailAnnouncement.opening} multiline />
+        <NativeTextField label={labels.emailAnnouncement.body} value={block.emailAnnouncement.body} multiline />
+        <NativeTextField label={labels.emailAnnouncement.ctaText} value={block.emailAnnouncement.ctaText} strong />
+        <NativeTextField label={labels.emailAnnouncement.signoff} value={block.emailAnnouncement.signoff} multiline />
+        <NativeTextField label={labels.notes} value={block.notes} muted />
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <NativeTextField label={labels.title} value={block.title} strong />
+      <NativeTextField label={labels.body} value={block.body} multiline />
+      <NativeTextField label={labels.cta} value={block.cta} strong />
+      <NativeTextField label={labels.notes} value={block.notes} muted />
+    </div>
+  )
+}
+
+function NativeTextField({
+  label,
+  value,
+  multiline = false,
+  strong = false,
+  muted = false,
+}: {
+  label: string
+  value: string
+  multiline?: boolean
+  strong?: boolean
+  muted?: boolean
+}) {
+  return (
+    <section>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{label}</p>
+      <p
+        className={`text-sm leading-relaxed ${
+          multiline ? 'whitespace-pre-wrap' : ''
+        } ${strong ? 'font-medium text-zinc-800' : muted ? 'text-zinc-600' : 'text-zinc-700'}`}
+      >
+        {value}
+      </p>
+    </section>
+  )
+}
+
+function NativeListField({ label, items }: { label: string; items: string[] }) {
+  if (!items.length) {
+    return null
+  }
+
+  return (
+    <section>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">{label}</p>
+      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-zinc-700">
+        {items.map((item) => (
+          <li key={item} className="rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -2283,7 +2584,7 @@ function GrowthBlockPanel({
   return (
     <div className="rounded-xl border border-violet-100 bg-white p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>{displayLabel}</h3>
+        <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>{displayLabel}</h3>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {feedbackText ? (
             <p aria-live="polite" className="text-sm font-medium text-violet-700">

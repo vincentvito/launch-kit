@@ -9,18 +9,26 @@ import {
   type ChannelCardTarget,
   type ChannelPack,
   type ChannelPackId,
+  type EmailAnnouncementLaunchContent,
   type ExtractedBrief,
   type GrowthAssets,
   type GrowthBlockId,
+  type HackerNewsLaunchContent,
+  type IndieHackersLaunchContent,
   type LaunchKit,
+  type LinkedInLaunchContent,
   type MediaKit,
   type OutreachPack,
   type OutreachVariant,
   type PlatformBlock,
   type PlatformBlockId,
+  type ProductHuntLaunchContent,
+  type RedditLaunchContent,
   type RedditRecommendations,
   type SeoPostPack,
   type SubredditRecommendation,
+  type TikTokLaunchContent,
+  type YouTubeShortsLaunchContent,
 } from '@/lib/launch-kit/types'
 import {
   createEmptyAssetLibrary,
@@ -61,6 +69,44 @@ type RawPlatformBlock = {
   body?: string
   cta?: string
   notes?: string
+  tagline?: string
+  description?: string
+  tags?: string[]
+  firstComment?: string
+  showHnTitle?: string
+  postBody?: string
+  feedbackAsk?: string
+  discussionSeed?: string
+  postTitle?: string
+  builderDisclosure?: string
+  discussionQuestion?: string
+  linkPolicyNote?: string
+  founderStory?: string
+  lesson?: string
+  proofOrMetric?: string
+  nextExperiment?: string
+  hook?: string
+  proofPoint?: string
+  closingCta?: string
+  spokenScript?: string
+  visualBeats?: string[]
+  onScreenText?: string[]
+  closeCta?: string
+  retentionCue?: string
+  subject?: string
+  previewText?: string
+  greeting?: string
+  opening?: string
+  ctaText?: string
+  signoff?: string
+  productHunt?: Partial<ProductHuntLaunchContent>
+  hackerNews?: Partial<HackerNewsLaunchContent>
+  reddit?: Partial<RedditLaunchContent>
+  indieHackers?: Partial<IndieHackersLaunchContent>
+  linkedin?: Partial<LinkedInLaunchContent>
+  tiktok?: Partial<TikTokLaunchContent>
+  youtubeShorts?: Partial<YouTubeShortsLaunchContent>
+  emailAnnouncement?: Partial<EmailAnnouncementLaunchContent>
   redditRecommendations?: RawRedditRecommendations
 }
 
@@ -138,16 +184,30 @@ type ModelOutput = {
 
 const STRING_SCHEMA = { type: 'string' } as const
 
-const PLATFORM_BLOCK_SCHEMA = {
+const PRODUCT_HUNT_PLATFORM_BLOCK_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    title: STRING_SCHEMA,
-    body: STRING_SCHEMA,
-    cta: STRING_SCHEMA,
+    tagline: { type: 'string', maxLength: 60 },
+    description: { type: 'string', maxLength: 500 },
+    tags: { type: 'array', items: STRING_SCHEMA, minItems: 3, maxItems: 3 },
+    firstComment: STRING_SCHEMA,
     notes: STRING_SCHEMA,
   },
-  required: ['title', 'body', 'cta', 'notes'],
+  required: ['tagline', 'description', 'tags', 'firstComment', 'notes'],
+} as const
+
+const HACKER_NEWS_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    showHnTitle: { type: 'string', maxLength: 80 },
+    postBody: STRING_SCHEMA,
+    feedbackAsk: STRING_SCHEMA,
+    discussionSeed: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: ['showHnTitle', 'postBody', 'feedbackAsk', 'discussionSeed', 'notes'],
 } as const
 
 const SUBREDDIT_RECOMMENDATION_SCHEMA = {
@@ -184,14 +244,116 @@ const REDDIT_PLATFORM_BLOCK_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    title: STRING_SCHEMA,
-    body: STRING_SCHEMA,
-    cta: STRING_SCHEMA,
+    postTitle: { type: 'string', maxLength: 300 },
+    postBody: STRING_SCHEMA,
+    builderDisclosure: STRING_SCHEMA,
+    discussionQuestion: STRING_SCHEMA,
+    linkPolicyNote: STRING_SCHEMA,
     notes: STRING_SCHEMA,
     redditRecommendations: REDDIT_RECOMMENDATIONS_SCHEMA,
   },
-  required: ['title', 'body', 'cta', 'notes', 'redditRecommendations'],
+  required: [
+    'postTitle',
+    'postBody',
+    'builderDisclosure',
+    'discussionQuestion',
+    'linkPolicyNote',
+    'notes',
+    'redditRecommendations',
+  ],
 } as const
+
+const INDIE_HACKERS_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    postTitle: { type: 'string', maxLength: 120 },
+    founderStory: STRING_SCHEMA,
+    lesson: STRING_SCHEMA,
+    proofOrMetric: STRING_SCHEMA,
+    nextExperiment: STRING_SCHEMA,
+    feedbackAsk: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: [
+    'postTitle',
+    'founderStory',
+    'lesson',
+    'proofOrMetric',
+    'nextExperiment',
+    'feedbackAsk',
+    'notes',
+  ],
+} as const
+
+const LINKEDIN_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    hook: { type: 'string', maxLength: 220 },
+    postBody: STRING_SCHEMA,
+    proofPoint: STRING_SCHEMA,
+    closingCta: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: ['hook', 'postBody', 'proofPoint', 'closingCta', 'notes'],
+} as const
+
+const TIKTOK_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    hook: { type: 'string', maxLength: 140 },
+    spokenScript: STRING_SCHEMA,
+    visualBeats: { type: 'array', items: STRING_SCHEMA, minItems: 3, maxItems: 7 },
+    onScreenText: { type: 'array', items: STRING_SCHEMA, minItems: 2, maxItems: 6 },
+    closeCta: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: ['hook', 'spokenScript', 'visualBeats', 'onScreenText', 'closeCta', 'notes'],
+} as const
+
+const YOUTUBE_SHORTS_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    title: { type: 'string', maxLength: 100 },
+    hook: { type: 'string', maxLength: 140 },
+    spokenScript: STRING_SCHEMA,
+    visualBeats: { type: 'array', items: STRING_SCHEMA, minItems: 3, maxItems: 7 },
+    retentionCue: STRING_SCHEMA,
+    closeCta: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: ['title', 'hook', 'spokenScript', 'visualBeats', 'retentionCue', 'closeCta', 'notes'],
+} as const
+
+const EMAIL_ANNOUNCEMENT_PLATFORM_BLOCK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    subject: { type: 'string', maxLength: 78 },
+    previewText: { type: 'string', maxLength: 120 },
+    greeting: STRING_SCHEMA,
+    opening: STRING_SCHEMA,
+    body: STRING_SCHEMA,
+    ctaText: STRING_SCHEMA,
+    signoff: STRING_SCHEMA,
+    notes: STRING_SCHEMA,
+  },
+  required: ['subject', 'previewText', 'greeting', 'opening', 'body', 'ctaText', 'signoff', 'notes'],
+} as const
+
+const PLATFORM_BLOCK_SCHEMAS: Record<PlatformBlockId, Record<string, unknown>> = {
+  product_hunt: PRODUCT_HUNT_PLATFORM_BLOCK_SCHEMA,
+  hacker_news: HACKER_NEWS_PLATFORM_BLOCK_SCHEMA,
+  reddit: REDDIT_PLATFORM_BLOCK_SCHEMA,
+  indie_hackers: INDIE_HACKERS_PLATFORM_BLOCK_SCHEMA,
+  linkedin: LINKEDIN_PLATFORM_BLOCK_SCHEMA,
+  tiktok: TIKTOK_PLATFORM_BLOCK_SCHEMA,
+  youtube_shorts: YOUTUBE_SHORTS_PLATFORM_BLOCK_SCHEMA,
+  email_announcement: EMAIL_ANNOUNCEMENT_PLATFORM_BLOCK_SCHEMA,
+}
 
 const CHANNEL_CARD_SCHEMA = {
   type: 'object',
@@ -346,10 +508,7 @@ function buildLaunchKitModelSchema(
       type: 'object',
       additionalProperties: false,
       properties: Object.fromEntries(
-        selectedBlocks.map((blockId) => [
-          blockId,
-          blockId === 'reddit' ? REDDIT_PLATFORM_BLOCK_SCHEMA : PLATFORM_BLOCK_SCHEMA,
-        ]),
+        selectedBlocks.map((blockId) => [blockId, PLATFORM_BLOCK_SCHEMAS[blockId]]),
       ),
       required: selectedBlocks,
     }
@@ -450,25 +609,15 @@ export async function generateLaunchKit(input: GenerateInput): Promise<LaunchKit
     )
   }
 
-  const modelOutput =
-    (await tryGenerateModelOutput(
-      input.brief,
-      selectedBlocks,
-      selectedChannelPackIds,
-      input.channelCardTarget ?? null,
-      selectedGrowthBlocks,
-      includeMediaKit,
-      includeGrowthAssets,
-    )) ||
-    (await generateChunkedModelOutput(
-      input.brief,
-      selectedBlocks,
-      selectedChannelPackIds,
-      input.channelCardTarget ?? null,
-      selectedGrowthBlocks,
-      includeMediaKit,
-      includeGrowthAssets,
-    ))
+  const modelOutput = await generateModelOutput(
+    input.brief,
+    selectedBlocks,
+    selectedChannelPackIds,
+    input.channelCardTarget ?? null,
+    selectedGrowthBlocks,
+    includeMediaKit,
+    includeGrowthAssets,
+  )
 
   const mergedBlocks = { ...baseKit.platformBlocks }
   for (const blockId of selectedBlocks) {
@@ -501,6 +650,110 @@ export async function generateLaunchKit(input: GenerateInput): Promise<LaunchKit
   }
 
   return nextKit
+}
+
+async function generateModelOutput(
+  brief: ExtractedBrief,
+  selectedBlocks: PlatformBlockId[],
+  selectedChannelPackIds: ChannelPackId[],
+  channelCardTarget: ChannelCardTarget | null,
+  selectedGrowthBlocks: GrowthBlockId[],
+  includeMediaKit: boolean,
+  includeGrowthAssets: boolean,
+): Promise<ModelOutput> {
+  const shouldSplitPlatformBlocks =
+    selectedBlocks.length > 0 &&
+    (selectedBlocks.length > 1 ||
+      selectedChannelPackIds.length > 0 ||
+      selectedGrowthBlocks.length > 0 ||
+      includeMediaKit)
+
+  if (!shouldSplitPlatformBlocks) {
+    return (
+      (await tryGenerateModelOutput(
+        brief,
+        selectedBlocks,
+        selectedChannelPackIds,
+        channelCardTarget,
+        selectedGrowthBlocks,
+        includeMediaKit,
+        includeGrowthAssets,
+      )) ||
+      (await generateChunkedModelOutput(
+        brief,
+        selectedBlocks,
+        selectedChannelPackIds,
+        channelCardTarget,
+        selectedGrowthBlocks,
+        includeMediaKit,
+        includeGrowthAssets,
+      ))
+    )
+  }
+
+  const platformOutputs: ModelOutput[] = []
+  for (const blockId of selectedBlocks) {
+    platformOutputs.push(
+      (await tryGenerateModelOutput(brief, [blockId], [], null, [], false, false)) ||
+        (await generateChunkedModelOutput(brief, [blockId], [], null, [], false, false)),
+    )
+  }
+
+  const shouldGenerateRemaining =
+    selectedChannelPackIds.length > 0 ||
+    selectedGrowthBlocks.length > 0 ||
+    includeMediaKit
+
+  if (!shouldGenerateRemaining) {
+    return mergeModelOutputs(...platformOutputs)
+  }
+
+  const remainingOutput =
+    (await tryGenerateModelOutput(
+      brief,
+      [],
+      selectedChannelPackIds,
+      channelCardTarget,
+      selectedGrowthBlocks,
+      includeMediaKit,
+      includeGrowthAssets,
+    )) ||
+    (await generateChunkedModelOutput(
+      brief,
+      [],
+      selectedChannelPackIds,
+      channelCardTarget,
+      selectedGrowthBlocks,
+      includeMediaKit,
+      includeGrowthAssets,
+    ))
+
+  return mergeModelOutputs(...platformOutputs, remainingOutput)
+}
+
+function mergeModelOutputs(...outputs: ModelOutput[]): ModelOutput {
+  return outputs.reduce<ModelOutput>(
+    (merged, output) => ({
+      platformBlocks: {
+        ...merged.platformBlocks,
+        ...(output.platformBlocks || {}),
+      },
+      channelPacks: {
+        ...merged.channelPacks,
+        ...(output.channelPacks || {}),
+      },
+      mediaKit: output.mediaKit || merged.mediaKit,
+      growthAssets: {
+        ...merged.growthAssets,
+        ...(output.growthAssets || {}),
+      },
+    }),
+    {
+      platformBlocks: {},
+      channelPacks: {},
+      growthAssets: {},
+    },
+  )
 }
 
 async function tryGenerateModelOutput(
@@ -627,15 +880,16 @@ type PromptProfile = {
 
 const PLATFORM_PROMPT_PROFILES: Record<PlatformBlockId, PromptProfile> = {
   product_hunt: {
-    objective: 'Create launch-page copy that helps Product Hunt visitors understand, remember, and support the launch.',
+    objective: 'Create Product Hunt launch assets that fit the page fields and help hunters understand the product quickly.',
     audience: 'Product Hunt makers, early adopters, and category-curious buyers scanning a launch page quickly.',
-    format: 'Tagline-style title, tight maker context, benefit-led body, and a calm feedback/support CTA.',
+    format: '60-character tagline, 500-character launch description, three launch tags, and a maker first comment.',
     tone: 'Crisp, useful, confident, and maker-led without hype.',
     contract:
-      'Product Hunt launch-page copy with a clear tagline, maker context, concrete benefit, and calm ask for feedback/support.',
+      'Product Hunt launch fields: tagline max 60 characters, launch description max 500 characters, exactly three launch tags, and a first comment explaining inspiration, problem, audience, and feedback ask.',
     qualityExpectations: [
-      'Make the first sentence understandable without prior product knowledge.',
+      'Make the tagline understandable without prior product knowledge.',
       'Name the specific user, problem, and outcome.',
+      'Use Product Hunt-friendly tags that match the category, buyer, and use case.',
       'Avoid buzzwords, inflated launch language, and unsupported traction.',
     ],
   },
@@ -719,7 +973,7 @@ const PLATFORM_PROMPT_PROFILES: Record<PlatformBlockId, PromptProfile> = {
   },
   email_announcement: {
     objective: 'Write a useful announcement email that explains who the launch is for and why now.',
-    audience: 'Subscribers, prospects, customers, or waitlist readers who need fast relevance and a clear next step.',
+    audience: 'Subscribers, prospects, customers, or newsletter readers who need fast relevance and a clear next step.',
     format: 'Subject, short context, audience relevance, concrete benefit, sourced proof if available, and CTA.',
     tone: 'Direct, skimmable, helpful, and respectful of inbox attention.',
     contract:
@@ -923,7 +1177,7 @@ function buildLaunchKitInstructions(
   includeGrowthAssets: boolean,
 ): string {
   const lines = [
-    'You are Launch Kit, a senior launch strategist, growth operator, and channel-native copywriter.',
+    'You are shipdaddy, a senior launch strategist, growth operator, and channel-native copywriter.',
     'Mission: generate high-quality promotional content that sounds human, specific, and ready for a founder or marketer to lightly edit and publish.',
     'Core principle: every output has its own social contract. Preserve the product story, but adapt the structure, pacing, proof, CTA, and level of direct promotion to the specific requested output.',
     'Use brief.voiceGuide as the baseline brand voice. If it conflicts with a channel social contract, keep the brand personality but adapt the delivery to the channel.',
@@ -972,6 +1226,14 @@ function buildLaunchKitInstructions(
     )
   }
 
+  if (selectedBlocks.length > 0) {
+    lines.push(
+      '',
+      'Platform-specific field rules:',
+      ...selectedBlocks.flatMap((blockId) => buildPlatformInstructionLines(blockId)),
+    )
+  }
+
   if (selectedBlocks.includes('reddit') || selectedChannelPackIds.includes('reddit')) {
     lines.push(
       '',
@@ -995,6 +1257,82 @@ function buildLaunchKitInstructions(
   lines.push('', 'Return valid JSON matching the schema. No markdown wrapper.')
 
   return lines.join('\n')
+}
+
+function buildPlatformInstructionLines(blockId: PlatformBlockId): string[] {
+  const instructionLines: Record<PlatformBlockId, string[]> = {
+    product_hunt: [
+      '- Product Hunt: return platformBlocks.product_hunt with tagline, description, tags, firstComment, and notes only.',
+      '- Product Hunt tagline: 60 characters or fewer, benefit-led, and easy to understand without context.',
+      '- Product Hunt description: 500 characters or fewer; cover what it is, who it is for, the problem, and the core outcome.',
+      '- Product Hunt tags: exactly three concise launch tags or categories, ranked strongest fit first.',
+      '- Product Hunt firstComment: maker voice covering inspiration, problem, audience, what is useful now, and a specific feedback ask.',
+      '- Product Hunt social norm: confident but not inflated; no CTA field, no fake traction, no launch-day hype that outpaces proof.',
+    ],
+    hacker_news: [
+      '- Hacker News: return platformBlocks.hacker_news with showHnTitle, postBody, feedbackAsk, discussionSeed, and notes only.',
+      '- showHnTitle must start with "Show HN:" and stay under 80 characters when possible.',
+      '- postBody should be 2-5 short paragraphs: what was built, why, how it works, constraints/tradeoffs, and current status.',
+      '- feedbackAsk must request specific technical, UX, positioning, or workflow feedback rather than visits or upvotes.',
+      '- discussionSeed should be one grounded question that invites useful HN discussion.',
+      '- HN social norm: plain, humble, implementation-aware, non-promotional, and no marketing cadence.',
+    ],
+    reddit: [
+      '- Reddit: return platformBlocks.reddit with postTitle, postBody, builderDisclosure, discussionQuestion, linkPolicyNote, notes, and redditRecommendations.',
+      '- postTitle should read like a community discussion title, not an ad headline.',
+      '- postBody should lead with context and the problem, disclose the builder role before any ask, and remain useful without a link.',
+      '- builderDisclosure must plainly state the writer is the builder/founder/operator.',
+      '- discussionQuestion must ask for specific community feedback or lived experience.',
+      '- linkPolicyNote must remind the user to check current subreddit rules, flair, and self-promotion limits before posting.',
+      '- Reddit social norm: no engagement bait, no naked links, no pretending to be a neutral user.',
+    ],
+    indie_hackers: [
+      '- Indie Hackers: return platformBlocks.indie_hackers with postTitle, founderStory, lesson, proofOrMetric, nextExperiment, feedbackAsk, and notes only.',
+      '- postTitle should frame a build-in-public story or lesson, not only announce the product.',
+      '- founderStory should explain the decision, constraint, or repeated problem behind the build.',
+      '- lesson must be transferable to other makers.',
+      '- proofOrMetric must use sourced proof only; if missing, write a clearly labeled proof-to-add slot.',
+      '- nextExperiment must name what the founder will test next.',
+      '- Indie Hackers social norm: candid maker-to-maker writing with practical tradeoffs and a real ask.',
+    ],
+    linkedin: [
+      '- LinkedIn: return platformBlocks.linkedin with hook, postBody, proofPoint, closingCta, and notes only.',
+      '- hook must be a professional first line under 220 characters that leads with an operator insight or business tension.',
+      '- postBody should use short paragraphs, name the audience, explain stakes, and connect the product to a practical outcome.',
+      '- proofPoint must be sourced or clearly labeled as proof to add.',
+      '- closingCta should be low-friction and professional.',
+      '- LinkedIn social norm: human and useful, not a press release, not empty thought leadership, and no hashtag stuffing.',
+    ],
+    tiktok: [
+      '- TikTok: return platformBlocks.tiktok with hook, spokenScript, visualBeats, onScreenText, closeCta, and notes only.',
+      '- hook should work in the first 1-2 seconds and be concrete enough to film.',
+      '- spokenScript should be 20-35 seconds in a natural founder/operator voice.',
+      '- visualBeats must contain 3-7 filmable actions or shots; no abstract directions.',
+      '- onScreenText must contain 2-6 short overlays that are readable on mobile.',
+      '- closeCta should invite a useful comment, sample run, or product visit without engagement bait.',
+      '- TikTok social norm: fast, visual, specific, human-spoken, and grounded in real product moments.',
+    ],
+    youtube_shorts: [
+      '- YouTube Shorts: return platformBlocks.youtube_shorts with title, hook, spokenScript, visualBeats, retentionCue, closeCta, and notes only.',
+      '- title should be search-friendly and under 100 characters.',
+      '- hook should set the premise quickly without performative hype.',
+      '- spokenScript should be 25-45 seconds with clear opening, product moment, payoff, and close.',
+      '- visualBeats must contain 3-7 shots a founder can actually capture.',
+      '- retentionCue should name the mid-video reason to keep watching.',
+      '- YouTube Shorts social norm: clear, useful, demo-forward, less chaotic than TikTok, and no unsupported claims.',
+    ],
+    email_announcement: [
+      '- Email announcement: return platformBlocks.email_announcement with subject, previewText, greeting, opening, body, ctaText, signoff, and notes only.',
+      '- subject must be specific, under 78 characters, and not clickbait.',
+      '- previewText must be under 120 characters and add context instead of repeating the subject.',
+      '- opening should name who the email is for and why the launch matters now.',
+      '- body should use short paragraphs, one core benefit, sourced proof if available, and a clear next step.',
+      '- ctaText should be a concise button/link label or closing ask.',
+      '- Email social norm: respectful of inbox attention, no fake urgency, no over-personalization, and no unsupported proof.',
+    ],
+  }
+
+  return instructionLines[blockId]
 }
 
 function buildRequestedContractLines(
@@ -1124,11 +1462,7 @@ function buildRequestedOutputBriefs(
   includeGrowthAssets: boolean,
 ) {
   return {
-    platformBlocks: selectedBlocks.map((blockId) => ({
-      id: blockId,
-      label: PLATFORM_LABELS[blockId],
-      ...PLATFORM_PROMPT_PROFILES[blockId],
-    })),
+    platformBlocks: selectedBlocks.map((blockId) => buildPlatformBlockPromptBrief(blockId)),
     channelPacks: selectedChannelPackIds.map((channelId) => ({
       id: channelId,
       label: CHANNEL_PACK_LABELS[channelId],
@@ -1146,6 +1480,85 @@ function buildRequestedOutputBriefs(
         }))
       : [],
   }
+}
+
+function buildPlatformBlockPromptBrief(blockId: PlatformBlockId) {
+  return {
+    id: blockId,
+    label: PLATFORM_LABELS[blockId],
+    ...PLATFORM_PROMPT_PROFILES[blockId],
+    fields: PLATFORM_NATIVE_FIELD_GUIDANCE[blockId],
+  }
+}
+
+const PLATFORM_NATIVE_FIELD_GUIDANCE: Record<PlatformBlockId, Record<string, string>> = {
+  product_hunt: {
+    tagline: 'Product Hunt tagline, 60 characters max.',
+    description: 'Product Hunt launch description, 500 characters max.',
+    tags: 'Exactly three best-fit Product Hunt launch tags/categories.',
+    firstComment:
+      'Maker first comment covering inspiration, problem, target user, useful outcome, and specific feedback ask.',
+    notes: 'Publishing notes specific to Product Hunt launch prep.',
+  },
+  hacker_news: {
+    showHnTitle: 'Show HN title beginning with "Show HN:", ideally under 80 characters.',
+    postBody: 'Plain text Show HN body with what was built, why, how it works, and tradeoffs.',
+    feedbackAsk: 'Specific feedback ask for HN readers.',
+    discussionSeed: 'Grounded discussion question for comments.',
+    notes: 'HN publishing notes and proof caveats.',
+  },
+  reddit: {
+    postTitle: 'Subreddit-safe discussion title.',
+    postBody: 'Context-first Reddit post body that works without a link.',
+    builderDisclosure: 'Plain disclosure that the writer built or operates the product.',
+    discussionQuestion: 'Specific question for community discussion.',
+    linkPolicyNote: 'Reminder to check subreddit rules, flair, and self-promotion limits.',
+    notes: 'Reddit publishing notes.',
+    redditRecommendations: 'Relevant engagement and self-promotion candidate subreddits.',
+  },
+  indie_hackers: {
+    postTitle: 'Build-in-public post title.',
+    founderStory: 'Founder story or decision behind the product.',
+    lesson: 'Transferable lesson for other makers.',
+    proofOrMetric: 'Sourced proof/metric or proof-to-add placeholder.',
+    nextExperiment: 'Specific next experiment.',
+    feedbackAsk: 'Feedback ask for Indie Hackers.',
+    notes: 'Indie Hackers publishing notes.',
+  },
+  linkedin: {
+    hook: 'Professional first line under 220 characters.',
+    postBody: 'Short-paragraph LinkedIn post body.',
+    proofPoint: 'Sourced proof point or proof-to-add placeholder.',
+    closingCta: 'Low-friction professional CTA.',
+    notes: 'LinkedIn publishing notes.',
+  },
+  tiktok: {
+    hook: 'First 1-2 second video hook.',
+    spokenScript: '20-35 second spoken script.',
+    visualBeats: '3-7 filmable visual actions or shots.',
+    onScreenText: '2-6 short mobile-readable overlays.',
+    closeCta: 'Comment/sample/visit close.',
+    notes: 'TikTok filming and publishing notes.',
+  },
+  youtube_shorts: {
+    title: 'Search-friendly Shorts title under 100 characters.',
+    hook: 'Opening hook.',
+    spokenScript: '25-45 second spoken script.',
+    visualBeats: '3-7 filmable shots.',
+    retentionCue: 'Mid-video retention reason.',
+    closeCta: 'Clear close CTA.',
+    notes: 'YouTube Shorts filming and publishing notes.',
+  },
+  email_announcement: {
+    subject: 'Specific subject line under 78 characters.',
+    previewText: 'Preview text under 120 characters.',
+    greeting: 'Greeting line.',
+    opening: 'Launch context and audience relevance.',
+    body: 'Skimmable email body.',
+    ctaText: 'Button/link label or closing ask.',
+    signoff: 'Signoff.',
+    notes: 'Email sending notes.',
+  },
 }
 
 function buildChannelCardPromptBrief(channelId: ChannelPackId, blueprint: ChannelCardBlueprint) {
@@ -1218,7 +1631,10 @@ function buildOutputContract(
   const contract: Record<string, string> = {}
 
   if (selectedBlocks.length > 0) {
-    contract.platformBlocks = `Object keyed only by these platform ids: ${selectedBlocks.join(', ')}. Each value has title, body, cta, notes, and redditRecommendations only for reddit.`
+    contract.platformBlocks = `Object keyed only by these platform ids: ${selectedBlocks.join(', ')}. Each value must use that platform's native field contract, never a shared title/body/cta block.`
+    for (const blockId of selectedBlocks) {
+      contract[blockId] = Object.keys(PLATFORM_NATIVE_FIELD_GUIDANCE[blockId]).join(', ')
+    }
   }
 
   if (selectedChannelPackIds.length > 0) {
@@ -1844,22 +2260,300 @@ function normalizeBlock(
   raw: RawPlatformBlock | undefined,
   brief: ExtractedBrief,
 ): PlatformBlock {
+  const notes = raw?.notes?.trim() || 'Generated from your product brief and adapted to this platform.'
+
+  if (blockId === 'product_hunt') {
+    const productHunt = normalizeProductHuntContent(raw, brief)
+    return {
+      id: 'product_hunt',
+      label: PLATFORM_LABELS.product_hunt,
+      title: productHunt.tagline,
+      body: productHunt.description,
+      cta: brief.cta,
+      notes: raw?.notes?.trim() ||
+        'Product Hunt-ready fields with tagline, launch description, tags, and maker first comment.',
+      productHunt,
+    }
+  }
+
+  if (blockId === 'hacker_news') {
+    const hackerNews = normalizeHackerNewsContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: hackerNews.showHnTitle,
+      body: [hackerNews.postBody, hackerNews.feedbackAsk, hackerNews.discussionSeed].join('\n\n'),
+      cta: hackerNews.feedbackAsk,
+      notes,
+      hackerNews,
+    }
+  }
+
+  if (blockId === 'reddit') {
+    const reddit = normalizeRedditContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: reddit.postTitle,
+      body: [reddit.postBody, reddit.builderDisclosure, reddit.discussionQuestion].join('\n\n'),
+      cta: reddit.discussionQuestion,
+      notes,
+      reddit,
+      redditRecommendations: normalizeRedditRecommendations(
+        raw?.redditRecommendations,
+        fallbackRedditRecommendations(brief),
+      ),
+    }
+  }
+
+  if (blockId === 'indie_hackers') {
+    const indieHackers = normalizeIndieHackersContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: indieHackers.postTitle,
+      body: [
+        indieHackers.founderStory,
+        indieHackers.lesson,
+        indieHackers.proofOrMetric,
+        indieHackers.nextExperiment,
+        indieHackers.feedbackAsk,
+      ].join('\n\n'),
+      cta: indieHackers.feedbackAsk,
+      notes,
+      indieHackers,
+    }
+  }
+
+  if (blockId === 'linkedin') {
+    const linkedin = normalizeLinkedInContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: linkedin.hook,
+      body: [linkedin.hook, linkedin.postBody, linkedin.proofPoint, linkedin.closingCta].join('\n\n'),
+      cta: linkedin.closingCta,
+      notes,
+      linkedin,
+    }
+  }
+
+  if (blockId === 'tiktok') {
+    const tiktok = normalizeTikTokContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: tiktok.hook,
+      body: [tiktok.hook, tiktok.spokenScript, ...tiktok.visualBeats, ...tiktok.onScreenText].join('\n\n'),
+      cta: tiktok.closeCta,
+      notes,
+      tiktok,
+    }
+  }
+
+  if (blockId === 'youtube_shorts') {
+    const youtubeShorts = normalizeYouTubeShortsContent(raw, brief)
+    return {
+      id: blockId,
+      label: PLATFORM_LABELS[blockId],
+      title: youtubeShorts.title,
+      body: [
+        youtubeShorts.hook,
+        youtubeShorts.spokenScript,
+        ...youtubeShorts.visualBeats,
+        youtubeShorts.retentionCue,
+      ].join('\n\n'),
+      cta: youtubeShorts.closeCta,
+      notes,
+      youtubeShorts,
+    }
+  }
+
+  const emailAnnouncement = normalizeEmailAnnouncementContent(raw, brief)
   return {
     id: blockId,
     label: PLATFORM_LABELS[blockId],
-    title: raw?.title?.trim() || `${brief.productName} on ${PLATFORM_LABELS[blockId]}`,
-    body: raw?.body?.trim() || fallbackBlockBody(blockId, brief),
-    cta: raw?.cta?.trim() || brief.cta,
-    notes: raw?.notes?.trim() || 'Generated from your product brief and adapted to this platform.',
-    ...(blockId === 'reddit'
-      ? {
-          redditRecommendations: normalizeRedditRecommendations(
-            raw?.redditRecommendations,
-            fallbackRedditRecommendations(brief),
-          ),
-        }
-      : {}),
+    title: emailAnnouncement.subject,
+    body: [
+      emailAnnouncement.previewText,
+      emailAnnouncement.greeting,
+      emailAnnouncement.opening,
+      emailAnnouncement.body,
+      emailAnnouncement.ctaText,
+      emailAnnouncement.signoff,
+    ].join('\n\n'),
+    cta: emailAnnouncement.ctaText,
+    notes,
+    emailAnnouncement,
   }
+}
+
+function normalizeProductHuntContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): ProductHuntLaunchContent {
+  const fallback = fallbackProductHuntContent(brief)
+  const nested = raw?.productHunt
+
+  return {
+    tagline: limitText(raw?.tagline || nested?.tagline || fallback.tagline, 60),
+    description: limitText(raw?.description || nested?.description || fallback.description, 500),
+    tags: normalizeProductHuntTags(raw?.tags || nested?.tags, fallback.tags),
+    firstComment: raw?.firstComment?.trim() || nested?.firstComment?.trim() || fallback.firstComment,
+  }
+}
+
+function normalizeHackerNewsContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): HackerNewsLaunchContent {
+  const fallback = fallbackHackerNewsContent(brief)
+  const nested = raw?.hackerNews
+
+  return {
+    showHnTitle: limitText(raw?.showHnTitle || nested?.showHnTitle || fallback.showHnTitle, 80),
+    postBody: raw?.postBody?.trim() || nested?.postBody?.trim() || fallback.postBody,
+    feedbackAsk: raw?.feedbackAsk?.trim() || nested?.feedbackAsk?.trim() || fallback.feedbackAsk,
+    discussionSeed: raw?.discussionSeed?.trim() || nested?.discussionSeed?.trim() || fallback.discussionSeed,
+  }
+}
+
+function normalizeRedditContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): RedditLaunchContent {
+  const fallback = fallbackRedditContent(brief)
+  const nested = raw?.reddit
+
+  return {
+    postTitle: raw?.postTitle?.trim() || nested?.postTitle?.trim() || fallback.postTitle,
+    postBody: raw?.postBody?.trim() || nested?.postBody?.trim() || fallback.postBody,
+    builderDisclosure:
+      raw?.builderDisclosure?.trim() ||
+      nested?.builderDisclosure?.trim() ||
+      fallback.builderDisclosure,
+    discussionQuestion:
+      raw?.discussionQuestion?.trim() ||
+      nested?.discussionQuestion?.trim() ||
+      fallback.discussionQuestion,
+    linkPolicyNote:
+      raw?.linkPolicyNote?.trim() ||
+      nested?.linkPolicyNote?.trim() ||
+      fallback.linkPolicyNote,
+  }
+}
+
+function normalizeIndieHackersContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): IndieHackersLaunchContent {
+  const fallback = fallbackIndieHackersContent(brief)
+  const nested = raw?.indieHackers
+
+  return {
+    postTitle: raw?.postTitle?.trim() || nested?.postTitle?.trim() || fallback.postTitle,
+    founderStory: raw?.founderStory?.trim() || nested?.founderStory?.trim() || fallback.founderStory,
+    lesson: raw?.lesson?.trim() || nested?.lesson?.trim() || fallback.lesson,
+    proofOrMetric: raw?.proofOrMetric?.trim() || nested?.proofOrMetric?.trim() || fallback.proofOrMetric,
+    nextExperiment:
+      raw?.nextExperiment?.trim() ||
+      nested?.nextExperiment?.trim() ||
+      fallback.nextExperiment,
+    feedbackAsk: raw?.feedbackAsk?.trim() || nested?.feedbackAsk?.trim() || fallback.feedbackAsk,
+  }
+}
+
+function normalizeLinkedInContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): LinkedInLaunchContent {
+  const fallback = fallbackLinkedInContent(brief)
+  const nested = raw?.linkedin
+
+  return {
+    hook: limitText(raw?.hook || nested?.hook || fallback.hook, 220),
+    postBody: raw?.postBody?.trim() || nested?.postBody?.trim() || fallback.postBody,
+    proofPoint: raw?.proofPoint?.trim() || nested?.proofPoint?.trim() || fallback.proofPoint,
+    closingCta: raw?.closingCta?.trim() || nested?.closingCta?.trim() || fallback.closingCta,
+  }
+}
+
+function normalizeTikTokContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): TikTokLaunchContent {
+  const fallback = fallbackTikTokContent(brief)
+  const nested = raw?.tiktok
+
+  return {
+    hook: limitText(raw?.hook || nested?.hook || fallback.hook, 140),
+    spokenScript: raw?.spokenScript?.trim() || nested?.spokenScript?.trim() || fallback.spokenScript,
+    visualBeats: normalizeStringList(raw?.visualBeats || nested?.visualBeats, fallback.visualBeats, 7),
+    onScreenText: normalizeStringList(raw?.onScreenText || nested?.onScreenText, fallback.onScreenText, 6),
+    closeCta: raw?.closeCta?.trim() || nested?.closeCta?.trim() || fallback.closeCta,
+  }
+}
+
+function normalizeYouTubeShortsContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): YouTubeShortsLaunchContent {
+  const fallback = fallbackYouTubeShortsContent(brief)
+  const nested = raw?.youtubeShorts
+
+  return {
+    title: limitText(raw?.title || nested?.title || fallback.title, 100),
+    hook: limitText(raw?.hook || nested?.hook || fallback.hook, 140),
+    spokenScript: raw?.spokenScript?.trim() || nested?.spokenScript?.trim() || fallback.spokenScript,
+    visualBeats: normalizeStringList(raw?.visualBeats || nested?.visualBeats, fallback.visualBeats, 7),
+    retentionCue: raw?.retentionCue?.trim() || nested?.retentionCue?.trim() || fallback.retentionCue,
+    closeCta: raw?.closeCta?.trim() || nested?.closeCta?.trim() || fallback.closeCta,
+  }
+}
+
+function normalizeEmailAnnouncementContent(
+  raw: RawPlatformBlock | undefined,
+  brief: ExtractedBrief,
+): EmailAnnouncementLaunchContent {
+  const fallback = fallbackEmailAnnouncementContent(brief)
+  const nested = raw?.emailAnnouncement
+
+  return {
+    subject: limitText(raw?.subject || nested?.subject || fallback.subject, 78),
+    previewText: limitText(raw?.previewText || nested?.previewText || fallback.previewText, 120),
+    greeting: raw?.greeting?.trim() || nested?.greeting?.trim() || fallback.greeting,
+    opening: raw?.opening?.trim() || nested?.opening?.trim() || fallback.opening,
+    body: raw?.body?.trim() || nested?.body?.trim() || fallback.body,
+    ctaText: raw?.ctaText?.trim() || nested?.ctaText?.trim() || fallback.ctaText,
+    signoff: raw?.signoff?.trim() || nested?.signoff?.trim() || fallback.signoff,
+  }
+}
+
+function normalizeProductHuntTags(tags: unknown, fallback: string[]): string[] {
+  const normalized = Array.isArray(tags)
+    ? tags
+        .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+        .filter(Boolean)
+        .slice(0, 3)
+    : []
+
+  return normalized.length === 3 ? normalized : fallback
+}
+
+function limitText(value: string, maxLength: number): string {
+  const trimmed = value.trim()
+  return trimmed.length > maxLength ? trimmed.slice(0, maxLength).trim() : trimmed
+}
+
+function normalizeStringList(values: unknown, fallback: string[], maxItems: number): string[] {
+  const normalized = Array.isArray(values)
+    ? values
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean)
+        .slice(0, maxItems)
+    : []
+
+  return normalized.length > 0 ? normalized : fallback.slice(0, maxItems)
 }
 
 function normalizeMediaKit(raw: ModelOutput['mediaKit'], brief: ExtractedBrief): MediaKit {
@@ -2018,6 +2712,205 @@ function normalizeSeoPostPacks(
   return packs.slice(0, 6)
 }
 
+function fallbackProductHuntContent(brief: ExtractedBrief): ProductHuntLaunchContent {
+  const product = brief.productName || 'the product'
+  const audience = brief.targetUsers[0] || brief.icp || 'the people it is built for'
+  const pain = brief.painPoints[0] || 'turning a clear product idea into a useful workflow'
+  const value = brief.valueProps[0] || brief.positioning || 'a clearer path from problem to outcome'
+  const proof = brief.proofPoints[0] || ''
+  const proofSentence = proof ? ` Source-backed proof to mention: ${proof}` : ''
+
+  return {
+    tagline: limitText(`${product}: ${value}`, 60),
+    description: limitText(`${product} helps ${audience} solve ${pain} by ${value}.${proofSentence}`, 500),
+    tags: fallbackProductHuntTags(brief),
+    firstComment:
+      `Hi Product Hunt - I built ${product} because ${pain} kept showing up for ${audience}.\n\n` +
+      `The goal is simple: ${value}.\n\n` +
+      `I would love feedback on whether the positioning is clear, which part feels most useful, and what would make you trust it enough to try.`,
+  }
+}
+
+function fallbackHackerNewsContent(brief: ExtractedBrief): HackerNewsLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    showHnTitle: limitText(`Show HN: ${values.product} - ${values.shortValue}`, 80),
+    postBody:
+      `I built ${values.product} because ${values.pain} kept showing up for ${values.audience}.\n\n` +
+      `The current version focuses on ${values.value}. It is intentionally narrow: make the workflow clear, keep claims grounded, and give users something they can review before publishing.\n\n` +
+      `Tradeoff: I would rather mark missing proof clearly than invent traction or make the launch copy sound more certain than the source evidence supports.`,
+    feedbackAsk:
+      'I would appreciate feedback on the clarity of the workflow, whether the positioning is specific enough, and where the generated output would need more evidence before publishing.',
+    discussionSeed: 'What would make a launch workflow like this technically or practically trustworthy enough to use?',
+  }
+}
+
+function fallbackRedditContent(brief: ExtractedBrief): RedditLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    postTitle: `How would you handle ${values.pain.toLowerCase()}?`,
+    postBody:
+      `I am trying to understand how other people handle this workflow problem: ${values.pain}.\n\n` +
+      `For context, I am working on ${values.product}, which is meant to help ${values.audience} get ${values.value}. I am more interested in the workflow and trust question than dropping a link.`,
+    builderDisclosure: `I am the builder of ${values.product}.`,
+    discussionQuestion:
+      'What would make a tool like this useful enough to try, and what would make it feel like generic self-promotion?',
+    linkPolicyNote:
+      'Check the current subreddit rules, required flair, and self-promotion limits before including a link.',
+  }
+}
+
+function fallbackIndieHackersContent(brief: ExtractedBrief): IndieHackersLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    postTitle: `I am building ${values.product} around one launch workflow lesson`,
+    founderStory:
+      `The repeated problem behind ${values.product}: ${values.pain}. I kept seeing one product story get rewritten from scratch or pasted into channels where it did not fit.`,
+    lesson:
+      `The lesson so far is that ${values.audience} need the source story to stay stable while the delivery changes for the room.`,
+    proofOrMetric: values.proof,
+    nextExperiment:
+      `Next experiment: test which generated platform output feels most publishable after light founder editing.`,
+    feedbackAsk:
+      'Which part of this workflow would you trust least: extraction, channel adaptation, proof handling, or the final CTA?',
+  }
+}
+
+function fallbackLinkedInContent(brief: ExtractedBrief): LinkedInLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    hook: limitText(`${values.audience} do not need another generic launch draft. They need ${values.value}.`, 220),
+    postBody:
+      `${values.product} is built around a simple operating idea: keep one source narrative, then adapt the structure, proof, and ask to the place where it will be published.\n\n` +
+      `The pain is familiar: ${values.pain}.\n\n` +
+      `The useful outcome is more focused launch work, less channel-by-channel rewriting, and clearer review before anything goes live.`,
+    proofPoint: values.proof,
+    closingCta: brief.cta || 'Review the workflow and share what would make it more useful.',
+  }
+}
+
+function fallbackTikTokContent(brief: ExtractedBrief): TikTokLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    hook: limitText(`${values.pain} should not slow down ${values.audience}.`, 140),
+    spokenScript:
+      `If launching means rewriting the same product story for every channel, the problem is not just copy. It is translation.\n\n` +
+      `${values.product} helps ${values.audience} start from one source brief and turn it into platform-ready launch assets.\n\n` +
+      `The goal is simple: ${values.value}.`,
+    visualBeats: [
+      'Show the messy launch notes or scattered tabs.',
+      `Show ${values.product} starting from one product URL or brief.`,
+      'Show platform-specific outputs side by side.',
+      'Point to the proof or review step before publishing.',
+    ],
+    onScreenText: [
+      'One story',
+      'Different launch rooms',
+      'Review before publishing',
+    ],
+    closeCta: brief.cta || 'Comment with the hardest launch channel to write for.',
+  }
+}
+
+function fallbackYouTubeShortsContent(brief: ExtractedBrief): YouTubeShortsLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    title: limitText(`${values.product}: one launch story, native platform outputs`, 100),
+    hook: limitText(`Most launch copy breaks when one story gets pasted everywhere.`, 140),
+    spokenScript:
+      `Here is the launch problem: ${values.pain}.\n\n` +
+      `${values.product} starts with one product brief, then adapts the message for the platform instead of forcing every channel into the same template.\n\n` +
+      `For ${values.audience}, the practical outcome is ${values.value}.`,
+    visualBeats: [
+      'Open on the repeated launch-copy problem.',
+      'Show the source brief or product URL.',
+      'Show one native platform output.',
+      'Show the export or review moment.',
+    ],
+    retentionCue: 'Show the side-by-side difference between a generic draft and a platform-native field.',
+    closeCta: brief.cta || 'Open the sample launch kit.',
+  }
+}
+
+function fallbackEmailAnnouncementContent(
+  brief: ExtractedBrief,
+): EmailAnnouncementLaunchContent {
+  const values = fallbackPlatformValues(brief)
+
+  return {
+    subject: limitText(`${values.product} helps with ${values.shortPain}`, 78),
+    previewText: limitText(`A focused launch workflow for ${values.audience}.`, 120),
+    greeting: 'Hi there,',
+    opening: `${values.product} is built for ${values.audience} who are dealing with ${values.pain}.`,
+    body:
+      `The workflow focuses on ${values.value}.\n\n` +
+      `Instead of starting from scattered notes, you can review one source story and adapt it to the places where the launch will actually happen.\n\n` +
+      `${values.proof}`,
+    ctaText: brief.cta || 'Try it with your product URL',
+    signoff: `Thanks,\nThe ${values.product} team`,
+  }
+}
+
+function fallbackPlatformValues(brief: ExtractedBrief) {
+  const product = brief.productName || 'the product'
+  const audience = brief.targetUsers[0] || brief.icp || 'the people it is built for'
+  const pain = brief.painPoints[0] || 'turning a clear product idea into a useful launch workflow'
+  const value = brief.valueProps[0] || brief.positioning || 'a clearer path from problem to outcome'
+  const proof = brief.proofPoints[0] ||
+    'Proof to add before publishing: include a sourced metric, customer example, testimonial, or product capability.'
+
+  return {
+    product,
+    audience,
+    pain,
+    value,
+    proof,
+    shortPain: limitText(pain, 42).toLowerCase(),
+    shortValue: limitText(value, 42),
+  }
+}
+
+function fallbackProductHuntTags(brief: ExtractedBrief): string[] {
+  const source = [
+    brief.positioning,
+    brief.icp,
+    ...brief.targetUsers,
+    ...brief.valueProps,
+    ...brief.keywordResearch.clusters.map((cluster) => cluster.topic),
+  ]
+    .join(' ')
+    .toLowerCase()
+  const candidates: string[] = []
+
+  if (/\b(ai|artificial intelligence|llm|automation|automated)\b/.test(source)) {
+    candidates.push('Artificial Intelligence')
+  }
+
+  if (/\b(marketing|launch|growth|content|social|seo)\b/.test(source)) {
+    candidates.push('Marketing')
+  }
+
+  if (/\b(developer|api|code|engineering|devtool)\b/.test(source)) {
+    candidates.push('Developer Tools')
+  }
+
+  if (/\b(sales|crm|lead|outreach)\b/.test(source)) {
+    candidates.push('Sales')
+  }
+
+  if (/\b(design|creative|image|video|brand)\b/.test(source)) {
+    candidates.push('Design Tools')
+  }
+
+  return [...new Set([...candidates, 'Productivity', 'SaaS'])].slice(0, 3)
+}
+
 function fallbackLaunchKit(
   brief: ExtractedBrief,
   selectedBlocks: PlatformBlockId[],
@@ -2031,15 +2924,8 @@ function fallbackLaunchKit(
   const blocks = { ...baseKit.platformBlocks }
   for (const blockId of selectedBlocks) {
     blocks[blockId] = {
-      id: blockId,
-      label: PLATFORM_LABELS[blockId],
-      title: `${brief.productName} for ${PLATFORM_LABELS[blockId]}`,
-      body: fallbackBlockBody(blockId, brief),
-      cta: brief.cta,
+      ...normalizeBlock(blockId, undefined, brief),
       notes: 'Template output (set REPLICATE_API_TOKEN or OPENAI_API_KEY for AI-enhanced results).',
-      ...(blockId === 'reddit'
-        ? { redditRecommendations: normalizeRedditRecommendations(undefined, fallbackRedditRecommendations(brief)) }
-      : {}),
     }
   }
 
@@ -2305,29 +3191,6 @@ function fallbackRedditRecommendations(brief: ExtractedBrief): RedditRecommendat
       },
     ],
   }
-}
-
-function fallbackBlockBody(blockId: PlatformBlockId, brief: ExtractedBrief): string {
-  const highlights = brief.keyClaims.slice(0, 3).map((line) => `- ${line}`).join('\n')
-  const painPoints = brief.painPoints.slice(0, 2).map((line) => `- ${line}`).join('\n')
-  const valueProps = brief.valueProps.slice(0, 2).map((line) => `- ${line}`).join('\n')
-  const proofPoints = brief.proofPoints.slice(0, 2).map((line) => `- ${line}`).join('\n')
-  const proofSection = proofPoints || '- Add a source-backed metric, testimonial, customer logo, or certification before publishing.'
-  const proofCue = brief.proofPoints[0] || 'add a source-backed metric or testimonial before publishing'
-  const audience = brief.targetUsers.join(', ') || 'builders'
-
-  const templates: Record<PlatformBlockId, string> = {
-    product_hunt: `${brief.productName} is live on Product Hunt.\n\n${brief.positioning}\n\nBuilt for: ${audience}\n\nValue props:\n${valueProps}\n\nProof:\n${proofSection}\n\nHighlights:\n${highlights}`,
-    hacker_news: `Show HN: ${brief.productName}\n\nI built this for ${audience}. ${brief.positioning}\n\nPain points we targeted:\n${painPoints}\n\nWould value candid feedback on product, positioning, and launch execution.`,
-    reddit: `Hey everyone, I built ${brief.productName}. ${brief.positioning}\n\nPain points this addresses:\n${painPoints}\n\nCurious if this resonates with how your team launches products.`,
-    indie_hackers: `Launched ${brief.productName} today.\n\nWho it helps: ${audience}\nWhat worked: ${brief.valueProps[0] || brief.positioning}\nWhat was hard: ${brief.painPoints[0] || 'Finding a sharper path from problem to proof.'}\nProof signals:\n${proofSection}\nWhat I am testing next: distribution and onboarding loops.`,
-    linkedin: `Today we launched ${brief.productName}.\n\n${brief.positioning}\n\nBuilt for ${audience}.\nWhy this matters:\n${valueProps}\nProof:\n${proofSection}`,
-    tiktok: `Hook: ${brief.painPoints[0] || `This should be easier for ${audience}`}.\nStory beats: Problem -> ${brief.productName} -> Outcome (${brief.valueProps[0] || brief.positioning || 'a clearer next step'}).\nProof cue: ${proofCue}.\nCTA: ${brief.cta}`,
-    youtube_shorts: `Hook: ${brief.valueProps[0] || brief.positioning || `${brief.productName} makes the next step clearer`}.\nStory beats: Pain (${brief.painPoints[0] || 'the old workflow friction'}) -> Product moment (${brief.productName}) -> Outcome (${brief.valueProps[0] || 'a more practical path forward'}).\nProof cue: ${proofCue}.\nCTA: ${brief.cta}`,
-    email_announcement: `Subject: ${brief.productName} is live\n\nHi there,\n\n${brief.positioning}\n\nBuilt for: ${audience}\nPain points:\n${painPoints}\nValue props:\n${valueProps}\nProof:\n${proofSection}\n\n${brief.cta}`,
-  }
-
-  return templates[blockId]
 }
 
 export function parseSelectedBlockIds(input: unknown): PlatformBlockId[] {

@@ -1,13 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { BookOpenText, ChevronRight, Lock, PanelRightClose, PanelRightOpen, PenSquare, Sparkles, Wand2 } from 'lucide-react'
+import {
+  BookOpenText,
+  ChevronRight,
+  Download,
+  ExternalLink,
+  Lock,
+  PanelRightClose,
+  PanelRightOpen,
+  PenSquare,
+  Save,
+  Settings2,
+  Wand2,
+} from 'lucide-react'
 import { signOut, useSession } from '@/lib/auth-client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { BrandLogo } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 import { createDemoSnapshot } from '@/lib/launch-kit/demo'
 import {
@@ -27,7 +39,8 @@ import {
 import { normalizeBrief, normalizeKit } from '@/lib/launch-kit/normalizers'
 import { FREE_CHANNEL_PACK_IDS, FREE_PLATFORM_BLOCK_IDS } from '@/lib/launch-kit/plans'
 import { Field, StepStatusPill } from './dashboard-ui'
-import { editorialSerif, interfaceSans } from './dashboard-fonts'
+import { displaySans, appSans } from './dashboard-fonts'
+import { ResultAssetBrowser } from './result-asset-browser'
 import {
   type DashboardStep,
   type GenerateContentInput,
@@ -55,11 +68,6 @@ import {
   writeGuestProjects,
 } from './dashboard-utils'
 
-const ResultAssetBrowser = dynamic(
-  () => import('./result-asset-browser').then((module) => module.ResultAssetBrowser),
-  { ssr: false },
-)
-
 type DashboardPageClientProps = {
   initialUrlParam: string
   initialWantsDemo: boolean
@@ -71,7 +79,7 @@ function createInitialDemoSnapshot(enabled: boolean) {
     return null
   }
 
-  return createDemoSnapshot(typeof window === 'undefined' ? undefined : window.location.origin)
+  return createDemoSnapshot()
 }
 
 // react-doctor-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer
@@ -273,6 +281,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     : 0
   const hasGeneratedResults = Boolean(kit && hasGeneratedResultsInKit(kit))
   const isFocusedResultsView = initialWantsResultsView && Boolean(kit)
+  const isDashboardView = Boolean(kit && (activeStep === 3 || isFocusedResultsView))
 
   const step1Status: StepStatus = brief ? 'complete' : 'active'
   const step2Status: StepStatus = !canOpenStep2 ? 'locked' : hasGeneratedResults && activeStep !== 2 ? 'complete' : 'active'
@@ -702,6 +711,37 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
     }
 
     const block = kit.platformBlocks[blockId]
+    const productHunt = blockId === 'product_hunt' ? block.productHunt : undefined
+    if (productHunt) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.productHunt.tagline')}: ${productHunt.tagline}`,
+          `${t('output.productHunt.description')}: ${productHunt.description}`,
+          `${t('output.productHunt.tags')}: ${productHunt.tags.join(', ')}`,
+          `${t('output.productHunt.firstComment')}:\n${productHunt.firstComment}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.hackerNews) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.hackerNews.showHnTitle')}: ${block.hackerNews.showHnTitle}`,
+          `${t('output.hackerNews.postBody')}:\n${block.hackerNews.postBody}`,
+          `${t('output.hackerNews.feedbackAsk')}: ${block.hackerNews.feedbackAsk}`,
+          `${t('output.hackerNews.discussionSeed')}: ${block.hackerNews.discussionSeed}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
     const redditRecommendations =
       blockId === 'reddit' && block.redditRecommendations
         ? formatRedditRecommendationsForCopy(block.redditRecommendations, {
@@ -711,6 +751,102 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
             postingGuidance: t('output.reddit.postingGuidanceLabel'),
           })
         : ''
+
+    if (block.reddit) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.redditPost.postTitle')}: ${block.reddit.postTitle}`,
+          `${t('output.redditPost.postBody')}:\n${block.reddit.postBody}`,
+          `${t('output.redditPost.builderDisclosure')}: ${block.reddit.builderDisclosure}`,
+          `${t('output.redditPost.discussionQuestion')}: ${block.reddit.discussionQuestion}`,
+          `${t('output.redditPost.linkPolicyNote')}: ${block.reddit.linkPolicyNote}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+          redditRecommendations,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.indieHackers) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.indieHackers.postTitle')}: ${block.indieHackers.postTitle}`,
+          `${t('output.indieHackers.founderStory')}:\n${block.indieHackers.founderStory}`,
+          `${t('output.indieHackers.lesson')}: ${block.indieHackers.lesson}`,
+          `${t('output.indieHackers.proofOrMetric')}: ${block.indieHackers.proofOrMetric}`,
+          `${t('output.indieHackers.nextExperiment')}: ${block.indieHackers.nextExperiment}`,
+          `${t('output.indieHackers.feedbackAsk')}: ${block.indieHackers.feedbackAsk}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.linkedin) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.linkedinPost.hook')}: ${block.linkedin.hook}`,
+          `${t('output.linkedinPost.postBody')}:\n${block.linkedin.postBody}`,
+          `${t('output.linkedinPost.proofPoint')}: ${block.linkedin.proofPoint}`,
+          `${t('output.linkedinPost.closingCta')}: ${block.linkedin.closingCta}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.tiktok) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.shortVideo.hook')}: ${block.tiktok.hook}`,
+          `${t('output.shortVideo.spokenScript')}:\n${block.tiktok.spokenScript}`,
+          `${t('output.shortVideo.visualBeats')}:\n${block.tiktok.visualBeats.map((item) => `- ${item}`).join('\n')}`,
+          `${t('output.shortVideo.onScreenText')}:\n${block.tiktok.onScreenText.map((item) => `- ${item}`).join('\n')}`,
+          `${t('output.shortVideo.closeCta')}: ${block.tiktok.closeCta}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.youtubeShorts) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.shortVideo.title')}: ${block.youtubeShorts.title}`,
+          `${t('output.shortVideo.hook')}: ${block.youtubeShorts.hook}`,
+          `${t('output.shortVideo.spokenScript')}:\n${block.youtubeShorts.spokenScript}`,
+          `${t('output.shortVideo.visualBeats')}:\n${block.youtubeShorts.visualBeats.map((item) => `- ${item}`).join('\n')}`,
+          `${t('output.shortVideo.retentionCue')}: ${block.youtubeShorts.retentionCue}`,
+          `${t('output.shortVideo.closeCta')}: ${block.youtubeShorts.closeCta}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
+
+    if (block.emailAnnouncement) {
+      await navigator.clipboard.writeText(
+        [
+          `${t('output.emailAnnouncement.subject')}: ${block.emailAnnouncement.subject}`,
+          `${t('output.emailAnnouncement.previewText')}: ${block.emailAnnouncement.previewText}`,
+          `${t('output.emailAnnouncement.greeting')}: ${block.emailAnnouncement.greeting}`,
+          `${t('output.emailAnnouncement.opening')}: ${block.emailAnnouncement.opening}`,
+          `${t('output.emailAnnouncement.body')}:\n${block.emailAnnouncement.body}`,
+          `${t('output.emailAnnouncement.ctaText')}: ${block.emailAnnouncement.ctaText}`,
+          `${t('output.emailAnnouncement.signoff')}: ${block.emailAnnouncement.signoff}`,
+          `${t('output.copyNotesPrefix')}: ${block.notes}`,
+        ].join('\n\n'),
+      )
+      setSuccess(t('messages.blockCopied', { platform: getPlatformOutputLabel(blockId) }))
+      return
+    }
 
     await navigator.clipboard.writeText(
       [
@@ -1183,27 +1319,23 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
   }
 
   return (
-    <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-[#fbfaff] text-zinc-900`}>
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-24 -right-16 size-[420px] rounded-full bg-gradient-to-br from-violet-300/55 via-fuchsia-200/35 to-transparent blur-3xl" />
-        <div className="absolute top-1/3 -left-24 size-[340px] rounded-full bg-gradient-to-tr from-purple-300/35 via-violet-200/20 to-transparent blur-3xl" />
-      </div>
-
-      <header className="sticky top-0 z-30 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="group flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="size-4 text-white" />
-            </div>
-            <div>
-              <p className={`${editorialSerif.className} text-lg font-semibold leading-none tracking-tight text-zinc-900`}>
-                Launch Kit
-              </p>
-              <p className="text-xs text-zinc-500">{t('tagline')}</p>
-            </div>
+    <div className={`${appSans.className} min-h-screen overflow-x-clip bg-[#f7f7f3] text-zinc-900`}>
+      <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-[#fffffb]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1680px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="group flex items-center" aria-label="shipdaddy">
+            <BrandLogo className="h-10" priority />
           </Link>
 
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsUtilityDrawerOpen((value) => !value)}
+              className="hidden border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 sm:inline-flex"
+            >
+              <Settings2 className="mr-1.5 size-4" />
+              {t('utility.title')}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1229,7 +1361,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                   variant="outline"
                   size="sm"
                   onClick={onSignOut}
-                  className="border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
+                  className="border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
                 >
                   {t('signOut')}
                 </Button>
@@ -1238,7 +1370,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
               <Button
                 size="sm"
                 asChild
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
+                className="bg-zinc-900 text-white shadow-md shadow-zinc-900/15 hover:bg-zinc-800"
               >
                 <Link href="/auth/login">{t('signIn')}</Link>
               </Button>
@@ -1248,30 +1380,26 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
       </header>
 
       <main
-        className={`relative z-10 mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 ${
-          isFocusedResultsView ? 'max-w-[1500px]' : 'max-w-7xl'
+        className={`mx-auto w-full px-4 sm:px-6 lg:px-8 ${
+          isDashboardView ? 'max-w-[1680px] py-4' : 'max-w-7xl py-6'
         }`}
       >
-        {!isFocusedResultsView ? (
-          <section className="relative overflow-hidden rounded-[2rem] border border-violet-100 bg-white px-6 py-7 shadow-[0_30px_70px_-45px_rgba(100,40,180,0.45)] sm:px-8 sm:py-9">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.15),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(217,70,239,0.12),transparent_42%)]" />
-            <div className="relative">
+        {!isDashboardView ? (
+          <section className="rounded-lg border border-zinc-200 bg-[#fffffb] px-5 py-5 shadow-sm sm:px-6">
+            <div>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700">
                     {t('steps.step1Label')} - {t('steps.step3Label')}
                   </p>
-                  <h1 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900 sm:text-4xl`}>
+                  <h1 className={`${displaySans.className} mt-2 text-3xl leading-tight text-zinc-900 sm:text-4xl`}>
                     {t('workflowHeader.title')}
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm text-zinc-600 sm:text-base">
-                    {t('workflowHeader.description')}
-                  </p>
                 </div>
                 <Button
                   variant="outline"
                   onClick={() => setIsUtilityDrawerOpen((value) => !value)}
-                  className="border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
+                  className="border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
                 >
                   {isUtilityDrawerOpen ? (
                     <>
@@ -1291,8 +1419,8 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                 <button
                   type="button"
                   onClick={() => openStep(1)}
-                  className={`rounded-xl border p-3 text-left transition ${
-                    activeStep === 1 ? 'border-violet-400 bg-violet-50/80' : 'border-violet-100 bg-white'
+                  className={`rounded-lg border p-3 text-left transition ${
+                    activeStep === 1 ? 'border-sky-300 bg-sky-50' : 'border-zinc-200 bg-white hover:border-zinc-300'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -1310,12 +1438,12 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                   type="button"
                   onClick={() => openStep(2)}
                   disabled={!canOpenStep2}
-                  className={`rounded-xl border p-3 text-left transition ${
+                  className={`rounded-lg border p-3 text-left transition ${
                     !canOpenStep2
                       ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
                       : activeStep === 2
-                        ? 'border-violet-400 bg-violet-50/80'
-                        : 'border-violet-100 bg-white'
+                        ? 'border-sky-300 bg-sky-50'
+                        : 'border-zinc-200 bg-white hover:border-zinc-300'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -1333,12 +1461,12 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                   type="button"
                   onClick={() => openStep(3)}
                   disabled={!canOpenStep3}
-                  className={`rounded-xl border p-3 text-left transition ${
+                  className={`rounded-lg border p-3 text-left transition ${
                     !canOpenStep3
                       ? 'cursor-not-allowed border-zinc-200 bg-zinc-100/60'
                       : activeStep === 3
-                        ? 'border-violet-400 bg-violet-50/80'
-                        : 'border-violet-100 bg-white'
+                        ? 'border-sky-300 bg-sky-50'
+                        : 'border-zinc-200 bg-white hover:border-zinc-300'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -1373,9 +1501,9 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
           </section>
         )}
 
-        <section className={`${isFocusedResultsView ? 'space-y-4' : 'mt-6 space-y-4'}`}>
+        <section className={`${isDashboardView ? 'space-y-4' : 'mt-6 space-y-4'}`}>
           <article
-            className={`rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
+            className={`rounded-lg border border-zinc-200 bg-[#fffffb] p-5 shadow-sm ${
               activeStep === 1 ? '' : 'hidden'
             }`}
           >
@@ -1383,7 +1511,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Wand2 className="size-4 text-violet-600" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
                     {t('steps.step1Label')} • {t('steps.step1Title')}
                   </p>
                 </div>
@@ -1394,7 +1522,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
             {activeStep === 1 ? (
               <div className="mt-4 space-y-4">
-                <div className="rounded-2xl border border-violet-200 bg-white p-2 shadow-inner shadow-violet-100/60">
+                <div className="rounded-lg border border-zinc-200 bg-white p-2 shadow-inner shadow-zinc-100">
                   <input
                     value={sourceUrl}
                     onChange={(event) => setSourceUrl(event.target.value)}
@@ -1413,7 +1541,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                   <Button
                     onClick={onIngest}
                     disabled={isIngesting}
-                    className="h-11 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-white shadow-lg shadow-violet-500/35 hover:from-violet-700 hover:to-fuchsia-600"
+                    className="h-11 rounded-lg bg-zinc-900 px-5 text-white shadow-lg shadow-zinc-900/20 hover:bg-zinc-800"
                   >
                     <Wand2 className="mr-2 size-4" />
                     {isIngesting ? t('actions.extracting') : t('actions.extractBrief')}
@@ -1424,7 +1552,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
           </article>
 
           <article
-            className={`rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
+            className={`rounded-lg border border-zinc-200 bg-[#fffffb] p-5 shadow-sm ${
               activeStep === 2 ? '' : 'hidden'
             }`}
           >
@@ -1437,7 +1565,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <PenSquare className="size-4 text-violet-600" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
                     {t('steps.step2Label')} • {t('steps.step2Title')}
                   </p>
                 </div>
@@ -1449,13 +1577,13 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
             {activeStep === 2 ? (
               brief ? (
                 <div className="mt-4 space-y-5">
-                  <div className="rounded-2xl border border-violet-100 bg-[linear-gradient(135deg,#fff_0%,#faf5ff_55%,#fff_100%)] p-4">
+                  <div className="rounded-lg border border-zinc-200 bg-white p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
                           {t('onboarding.progress', { current: activeOnboardingCard + 1, total: 3 })}
                         </p>
-                        <h3 className={`${editorialSerif.className} mt-1 text-2xl leading-tight text-zinc-900`}>
+                        <h3 className={`${displaySans.className} mt-1 text-2xl leading-tight text-zinc-900`}>
                           {activeOnboardingCard === 0
                             ? t('onboarding.productTitle')
                             : activeOnboardingCard === 1
@@ -1477,7 +1605,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             type="button"
                             onClick={() => setActiveOnboardingCard(cardIndex as OnboardingCardIndex)}
                             className={`h-2.5 rounded-full transition-all ${
-                              activeOnboardingCard === cardIndex ? 'w-8 bg-violet-600' : 'w-2.5 bg-violet-200'
+                              activeOnboardingCard === cardIndex ? 'w-8 bg-sky-600' : 'w-2.5 bg-zinc-200'
                             }`}
                             aria-label={t('onboarding.progress', { current: cardIndex + 1, total: 3 })}
                           />
@@ -1564,7 +1692,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                       type="button"
                       variant="outline"
                       onClick={() => setIsUtilityDrawerOpen(true)}
-                      className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
+                      className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                     >
                       <PanelRightOpen className="mr-2 size-4" />
                       {t('actions.openBrandGuidelines')}
@@ -1577,7 +1705,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                           setActiveOnboardingCard((current) => Math.max(0, current - 1) as OnboardingCardIndex)
                         }
                         disabled={activeOnboardingCard === 0}
-                        className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                        className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
                       >
                         {t('onboarding.back')}
                       </Button>
@@ -1587,7 +1715,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                           onClick={() =>
                             setActiveOnboardingCard((current) => Math.min(2, current + 1) as OnboardingCardIndex)
                           }
-                          className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+                          className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800"
                         >
                           {t('onboarding.next')}
                         </Button>
@@ -1601,7 +1729,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                           <Button
                             onClick={onGenerateAll}
                             disabled={isGenerating}
-                            className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-500/30 hover:from-violet-700 hover:to-fuchsia-600"
+                            className="rounded-lg bg-zinc-900 text-white shadow-md shadow-zinc-900/20 hover:bg-zinc-800"
                           >
                             <Wand2 className="mr-2 size-4" />
                             {isGenerating ? t('actions.generating') : t('actions.generateLaunchContent')}
@@ -1621,14 +1749,14 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
           <article
             className={
-              isFocusedResultsView
+              isDashboardView
                 ? 'space-y-4'
-                : `rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm ${
+                : `rounded-lg border border-zinc-200 bg-[#fffffb] p-5 shadow-sm ${
                     activeStep === 3 ? '' : 'hidden'
                   }`
             }
           >
-            {!isFocusedResultsView ? (
+            {!isDashboardView ? (
               <button
                 type="button"
                 onClick={() => openStep(3)}
@@ -1638,7 +1766,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <BookOpenText className="size-4 text-violet-600" />
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
                       {t('steps.step3Label')} • {t('steps.step3Title')}
                     </p>
                   </div>
@@ -1650,51 +1778,39 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
             {activeStep === 3 || isFocusedResultsView ? (
               brief ? (
-                <div className={isFocusedResultsView ? 'space-y-4' : 'mt-4 space-y-5'}>
-                  <div
-                    className={`flex flex-wrap items-center justify-between gap-2 ${
-                      isFocusedResultsView
-                        ? 'rounded-2xl border border-violet-100 bg-white p-3 shadow-sm'
-                        : ''
-                    }`}
-                  >
-                    {isFocusedResultsView ? (
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-zinc-900">
-                          {projectName || brief.productName}
-                        </p>
-                        <p className="mt-0.5 truncate text-xs text-zinc-600">{brief.sourceUrl}</p>
-                      </div>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={onExportMarkdown}
-                        disabled={!kit}
-                        className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
-                      >
-                        {t('actions.exportMarkdown')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={onOpenPressPack}
-                        disabled={!kit}
-                        className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
-                      >
-                        {t('actions.openPressPack')}
-                      </Button>
-                      {isFocusedResultsView ? (
+                <div className={isDashboardView ? 'space-y-4' : 'mt-4 space-y-5'}>
+                  {!isDashboardView ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={onExportMarkdown}
+                          disabled={!kit}
+                          className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                        >
+                          <Download className="mr-1.5 size-4" />
+                          {t('actions.exportMarkdown')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={onOpenPressPack}
+                          disabled={!kit}
+                          className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                        >
+                          <ExternalLink className="mr-1.5 size-4" />
+                          {t('actions.openPressPack')}
+                        </Button>
                         <Button
                           variant="outline"
                           onClick={() => setIsUtilityDrawerOpen(true)}
-                          className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50"
+                          className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                         >
-                          <PanelRightOpen className="mr-1.5 size-4" />
+                          <Settings2 className="mr-1.5 size-4" />
                           {t('actions.openBrandGuidelines')}
                         </Button>
-                      ) : null}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
                   {kit ? (
                     <>
@@ -1763,6 +1879,57 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                         onImportEmailList={() => void onImportEmailList()}
                         onPersonalizeEmailOutreach={() => void onPersonalizeEmailOutreach()}
                         onSendOutreachEmail={() => void onSendOutreachEmail()}
+                        toolbar={
+                          isDashboardView ? (
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-[#fffffb] p-3 shadow-sm">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-zinc-900">
+                                  {projectName || brief.productName}
+                                </p>
+                                <p className="mt-0.5 truncate text-xs text-zinc-600">
+                                  {brief.sourceUrl}
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={onExportMarkdown}
+                                  disabled={!kit}
+                                  className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                >
+                                  <Download className="mr-1.5 size-4" />
+                                  {t('actions.exportMarkdown')}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={onOpenPressPack}
+                                  disabled={!kit}
+                                  className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                >
+                                  <ExternalLink className="mr-1.5 size-4" />
+                                  {t('actions.openPressPack')}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setIsUtilityDrawerOpen(true)}
+                                  className="rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                >
+                                  <Settings2 className="mr-1.5 size-4" />
+                                  {t('actions.openBrandGuidelines')}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={onSaveProject}
+                                  disabled={!kit || isSaving}
+                                  className="rounded-lg border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800"
+                                >
+                                  <Save className="mr-1.5 size-4" />
+                                  {isSaving ? t('actions.saving') : t('actions.saveProject')}
+                                </Button>
+                              </div>
+                            </div>
+                          ) : null
+                        }
                         labels={{
                           title: t('results.title'),
                           subtitle: t('results.subtitle'),
@@ -1773,6 +1940,57 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             body: t('output.bodyLabel'),
                             cta: t('output.ctaLabel'),
                             notes: t('output.notesLabel'),
+                            productHunt: {
+                              tagline: t('output.productHunt.tagline'),
+                              description: t('output.productHunt.description'),
+                              tags: t('output.productHunt.tags'),
+                              firstComment: t('output.productHunt.firstComment'),
+                            },
+                            hackerNews: {
+                              showHnTitle: t('output.hackerNews.showHnTitle'),
+                              postBody: t('output.hackerNews.postBody'),
+                              feedbackAsk: t('output.hackerNews.feedbackAsk'),
+                              discussionSeed: t('output.hackerNews.discussionSeed'),
+                            },
+                            redditPost: {
+                              postTitle: t('output.redditPost.postTitle'),
+                              postBody: t('output.redditPost.postBody'),
+                              builderDisclosure: t('output.redditPost.builderDisclosure'),
+                              discussionQuestion: t('output.redditPost.discussionQuestion'),
+                              linkPolicyNote: t('output.redditPost.linkPolicyNote'),
+                            },
+                            indieHackers: {
+                              postTitle: t('output.indieHackers.postTitle'),
+                              founderStory: t('output.indieHackers.founderStory'),
+                              lesson: t('output.indieHackers.lesson'),
+                              proofOrMetric: t('output.indieHackers.proofOrMetric'),
+                              nextExperiment: t('output.indieHackers.nextExperiment'),
+                              feedbackAsk: t('output.indieHackers.feedbackAsk'),
+                            },
+                            linkedinPost: {
+                              hook: t('output.linkedinPost.hook'),
+                              postBody: t('output.linkedinPost.postBody'),
+                              proofPoint: t('output.linkedinPost.proofPoint'),
+                              closingCta: t('output.linkedinPost.closingCta'),
+                            },
+                            shortVideo: {
+                              title: t('output.shortVideo.title'),
+                              hook: t('output.shortVideo.hook'),
+                              spokenScript: t('output.shortVideo.spokenScript'),
+                              visualBeats: t('output.shortVideo.visualBeats'),
+                              onScreenText: t('output.shortVideo.onScreenText'),
+                              retentionCue: t('output.shortVideo.retentionCue'),
+                              closeCta: t('output.shortVideo.closeCta'),
+                            },
+                            emailAnnouncement: {
+                              subject: t('output.emailAnnouncement.subject'),
+                              previewText: t('output.emailAnnouncement.previewText'),
+                              greeting: t('output.emailAnnouncement.greeting'),
+                              opening: t('output.emailAnnouncement.opening'),
+                              body: t('output.emailAnnouncement.body'),
+                              ctaText: t('output.emailAnnouncement.ctaText'),
+                              signoff: t('output.emailAnnouncement.signoff'),
+                            },
                             subject: t('output.subjectLabel'),
                             outline: t('output.outlineLabel'),
                             format: t('output.formatLabel'),
@@ -1811,16 +2029,19 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                     </p>
                   )}
 
-                  <div className="flex justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={onSaveProject}
-                      disabled={!kit || isSaving}
-                      className="rounded-xl border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
-                    >
-                      {isSaving ? t('actions.saving') : t('actions.saveProject')}
-                    </Button>
-                  </div>
+                  {!isDashboardView ? (
+                    <div className="flex justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={onSaveProject}
+                        disabled={!kit || isSaving}
+                        className="rounded-lg border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                      >
+                        <Save className="mr-1.5 size-4" />
+                        {isSaving ? t('actions.saving') : t('actions.saveProject')}
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <p className="mt-4 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
@@ -1842,7 +2063,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
           />
           <aside className="absolute right-0 top-0 size-full max-w-2xl overflow-y-auto border-l border-violet-200 bg-white p-5 shadow-2xl shadow-violet-500/10">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+              <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                 {t('utility.title')}
               </h2>
               <Button
@@ -1858,7 +2079,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
 
             <div className="space-y-5">
               <article className="rounded-[1.4rem] border border-violet-100 bg-white p-4 shadow-sm">
-                <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+                <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
                   {t('utility.brandGuidelinesTitle')}
                 </h3>
                 <p className="mt-1 text-sm text-zinc-600">{t('utility.brandGuidelinesDescription')}</p>
@@ -1953,7 +2174,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
                             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">
                               {t('plans.badges.premium')}
                             </p>
-                            <h3 className={`${editorialSerif.className} mt-1 text-xl leading-tight text-zinc-900`}>
+                            <h3 className={`${displaySans.className} mt-1 text-xl leading-tight text-zinc-900`}>
                               {t('utility.seoAnalysisTitle')}
                             </h3>
                             <p className="mt-1 text-sm leading-relaxed text-zinc-600">
@@ -1975,7 +2196,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
               </article>
 
               <article className="rounded-[1.4rem] border border-violet-100 bg-white p-4 shadow-sm">
-                <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+                <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
                   {t('savedProjects.title')}
                 </h3>
                 <p className="mt-1 text-sm text-zinc-600">
@@ -2016,7 +2237,7 @@ export default function DashboardPageClient({ initialUrlParam, initialWantsDemo,
               </article>
 
               <article className="rounded-[1.4rem] border border-violet-100 bg-white p-4 shadow-sm">
-                <h3 className={`${editorialSerif.className} text-xl leading-tight text-zinc-900`}>
+                <h3 className={`${displaySans.className} text-xl leading-tight text-zinc-900`}>
                   {t('workflow.title')}
                 </h3>
                 <ol className="mt-3 space-y-2 text-sm text-zinc-600">

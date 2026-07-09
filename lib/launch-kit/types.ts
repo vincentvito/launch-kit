@@ -71,6 +71,71 @@ export type RedditRecommendations = {
   selfPromotionSubreddits: SubredditRecommendation[]
 }
 
+export type ProductHuntLaunchContent = {
+  tagline: string
+  description: string
+  tags: string[]
+  firstComment: string
+}
+
+export type HackerNewsLaunchContent = {
+  showHnTitle: string
+  postBody: string
+  feedbackAsk: string
+  discussionSeed: string
+}
+
+export type RedditLaunchContent = {
+  postTitle: string
+  postBody: string
+  builderDisclosure: string
+  discussionQuestion: string
+  linkPolicyNote: string
+}
+
+export type IndieHackersLaunchContent = {
+  postTitle: string
+  founderStory: string
+  lesson: string
+  proofOrMetric: string
+  nextExperiment: string
+  feedbackAsk: string
+}
+
+export type LinkedInLaunchContent = {
+  hook: string
+  postBody: string
+  proofPoint: string
+  closingCta: string
+}
+
+export type TikTokLaunchContent = {
+  hook: string
+  spokenScript: string
+  visualBeats: string[]
+  onScreenText: string[]
+  closeCta: string
+}
+
+export type YouTubeShortsLaunchContent = {
+  title: string
+  hook: string
+  spokenScript: string
+  visualBeats: string[]
+  retentionCue: string
+  closeCta: string
+}
+
+export type EmailAnnouncementLaunchContent = {
+  subject: string
+  previewText: string
+  greeting: string
+  opening: string
+  body: string
+  ctaText: string
+  signoff: string
+}
+
 export type PlatformBlock = {
   id: PlatformBlockId
   label: string
@@ -78,6 +143,14 @@ export type PlatformBlock = {
   body: string
   cta: string
   notes: string
+  productHunt?: ProductHuntLaunchContent
+  hackerNews?: HackerNewsLaunchContent
+  reddit?: RedditLaunchContent
+  indieHackers?: IndieHackersLaunchContent
+  linkedin?: LinkedInLaunchContent
+  tiktok?: TikTokLaunchContent
+  youtubeShorts?: YouTubeShortsLaunchContent
+  emailAnnouncement?: EmailAnnouncementLaunchContent
   redditRecommendations?: RedditRecommendations
 }
 

@@ -6,6 +6,7 @@ import {
   type GrowthBlockId,
   type LaunchKit,
   type LaunchProjectSnapshot,
+  type PlatformBlock,
   type PlatformBlockId,
   type RedditRecommendations,
   type SubredditRecommendation,
@@ -308,6 +309,43 @@ export type ExportLabels = {
   title: string
   cta: string
   notes: string
+  productHuntTagline: string
+  productHuntDescription: string
+  productHuntTags: string
+  productHuntFirstComment: string
+  hackerNewsShowHnTitle: string
+  hackerNewsPostBody: string
+  hackerNewsFeedbackAsk: string
+  hackerNewsDiscussionSeed: string
+  redditPostTitle: string
+  redditPostBody: string
+  redditBuilderDisclosure: string
+  redditDiscussionQuestion: string
+  redditLinkPolicyNote: string
+  indieHackersPostTitle: string
+  indieHackersFounderStory: string
+  indieHackersLesson: string
+  indieHackersProofOrMetric: string
+  indieHackersNextExperiment: string
+  indieHackersFeedbackAsk: string
+  linkedinHook: string
+  linkedinPostBody: string
+  linkedinProofPoint: string
+  linkedinClosingCta: string
+  shortVideoTitle: string
+  shortVideoHook: string
+  shortVideoSpokenScript: string
+  shortVideoVisualBeats: string
+  shortVideoOnScreenText: string
+  shortVideoRetentionCue: string
+  shortVideoCloseCta: string
+  emailSubject: string
+  emailPreviewText: string
+  emailGreeting: string
+  emailOpening: string
+  emailBody: string
+  emailCtaText: string
+  emailSignoff: string
   format: string
   stage: string
   proofPoint: string
@@ -371,6 +409,43 @@ export function getExportLabels(t: (key: string, values?: Record<string, string 
     title: t('output.titleLabel'),
     cta: t('output.copyCtaPrefix'),
     notes: t('output.copyNotesPrefix'),
+    productHuntTagline: t('output.productHunt.tagline'),
+    productHuntDescription: t('output.productHunt.description'),
+    productHuntTags: t('output.productHunt.tags'),
+    productHuntFirstComment: t('output.productHunt.firstComment'),
+    hackerNewsShowHnTitle: t('output.hackerNews.showHnTitle'),
+    hackerNewsPostBody: t('output.hackerNews.postBody'),
+    hackerNewsFeedbackAsk: t('output.hackerNews.feedbackAsk'),
+    hackerNewsDiscussionSeed: t('output.hackerNews.discussionSeed'),
+    redditPostTitle: t('output.redditPost.postTitle'),
+    redditPostBody: t('output.redditPost.postBody'),
+    redditBuilderDisclosure: t('output.redditPost.builderDisclosure'),
+    redditDiscussionQuestion: t('output.redditPost.discussionQuestion'),
+    redditLinkPolicyNote: t('output.redditPost.linkPolicyNote'),
+    indieHackersPostTitle: t('output.indieHackers.postTitle'),
+    indieHackersFounderStory: t('output.indieHackers.founderStory'),
+    indieHackersLesson: t('output.indieHackers.lesson'),
+    indieHackersProofOrMetric: t('output.indieHackers.proofOrMetric'),
+    indieHackersNextExperiment: t('output.indieHackers.nextExperiment'),
+    indieHackersFeedbackAsk: t('output.indieHackers.feedbackAsk'),
+    linkedinHook: t('output.linkedinPost.hook'),
+    linkedinPostBody: t('output.linkedinPost.postBody'),
+    linkedinProofPoint: t('output.linkedinPost.proofPoint'),
+    linkedinClosingCta: t('output.linkedinPost.closingCta'),
+    shortVideoTitle: t('output.shortVideo.title'),
+    shortVideoHook: t('output.shortVideo.hook'),
+    shortVideoSpokenScript: t('output.shortVideo.spokenScript'),
+    shortVideoVisualBeats: t('output.shortVideo.visualBeats'),
+    shortVideoOnScreenText: t('output.shortVideo.onScreenText'),
+    shortVideoRetentionCue: t('output.shortVideo.retentionCue'),
+    shortVideoCloseCta: t('output.shortVideo.closeCta'),
+    emailSubject: t('output.emailAnnouncement.subject'),
+    emailPreviewText: t('output.emailAnnouncement.previewText'),
+    emailGreeting: t('output.emailAnnouncement.greeting'),
+    emailOpening: t('output.emailAnnouncement.opening'),
+    emailBody: t('output.emailAnnouncement.body'),
+    emailCtaText: t('output.emailAnnouncement.ctaText'),
+    emailSignoff: t('output.emailAnnouncement.signoff'),
     format: t('output.formatLabel'),
     stage: t('output.stageLabel'),
     proofPoint: t('output.proofPointLabel'),
@@ -471,11 +546,7 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
 
     const block = project.kit.platformBlocks[blockId]
     lines.push(`### ${labels.platformLabels[blockId]}`)
-    lines.push(`${labels.title}: ${block.title}`)
-    lines.push('')
-    lines.push(block.body)
-    lines.push('')
-    lines.push(`${labels.cta}: ${block.cta}`)
+    appendNativePlatformBlockMarkdown(lines, block, labels)
     lines.push(`${labels.notes}: ${block.notes}`)
     lines.push('')
 
@@ -553,6 +624,125 @@ export function buildMarkdown(project: LaunchProjectSnapshot, labels: ExportLabe
   return lines.join('\n')
 }
 
+function appendNativePlatformBlockMarkdown(
+  lines: string[],
+  block: PlatformBlock,
+  labels: ExportLabels,
+) {
+  if (block.productHunt) {
+    lines.push(`${labels.productHuntTagline}: ${block.productHunt.tagline}`)
+    lines.push(`${labels.productHuntDescription}: ${block.productHunt.description}`)
+    lines.push(`${labels.productHuntTags}: ${block.productHunt.tags.join(', ')}`)
+    lines.push('')
+    lines.push(`${labels.productHuntFirstComment}:`)
+    lines.push(block.productHunt.firstComment)
+    return
+  }
+
+  if (block.hackerNews) {
+    lines.push(`${labels.hackerNewsShowHnTitle}: ${block.hackerNews.showHnTitle}`)
+    lines.push('')
+    lines.push(`${labels.hackerNewsPostBody}:`)
+    lines.push(block.hackerNews.postBody)
+    lines.push('')
+    lines.push(`${labels.hackerNewsFeedbackAsk}: ${block.hackerNews.feedbackAsk}`)
+    lines.push(`${labels.hackerNewsDiscussionSeed}: ${block.hackerNews.discussionSeed}`)
+    return
+  }
+
+  if (block.reddit) {
+    lines.push(`${labels.redditPostTitle}: ${block.reddit.postTitle}`)
+    lines.push('')
+    lines.push(`${labels.redditPostBody}:`)
+    lines.push(block.reddit.postBody)
+    lines.push('')
+    lines.push(`${labels.redditBuilderDisclosure}: ${block.reddit.builderDisclosure}`)
+    lines.push(`${labels.redditDiscussionQuestion}: ${block.reddit.discussionQuestion}`)
+    lines.push(`${labels.redditLinkPolicyNote}: ${block.reddit.linkPolicyNote}`)
+    return
+  }
+
+  if (block.indieHackers) {
+    lines.push(`${labels.indieHackersPostTitle}: ${block.indieHackers.postTitle}`)
+    lines.push('')
+    lines.push(`${labels.indieHackersFounderStory}:`)
+    lines.push(block.indieHackers.founderStory)
+    lines.push('')
+    lines.push(`${labels.indieHackersLesson}: ${block.indieHackers.lesson}`)
+    lines.push(`${labels.indieHackersProofOrMetric}: ${block.indieHackers.proofOrMetric}`)
+    lines.push(`${labels.indieHackersNextExperiment}: ${block.indieHackers.nextExperiment}`)
+    lines.push(`${labels.indieHackersFeedbackAsk}: ${block.indieHackers.feedbackAsk}`)
+    return
+  }
+
+  if (block.linkedin) {
+    lines.push(`${labels.linkedinHook}: ${block.linkedin.hook}`)
+    lines.push('')
+    lines.push(`${labels.linkedinPostBody}:`)
+    lines.push(block.linkedin.postBody)
+    lines.push('')
+    lines.push(`${labels.linkedinProofPoint}: ${block.linkedin.proofPoint}`)
+    lines.push(`${labels.linkedinClosingCta}: ${block.linkedin.closingCta}`)
+    return
+  }
+
+  if (block.tiktok) {
+    lines.push(`${labels.shortVideoHook}: ${block.tiktok.hook}`)
+    lines.push('')
+    lines.push(`${labels.shortVideoSpokenScript}:`)
+    lines.push(block.tiktok.spokenScript)
+    appendMarkdownList(lines, labels.shortVideoVisualBeats, block.tiktok.visualBeats)
+    appendMarkdownList(lines, labels.shortVideoOnScreenText, block.tiktok.onScreenText)
+    lines.push(`${labels.shortVideoCloseCta}: ${block.tiktok.closeCta}`)
+    return
+  }
+
+  if (block.youtubeShorts) {
+    lines.push(`${labels.shortVideoTitle}: ${block.youtubeShorts.title}`)
+    lines.push(`${labels.shortVideoHook}: ${block.youtubeShorts.hook}`)
+    lines.push('')
+    lines.push(`${labels.shortVideoSpokenScript}:`)
+    lines.push(block.youtubeShorts.spokenScript)
+    appendMarkdownList(lines, labels.shortVideoVisualBeats, block.youtubeShorts.visualBeats)
+    lines.push(`${labels.shortVideoRetentionCue}: ${block.youtubeShorts.retentionCue}`)
+    lines.push(`${labels.shortVideoCloseCta}: ${block.youtubeShorts.closeCta}`)
+    return
+  }
+
+  if (block.emailAnnouncement) {
+    lines.push(`${labels.emailSubject}: ${block.emailAnnouncement.subject}`)
+    lines.push(`${labels.emailPreviewText}: ${block.emailAnnouncement.previewText}`)
+    lines.push('')
+    lines.push(`${labels.emailGreeting}: ${block.emailAnnouncement.greeting}`)
+    lines.push(`${labels.emailOpening}: ${block.emailAnnouncement.opening}`)
+    lines.push('')
+    lines.push(`${labels.emailBody}:`)
+    lines.push(block.emailAnnouncement.body)
+    lines.push('')
+    lines.push(`${labels.emailCtaText}: ${block.emailAnnouncement.ctaText}`)
+    lines.push(`${labels.emailSignoff}: ${block.emailAnnouncement.signoff}`)
+    return
+  }
+
+  lines.push(`${labels.title}: ${block.title}`)
+  lines.push('')
+  lines.push(block.body)
+  lines.push('')
+  lines.push(`${labels.cta}: ${block.cta}`)
+}
+
+function appendMarkdownList(lines: string[], title: string, items: string[]) {
+  if (!items.length) {
+    return
+  }
+
+  lines.push('')
+  lines.push(`${title}:`)
+  for (const item of items) {
+    lines.push(`- ${item}`)
+  }
+}
+
 function appendRedditRecommendationsMarkdown(
   lines: string[],
   recommendations: RedditRecommendations,
@@ -610,7 +800,7 @@ export function buildPressPackHtml(project: LaunchProjectSnapshot, labels: Expor
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(project.name)} ${escapeHtml(labels.pressPackTitleSuffix)}</title>
     <style>
-      body { margin: 0; background: #f4f6fa; color: #18212f; font-family: Georgia, serif; }
+      body { margin: 0; background: #f4f6fa; color: #18212f; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
       main { max-width: 820px; margin: 24px auto; background: #fff; border: 1px solid #d8e0ea; border-radius: 16px; padding: 32px; }
       h1 { margin: 0 0 8px; font-size: 34px; }
       h2 { margin-top: 24px; font-size: 20px; }

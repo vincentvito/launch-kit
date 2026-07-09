@@ -3,6 +3,7 @@ import {
   PLATFORM_IDS,
   PLATFORM_LABELS,
   type LaunchProjectSnapshot,
+  type PlatformBlock,
   type PlatformBlockId,
   type RedditRecommendations,
   type SubredditRecommendation,
@@ -10,7 +11,7 @@ import {
 
 export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string {
   const lines: string[] = []
-  lines.push(`# Launch Kit: ${project.name}`)
+  lines.push(`# shipdaddy: ${project.name}`)
   lines.push('')
   lines.push(`- Source URL: ${project.sourceUrl}`)
   lines.push(`- Language: ${project.language}`)
@@ -85,11 +86,9 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
     const block = project.kit.platformBlocks[blockId]
     lines.push(`### ${PLATFORM_LABELS[blockId]}`)
     lines.push('')
-    lines.push(`**Title**: ${block.title}`)
-    lines.push('')
-    lines.push(block.body)
-    lines.push('')
-    lines.push(`**CTA**: ${block.cta}`)
+
+    appendNativePlatformBlockMarkdown(lines, block)
+
     lines.push('')
     lines.push(`**Notes**: ${block.notes}`)
     lines.push('')
@@ -237,6 +236,113 @@ export function renderLaunchKitMarkdown(project: LaunchProjectSnapshot): string 
   return lines.join('\n')
 }
 
+function appendNativePlatformBlockMarkdown(lines: string[], block: PlatformBlock) {
+  if (block.productHunt) {
+    lines.push(`**Tagline**: ${block.productHunt.tagline}`)
+    lines.push(`**Launch description**: ${block.productHunt.description}`)
+    lines.push(`**Launch tags**: ${block.productHunt.tags.join(', ')}`)
+    lines.push('')
+    lines.push('**First comment**:')
+    lines.push(block.productHunt.firstComment)
+    return
+  }
+
+  if (block.hackerNews) {
+    lines.push(`**Show HN title**: ${block.hackerNews.showHnTitle}`)
+    lines.push('')
+    lines.push(`**Post body**:\n\n${block.hackerNews.postBody}`)
+    lines.push('')
+    lines.push(`**Feedback ask**: ${block.hackerNews.feedbackAsk}`)
+    lines.push(`**Discussion seed**: ${block.hackerNews.discussionSeed}`)
+    return
+  }
+
+  if (block.reddit) {
+    lines.push(`**Post title**: ${block.reddit.postTitle}`)
+    lines.push('')
+    lines.push(`**Post body**:\n\n${block.reddit.postBody}`)
+    lines.push('')
+    lines.push(`**Builder disclosure**: ${block.reddit.builderDisclosure}`)
+    lines.push(`**Discussion question**: ${block.reddit.discussionQuestion}`)
+    lines.push(`**Rules note**: ${block.reddit.linkPolicyNote}`)
+    return
+  }
+
+  if (block.indieHackers) {
+    lines.push(`**Post title**: ${block.indieHackers.postTitle}`)
+    lines.push('')
+    lines.push(`**Founder story**:\n\n${block.indieHackers.founderStory}`)
+    lines.push('')
+    lines.push(`**Lesson**: ${block.indieHackers.lesson}`)
+    lines.push(`**Proof or metric**: ${block.indieHackers.proofOrMetric}`)
+    lines.push(`**Next experiment**: ${block.indieHackers.nextExperiment}`)
+    lines.push(`**Feedback ask**: ${block.indieHackers.feedbackAsk}`)
+    return
+  }
+
+  if (block.linkedin) {
+    lines.push(`**Hook**: ${block.linkedin.hook}`)
+    lines.push('')
+    lines.push(`**Post body**:\n\n${block.linkedin.postBody}`)
+    lines.push('')
+    lines.push(`**Proof point**: ${block.linkedin.proofPoint}`)
+    lines.push(`**Closing CTA**: ${block.linkedin.closingCta}`)
+    return
+  }
+
+  if (block.tiktok) {
+    lines.push(`**Hook**: ${block.tiktok.hook}`)
+    lines.push('')
+    lines.push(`**Spoken script**:\n\n${block.tiktok.spokenScript}`)
+    appendMarkdownList(lines, 'Visual beats', block.tiktok.visualBeats)
+    appendMarkdownList(lines, 'On-screen text', block.tiktok.onScreenText)
+    lines.push(`**Close CTA**: ${block.tiktok.closeCta}`)
+    return
+  }
+
+  if (block.youtubeShorts) {
+    lines.push(`**Title**: ${block.youtubeShorts.title}`)
+    lines.push(`**Hook**: ${block.youtubeShorts.hook}`)
+    lines.push('')
+    lines.push(`**Spoken script**:\n\n${block.youtubeShorts.spokenScript}`)
+    appendMarkdownList(lines, 'Visual beats', block.youtubeShorts.visualBeats)
+    lines.push(`**Retention cue**: ${block.youtubeShorts.retentionCue}`)
+    lines.push(`**Close CTA**: ${block.youtubeShorts.closeCta}`)
+    return
+  }
+
+  if (block.emailAnnouncement) {
+    lines.push(`**Subject**: ${block.emailAnnouncement.subject}`)
+    lines.push(`**Preview text**: ${block.emailAnnouncement.previewText}`)
+    lines.push(`**Greeting**: ${block.emailAnnouncement.greeting}`)
+    lines.push(`**Opening**: ${block.emailAnnouncement.opening}`)
+    lines.push('')
+    lines.push(`**Email body**:\n\n${block.emailAnnouncement.body}`)
+    lines.push('')
+    lines.push(`**CTA text**: ${block.emailAnnouncement.ctaText}`)
+    lines.push(`**Signoff**: ${block.emailAnnouncement.signoff}`)
+    return
+  }
+
+  lines.push(`**Title**: ${block.title}`)
+  lines.push('')
+  lines.push(block.body)
+  lines.push('')
+  lines.push(`**CTA**: ${block.cta}`)
+}
+
+function appendMarkdownList(lines: string[], title: string, items: string[]) {
+  if (!items.length) {
+    return
+  }
+
+  lines.push('')
+  lines.push(`**${title}**`)
+  for (const item of items) {
+    lines.push(`- ${item}`)
+  }
+}
+
 function appendRedditRecommendationsMarkdown(
   lines: string[],
   recommendations: RedditRecommendations,
@@ -307,7 +413,7 @@ export function renderPressPackHtml(project: LaunchProjectSnapshot): string {
     <style>
       :root {
         color-scheme: light;
-        font-family: "ui-serif", Georgia, Cambria, "Times New Roman", Times, serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       body {
         margin: 0;
