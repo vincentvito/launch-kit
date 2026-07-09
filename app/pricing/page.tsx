@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { ArrowLeft, Check, Lock, Sparkles, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Check, Lock, TrendingUp } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
-import { editorialSerif, interfaceSans } from '@/app/dashboard/dashboard-fonts'
+import { displaySans, appSans } from '@/app/dashboard/dashboard-fonts'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Pricing.meta')
@@ -28,19 +29,11 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
   const premiumItems = t.raw('plans.premium.items') as string[]
 
   return (
-    <main className={`${interfaceSans.className} min-h-screen bg-[#fbfaff] text-zinc-900`}>
+    <main className={`${appSans.className} min-h-screen bg-[#fbfaff] text-zinc-900`}>
       <header className="border-b border-violet-100 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="size-4 text-white" />
-            </div>
-            <div>
-              <p className={`${editorialSerif.className} text-lg font-semibold tracking-tight`}>
-                Launch Kit
-              </p>
-              <p className="text-[11px] text-zinc-500">{t('nav.label')}</p>
-            </div>
+          <Link href="/" className="flex items-center" aria-label="shipdaddy">
+            <BrandLogo className="h-12" priority />
           </Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" asChild className="hidden text-zinc-600 hover:text-zinc-900 sm:inline-flex">
@@ -64,7 +57,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
             {t('hero.eyebrow')}
           </p>
-          <h1 className={`${editorialSerif.className} mt-3 text-4xl leading-tight text-zinc-950 sm:text-5xl`}>
+          <h1 className={`${displaySans.className} mt-3 text-4xl leading-tight text-zinc-950 sm:text-5xl`}>
             {t('hero.title')}
           </h1>
           <p className="mt-4 text-base leading-relaxed text-zinc-600 sm:text-lg">
@@ -103,7 +96,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
                 <Lock className="size-4" />
               </span>
               <div>
-                <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                   {t('manual.title')}
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-700">
@@ -120,7 +113,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
               <Lock className="size-4" />
             </span>
             <div>
-              <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+              <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                 {t('note.title')}
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600">
@@ -181,7 +174,7 @@ function PlanPanel({
             {name}
           </p>
           <div className="mt-3 flex items-end gap-2">
-            <span className={`${editorialSerif.className} text-5xl font-bold leading-none text-zinc-950`}>
+            <span className={`${displaySans.className} text-5xl font-bold leading-none text-zinc-950`}>
               {price}
             </span>
             <span className="pb-1 text-sm text-zinc-500">{cadence}</span>

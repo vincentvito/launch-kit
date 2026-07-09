@@ -90,4 +90,26 @@ describe('api origin guard', () => {
       })),
     ).not.toThrow()
   })
+
+  it('allows same-origin local development requests on alternate ports', () => {
+    process.env.VERCEL_ENV = 'development'
+
+    expect(() =>
+      assertTrustedRequestOrigin(new Request('http://127.0.0.1:3001/api/test', {
+        method: 'POST',
+        headers: { origin: 'http://127.0.0.1:3001' },
+      })),
+    ).not.toThrow()
+  })
+
+  it('allows loopback local development origins across host aliases', () => {
+    process.env.VERCEL_ENV = 'development'
+
+    expect(() =>
+      assertTrustedRequestOrigin(new Request('http://127.0.0.1:3001/api/test', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3001' },
+      })),
+    ).not.toThrow()
+  })
 })

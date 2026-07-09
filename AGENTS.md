@@ -52,7 +52,6 @@ npm run dev
 That means:
 - **Postgres is required.** Set `DATABASE_URL` and `DIRECT_URL` in `.env`. For Supabase, use the pooled transaction URL for `DATABASE_URL` and the direct/session URL for `DIRECT_URL`.
 - **No login required to view the app.** Landing, changelog, and dashboard render. Login only fails gracefully if Google OAuth isn't configured.
-- **Optional waiting list mode.** Set `WAITING_LIST_ENABLED=true` to show the waitlist page at `/` instead of the full landing page. Unset or `false` shows the normal landing page. Signups are stored in `waitlist_entry` via `POST /api/waitlist`.
 - **Production access controls.** `LAUNCH_KIT_PUBLIC_FREE_ENABLED` controls anonymous free generation, `LAUNCH_KIT_ADMIN_EMAILS` grants manual premium/admin access, `RATE_LIMIT_*` overrides persisted API rate limits, and billing can run in admin-granted manual mode with `BILLING_PROVIDER=manual` plus a strong `BILLING_ADMIN_TOKEN` until Stripe env vars are set.
 - **Billing hooks.** Stripe-ready routes use `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; manual entitlement updates use `BILLING_ADMIN_TOKEN`.
 - **Outbound outreach delivery.** `OUTREACH_EMAIL_WEBHOOK_URL` and `OUTREACH_EMAIL_WEBHOOK_TOKEN` can connect the reviewed outreach flow to a real delivery service. Leave unset to keep no-delivery tracking.

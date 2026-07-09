@@ -10,7 +10,7 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
 const googleEnabled = Boolean(googleClientId && googleClientSecret)
 
 export const auth = betterAuth({
-  appName: 'Launch Kit',
+  appName: 'shipdaddy',
   baseURL: process.env.BETTER_AUTH_URL || getAppUrl(),
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {

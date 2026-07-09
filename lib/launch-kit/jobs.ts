@@ -1,4 +1,23 @@
-import prisma from '@/lib/prisma'
+import { isProductionRuntime } from '@/lib/env'
+import { isPostgresDatabaseUrl } from '@/lib/database-provider'
+
+function hasRuntimePostgresDatabase(): boolean {
+  return [process.env.DATABASE_URL, process.env.DIRECT_URL].some((value) =>
+    value ? isPostgresDatabaseUrl(value) : false,
+  )
+}
+
+async function getPrisma() {
+  if (!hasRuntimePostgresDatabase()) {
+    if (isProductionRuntime()) {
+      throw new Error('DATABASE_URL is required and must be a postgres:// or postgresql:// URL.')
+    }
+
+    return null
+  }
+
+  return (await import('@/lib/prisma')).default
+}
 
 export async function createLaunchJob(input: {
   userId?: string
@@ -6,6 +25,13 @@ export async function createLaunchJob(input: {
   action: string
   payload: unknown
 }) {
+  const prisma = await getPrisma()
+  if (!prisma) {
+    return {
+      id: `stateless-${Date.now()}`,
+    }
+  }
+
   return prisma.launchJob.create({
     data: {
       userId: input.userId,
@@ -22,6 +48,11 @@ export async function completeLaunchJob(input: {
   result?: unknown
   error?: unknown
 }) {
+  const prisma = await getPrisma()
+  if (!prisma || input.jobId.startsWith('stateless-')) {
+    return null
+  }
+
   return prisma.launchJob.update({
     where: { id: input.jobId },
     data: {

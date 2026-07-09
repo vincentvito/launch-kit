@@ -91,7 +91,6 @@ const STRONG_CTA_PHRASES = [
   'request a demo',
   'book a demo',
   'sign up',
-  'join waitlist',
   'create account',
   'get access',
   'get launch kit',
@@ -334,36 +333,37 @@ export async function ingestProductUrl(input: IngestInput): Promise<ExtractedBri
   const voiceGuide = preferText(llmInsights?.voiceGuide, heuristicVoiceGuide, 420)
   const icp = preferText(llmInsights?.icp, heuristicIcp, 220)
   const cta = preferCta(llmInsights?.cta, heuristicCta, ctaCandidates, sourceCorpus)
-  const refinedSignals = await refineBriefSignalsWithReplicate({
-    sourceUrl: normalizedUrl,
-    language,
-    productName,
-    positioning,
-    icp,
-    targetUsers,
-    keyClaims,
-    currentPainPoints: painPoints,
-    currentValueProps: valueProps,
-    currentProofPoints: proofPoints,
-    sourceEvidence: sourceCorpus,
-  })
+  const [refinedSignals, keywordResearch] = await Promise.all([
+    refineBriefSignalsWithReplicate({
+      sourceUrl: normalizedUrl,
+      language,
+      productName,
+      positioning,
+      icp,
+      targetUsers,
+      keyClaims,
+      currentPainPoints: painPoints,
+      currentValueProps: valueProps,
+      currentProofPoints: proofPoints,
+      sourceEvidence: sourceCorpus,
+    }),
+    synthesizeKeywordResearch({
+      sourceUrl: normalizedUrl,
+      productName,
+      positioning,
+      language,
+      sourceCorpus,
+      targetUsers,
+      painPoints,
+      valueProps,
+    }),
+  ])
 
   if (refinedSignals) {
     painPoints = refinedSignals.painPoints.length > 0 ? refinedSignals.painPoints : painPoints
     valueProps = refinedSignals.valueProps.length > 0 ? refinedSignals.valueProps : valueProps
-    proofPoints = refinedSignals.proofPoints.length > 0 ? refinedSignals.proofPoints : proofPoints
+    proofPoints = refinedSignals.proofPoints
   }
-
-  const keywordResearch = await synthesizeKeywordResearch({
-    sourceUrl: normalizedUrl,
-    productName,
-    positioning,
-    language,
-    sourceCorpus,
-    targetUsers,
-    painPoints,
-    valueProps,
-  })
 
   const highlights = dedupe([
     root.description,
@@ -487,7 +487,7 @@ export async function fetchPublicHtml(url: string): Promise<{ url: string; html:
 
     const response = await fetch(currentUrl, {
       headers: {
-        'user-agent': 'LaunchKitBot/1.0 (+https://clickstudio.dev)',
+        'user-agent': 'shipdaddyBot/1.0',
         accept: 'text/html,application/xhtml+xml',
       },
       signal: AbortSignal.timeout(15000),
@@ -1225,6 +1225,10 @@ function preferProofPoints(
   corpus: string[],
   maxItems: number,
 ): string[] {
+  if (candidate) {
+    return sanitizeProofPointList(candidate).slice(0, maxItems)
+  }
+
   const fromModel = sanitizeProofPointList(candidate || [])
   const fromFallback = sanitizeProofPointList(fallback)
   const fromCorpus = rankProofPoints(corpus)
@@ -1470,9 +1474,13 @@ async function refineBriefSignalsWithReplicate(input: {
       'You are a ruthless product marketing editor reviewing extracted launch-brief fields before channel-specific content generation.',
       'Evaluate and improve painPoints, valueProps, and proofPoints as a connected set.',
       'Use only the provided product brief and source evidence. Do not invent facts, metrics, customers, outcomes, testimonials, funding, security claims, or press.',
+      'Prioritize the primary ICP and core product promise. Do not let secondary page sections, event/package pages, integrations, demos, or example industries reshape the message.',
+      'Ignore illustrative demos, sample chat transcripts, fictional customer examples, placeholder businesses, carousel examples, and sample outputs when deciding painPoints, valueProps, and proofPoints.',
       'Pain points must be concrete audience frustrations, not generic needs or missing-feature restatements.',
-      'Value props must be concrete product benefits or capabilities tied to the pains and source evidence, not vague marketing adjectives.',
+      'Value props must be concrete product benefits or capabilities tied to the primary pains and source evidence, not vague marketing adjectives or secondary use-case details.',
       'Proof points must be source-backed evidence cues from the source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+      'Proof points are credibility evidence, not product capabilities. Do not treat features, benefits, pricing, setup speed, package details, demos, sample conversations, example outputs, or internal workflow descriptions as proof.',
+      'Named customer logos/sites count only when the page clearly presents them as real customers, trusted-by logos, live customer sites, case studies, or testimonials. Fictional examples and placeholders never count.',
       'Preserve numeric claims exactly as written in source evidence. Do not round up, combine counts, or turn one count into a larger marketing claim.',
       'Return proofPoints as [] when no source-backed proof or evidence cue exists. Do not treat pricing, CTAs, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims as proof.',
       'Prefer fewer stronger bullets over padded lists. Keep the output useful for downstream channel-specific content.',
@@ -1499,8 +1507,8 @@ async function refineBriefSignalsWithReplicate(input: {
         sourceEvidence: input.sourceEvidence.slice(0, 90),
         outputRules: {
           painPoints: '3-6 specific user frustrations written in audience language.',
-          valueProps: '3-6 concrete benefits or capabilities tied to source evidence.',
-          proofPoints: '0-5 source-backed evidence cues only; [] if no proof or evidence cue exists.',
+          valueProps: '3-6 concrete benefits or capabilities tied to primary audience pains and source evidence.',
+          proofPoints: '0-5 verifiable credibility cues only; [] if no metric, named customer, testimonial, rating, award, certification, press, or public trust evidence exists.',
         },
       },
       null,
@@ -1509,8 +1517,11 @@ async function refineBriefSignalsWithReplicate(input: {
     jsonSchema: BRIEF_SIGNAL_REFINEMENT_SCHEMA as unknown as Record<string, unknown>,
     schemaName: 'brief_signal_refinement',
     modelVariant: process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
-    maxOutputTokens: 6000,
-    reasoningEffort: 'medium',
+    maxOutputTokens: 2400,
+    waitSeconds: 8,
+    pollTimeoutMs: 12000,
+    requestTimeoutMs: 15000,
+    reasoningEffort: 'low',
     verbosity: 'medium',
   })
 
@@ -1550,16 +1561,27 @@ async function synthesizeBriefInsights(input: {
         'Do not output navigation labels or boilerplate.',
         'Ground output in evidence. Avoid generic filler.',
         'Do not mention launch messaging, founders, startups, designers, or platform copy unless the evidence clearly says that.',
+        'Audience discipline: identify the primary buyer/user from high-signal evidence first: hero copy, meta description, product/pricing copy, repeated use-case language, and core CTAs.',
+        'Do not turn every mentioned use case, event type, integration, example industry, testimonial subject, blog topic, or secondary service into a target user.',
+        'Treat page sections like Events, FAQ, testimonials, blog cards, footer links, integrations, and secondary service cards as supporting context, not primary audience evidence.',
+        'If the source has broad primary buyers plus narrow sub-use cases, keep targetUsers broad and omit sub-use cases such as birthdays, team-building, one-off events, or example industries unless the whole page primarily sells that offer.',
+        'targetUsers must be buyer/customer categories, not package names, booking occasions, or jobs-to-be-done phrased as segments.',
+        'For venues, hospitality, ecommerce, and local services, omit event planners, corporate teams, birthday planners, and similar occasion-based segments unless the title, meta description, hero, and positioning all center on that event offer.',
+        'Ignore illustrative demos, sample chat transcripts, fictional customer examples, placeholder businesses, carousel examples, and sample outputs when deciding ICP, targetUsers, painPoints, valueProps, keyClaims, and proofPoints.',
+        'Prefer fewer accurate audience segments over a padded list. If the source is broad, use broad but faithful segments instead of inventing vertical examples.',
         'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, voiceGuide, cta, language.',
         'Constraints:',
         '- productName: brand or product name, not a generic SEO category unless no brand exists.',
         '- positioning: one clear sentence, max 220 chars.',
-        '- icp: one sentence, max 220 chars.',
-        '- targetUsers: array of 3-6 concrete buyer/user segments.',
+        '- icp: one sentence, max 220 chars. Name the primary buyer/user, their situation, and the core need. Do not merge all secondary use cases into the ICP.',
+        '- targetUsers: array of 2-4 primary buyer/user segments, ordered by importance. Include a segment only when source evidence directly names it or strongly repeats it as a buyer/user.',
+        '- targetUsers should not include secondary events, occasional edge cases, generic roles, or made-up industry examples unless the page clearly sells to them as primary buyers/users.',
         '- painPoints: array of 3-6 specific frustrations the product solves.',
         '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
         '- keyClaims: array of 4-8 source-grounded product claims.',
         '- proofPoints: array of up to 5 source-backed evidence cues from source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+        '- proofPoints are credibility evidence, not product features, benefits, pricing, setup speed, package details, demos, sample conversations, fictional examples, sample outputs, or internal workflow descriptions.',
+        '- Named customer logos/sites count only when presented as real customers, trusted-by logos, live customer sites, case studies, or testimonials. Placeholders and fictional examples never count.',
         '- Numeric claims must match the source evidence exactly. Do not round up, combine counts, or infer larger quantities.',
         '- Do not put pricing, CTAs, dates, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims in proofPoints. Return [] when no source-backed proof or evidence cue is present.',
         '- voiceGuide: 2-4 sentences, max 420 chars. Describe tone traits, pacing, formality, phrases to preserve, and phrases/claims to avoid. Keep it usable as downstream channel-specific writing guidance.',
@@ -1582,9 +1604,12 @@ async function synthesizeBriefInsights(input: {
       jsonSchema: BRIEF_INSIGHTS_SCHEMA as unknown as Record<string, unknown>,
       schemaName: 'brief_insights',
       modelVariant: process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
-      maxOutputTokens: 12000,
-      reasoningEffort: 'medium',
-      verbosity: 'high',
+      maxOutputTokens: 4800,
+      waitSeconds: 18,
+      pollTimeoutMs: 24000,
+      requestTimeoutMs: 25000,
+      reasoningEffort: 'low',
+      verbosity: 'medium',
     })
 
     if (replicateOutput) {
@@ -1629,16 +1654,27 @@ async function synthesizeBriefInsights(input: {
               'Ground output in evidence. Avoid generic filler.',
               'Return valid JSON only.',
               'Do not mention launch messaging, founders, startups, designers, or platform copy unless the evidence clearly says that.',
+              'Audience discipline: identify the primary buyer/user from high-signal evidence first: hero copy, meta description, product/pricing copy, repeated use-case language, and core CTAs.',
+              'Do not turn every mentioned use case, event type, integration, example industry, testimonial subject, blog topic, or secondary service into a target user.',
+              'Treat page sections like Events, FAQ, testimonials, blog cards, footer links, integrations, and secondary service cards as supporting context, not primary audience evidence.',
+              'If the source has broad primary buyers plus narrow sub-use cases, keep targetUsers broad and omit sub-use cases such as birthdays, team-building, one-off events, or example industries unless the whole page primarily sells that offer.',
+              'targetUsers must be buyer/customer categories, not package names, booking occasions, or jobs-to-be-done phrased as segments.',
+              'For venues, hospitality, ecommerce, and local services, omit event planners, corporate teams, birthday planners, and similar occasion-based segments unless the title, meta description, hero, and positioning all center on that event offer.',
+              'Ignore illustrative demos, sample chat transcripts, fictional customer examples, placeholder businesses, carousel examples, and sample outputs when deciding ICP, targetUsers, painPoints, valueProps, keyClaims, and proofPoints.',
+              'Prefer fewer accurate audience segments over a padded list. If the source is broad, use broad but faithful segments instead of inventing vertical examples.',
               'Output keys: productName, positioning, icp, targetUsers, painPoints, valueProps, keyClaims, proofPoints, voiceGuide, cta, language.',
               'Constraints:',
               '- productName: brand or product name, not a generic SEO category unless no brand exists.',
               '- positioning: one clear sentence, max 220 chars.',
-              '- icp: one sentence, max 220 chars.',
-              '- targetUsers: array of 3-6 concrete buyer/user segments.',
+              '- icp: one sentence, max 220 chars. Name the primary buyer/user, their situation, and the core need. Do not merge all secondary use cases into the ICP.',
+              '- targetUsers: array of 2-4 primary buyer/user segments, ordered by importance. Include a segment only when source evidence directly names it or strongly repeats it as a buyer/user.',
+              '- targetUsers should not include secondary events, occasional edge cases, generic roles, or made-up industry examples unless the page clearly sells to them as primary buyers/users.',
               '- painPoints: array of 3-6 specific frustrations the product solves.',
               '- valueProps: array of 3-6 concrete benefits tied to source evidence.',
               '- keyClaims: array of 4-8 source-grounded product claims.',
               '- proofPoints: array of up to 5 source-backed evidence cues from source only: metrics, customer/user counts, ratings, testimonials, rankings, awards, customer logos, security/compliance, numeric product evidence, or public trust promises.',
+              '- proofPoints are credibility evidence, not product features, benefits, pricing, setup speed, package details, demos, sample conversations, fictional examples, sample outputs, or internal workflow descriptions.',
+              '- Named customer logos/sites count only when presented as real customers, trusted-by logos, live customer sites, case studies, or testimonials. Placeholders and fictional examples never count.',
               '- Numeric claims must match the source evidence exactly. Do not round up, combine counts, or infer larger quantities.',
               '- Do not put pricing, CTAs, dates, navigation labels, unsupported traction, fake logos, fake metrics, or generic marketing claims in proofPoints. Return [] when no source-backed proof or evidence cue is present.',
               '- voiceGuide: 2-4 sentences, max 420 chars. Describe tone traits, pacing, formality, phrases to preserve, and phrases/claims to avoid. Keep it usable as downstream channel-specific writing guidance.',
@@ -1680,7 +1716,7 @@ async function synthesizeBriefInsights(input: {
         authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(20000),
     })
 
     if (!response.ok) {
@@ -1824,9 +1860,12 @@ async function synthesizeKeywordResearch(input: {
       jsonSchema: KEYWORD_RESEARCH_SCHEMA as unknown as Record<string, unknown>,
       schemaName: 'keyword_research',
       modelVariant: process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
-      maxOutputTokens: 14000,
-      reasoningEffort: 'medium',
-      verbosity: 'high',
+      maxOutputTokens: 3200,
+      waitSeconds: 8,
+      pollTimeoutMs: 12000,
+      requestTimeoutMs: 15000,
+      reasoningEffort: 'low',
+      verbosity: 'medium',
     })
 
     if (replicateOutput) {
@@ -1905,7 +1944,7 @@ async function synthesizeKeywordResearch(input: {
         authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(15000),
     })
 
     if (!response.ok) {
@@ -2166,7 +2205,12 @@ function normalizeUrl(input: string): string {
   }
 
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
-  const parsed = new URL(withProtocol)
+  let parsed: URL
+  try {
+    parsed = new URL(withProtocol)
+  } catch {
+    throw new Error('Invalid URL')
+  }
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     throw new Error('Only HTTP(S) URLs are supported')
   }

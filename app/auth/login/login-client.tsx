@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { type FormEvent, useState } from 'react'
 import { signIn, signUp, useSession } from '@/lib/auth-client'
+import { BrandLogo } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 
 export default function LoginClient({ googleEnabled }: { googleEnabled: boolean }) {
@@ -39,7 +40,7 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
               callbackURL: '/dashboard',
             })
           : await signUp.email({
-              name: name.trim() || email.split('@')[0] || 'Launch Kit user',
+              name: name.trim() || email.split('@')[0] || 'shipdaddy user',
               email,
               password,
               callbackURL: '/dashboard',
@@ -70,14 +71,8 @@ export default function LoginClient({ googleEnabled }: { googleEnabled: boolean 
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-gray-50 dark:from-zinc-950 dark:to-zinc-900">
       <div className="w-full max-w-md space-y-8 rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
         <div className="text-center">
-          <Link href="/" className="mb-6 inline-flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">C</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              <span className="rounded bg-zinc-950 px-1 text-white dark:bg-white dark:text-black">click</span>
-              studio
-            </span>
+          <Link href="/" className="mb-6 inline-flex rounded-xl bg-white px-3 py-2" aria-label="shipdaddy">
+            <BrandLogo className="h-16" priority />
           </Link>
           <h1 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
             {mode === 'signIn' ? t('title') : t('createTitle')}

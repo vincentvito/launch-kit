@@ -46,14 +46,13 @@ Set `DATABASE_URL` and `DIRECT_URL` in `.env` before running `npm run dev`. Open
 
 See [`.env.example`](./.env.example). Database vars must point at the same Postgres database:
 
-- `WAITING_LIST_ENABLED` — set to `true` in production to show a waitlist page at `/` instead of the full landing page. Leave unset locally so the landing page renders by default.
 - `DATABASE_URL` — pooled Supabase/Postgres runtime URL. For Supabase, use the transaction pooler on port `6543` with `pgbouncer=true&connection_limit=1`.
 - `DIRECT_URL` — direct/session Supabase/Postgres URL for Prisma migrations. For Supabase, use port `5432`; set this in Vercel too because `npm run build` runs `prisma migrate deploy`.
 - `BETTER_AUTH_SECRET` — generate with `openssl rand -base64 32` for any non-local environment.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional. Leave blank to disable the Google sign-in button locally.
-- `OPENAI_API_KEY` — optional for Launch Kit AI generation. If omitted, Launch Kit returns template-based fallback content.
-- `OPENAI_MODEL` — optional model override for Launch Kit generation (defaults to `gpt-4.1-mini`).
-- `REPLICATE_IMAGE_MODEL` / `REPLICATE_VIDEO_MODEL` — optional model overrides for Launch Kit asset generation (defaults to `google/imagen-4-fast` and `google/veo-3.1-fast`).
+- `OPENAI_API_KEY` — optional for shipdaddy AI generation. If omitted, shipdaddy returns template-based fallback content.
+- `OPENAI_MODEL` — optional model override for shipdaddy generation (defaults to `gpt-4.1-mini`).
+- `REPLICATE_IMAGE_MODEL` / `REPLICATE_VIDEO_MODEL` — optional model overrides for shipdaddy asset generation (defaults to `google/imagen-4-fast` and `google/veo-3.1-fast`).
 - `LAUNCH_KIT_DISCOVERY_PROVIDER` / `LAUNCH_KIT_SEO_DISCOVERY_PROVIDER` — optional discovery providers for lead and backlink search. Leave as `seeded` for local deterministic results.
 - `SERPAPI_API_KEY` — optional. Used only when a discovery provider is set to `serpapi`; otherwise the app falls back to seeded discovery.
 - `LAUNCH_KIT_PUBLIC_FREE_ENABLED` — enables anonymous free URL ingest/generation. Defaults to enabled locally and disabled in production.

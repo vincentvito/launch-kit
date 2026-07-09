@@ -1,13 +1,12 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Playfair_Display, Space_Grotesk } from 'next/font/google'
 import {
   Check,
   Newspaper,
-  Sparkles,
   Wand2,
 } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 import LaunchUrlHandoff from '@/components/landing/launch-url-handoff'
 import {
@@ -15,15 +14,8 @@ import {
   getDemoPreviewBlocks,
 } from '@/lib/launch-kit/demo'
 
-const editorialSerif = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['500', '700', '800'],
-})
-
-const interfaceSans = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-})
+const displaySans = { className: 'font-sans font-semibold tracking-tight' } as const
+const appSans = { className: 'font-sans' } as const
 
 const toneByPlatform: Record<string, string> = {
   product_hunt: 'from-amber-500/15 to-orange-100/35',
@@ -84,7 +76,7 @@ export default async function LandingPage() {
   ]
 
   return (
-    <div className={`${interfaceSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
+    <div className={`${appSans.className} relative min-h-screen overflow-x-clip bg-white text-zinc-900`}>
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -top-28 -right-20 size-[420px] rounded-full bg-gradient-to-br from-violet-300/60 via-fuchsia-200/45 to-transparent blur-3xl" />
         <div className="absolute top-1/3 -left-24 size-[360px] rounded-full bg-gradient-to-tr from-purple-300/40 via-violet-200/25 to-transparent blur-3xl" />
@@ -92,16 +84,8 @@ export default async function LandingPage() {
 
       <header className="sticky top-0 z-40 border-b border-violet-100 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-              <Sparkles className="size-4 text-white" />
-            </div>
-            <div>
-              <p className={`${editorialSerif.className} text-lg font-semibold tracking-tight`}>
-                {t('nav.brand')}
-              </p>
-              <p className="text-[11px] text-zinc-500">{t('nav.sub')}</p>
-            </div>
+          <Link href="/" className="flex items-center" aria-label={t('nav.brand')}>
+            <BrandLogo className="h-12 sm:h-14" priority />
           </Link>
 
           <div className="hidden items-center gap-6 md:flex">
@@ -143,9 +127,9 @@ export default async function LandingPage() {
             </div>
 
             <h1
-              className={`${editorialSerif.className} mt-5 text-4xl leading-[1.02] tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl`}
+              className={`${displaySans.className} mt-5 text-4xl leading-[1.07] text-zinc-900 sm:text-5xl lg:text-6xl`}
             >
-              {t('hero.title')}
+              {t('hero.title')}{' '}
               <span className="mt-2 block text-violet-700">
                 {t('hero.titleHighlight')}
               </span>
@@ -193,7 +177,7 @@ export default async function LandingPage() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
                     {t('proof.sourceLabel')}
                   </p>
-                  <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                  <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                     {t('proof.sourceTitle')}
                   </h2>
                 </div>
@@ -224,7 +208,7 @@ export default async function LandingPage() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
                       {t('proof.outputLabel')}
                     </p>
-                    <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                    <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                       {t('proof.outputTitle')}
                     </h2>
                   </div>
@@ -267,7 +251,7 @@ export default async function LandingPage() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-700">
                       {t('proof.outputLabel')}
                     </p>
-                    <h2 className={`${editorialSerif.className} text-2xl leading-tight text-zinc-900`}>
+                    <h2 className={`${displaySans.className} text-2xl leading-tight text-zinc-900`}>
                       {t('proof.outputTitle')}
                     </h2>
                   </div>
@@ -311,7 +295,7 @@ export default async function LandingPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
                 {t('voices.label')}
               </p>
-              <h2 className={`${editorialSerif.className} mt-2 text-4xl leading-tight text-zinc-900`}>
+              <h2 className={`${displaySans.className} mt-2 text-4xl leading-tight text-zinc-900`}>
                 {t('voices.title')}
               </h2>
               <p className="mt-3 text-base leading-relaxed text-zinc-600">{t('voices.description')}</p>
@@ -331,7 +315,7 @@ export default async function LandingPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
               {t('generated.label')}
             </p>
-            <h2 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900`}>
+            <h2 className={`${displaySans.className} mt-2 text-3xl leading-tight text-zinc-900`}>
               {t('generated.title')}
             </h2>
             <p className="mt-3 text-zinc-600">{t('generated.description')}</p>
@@ -351,7 +335,7 @@ export default async function LandingPage() {
 
           <article id="media" className="rounded-[1.6rem] border border-violet-100 bg-gradient-to-br from-white to-violet-50/70 p-6 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">{t('media.label')}</p>
-            <h2 className={`${editorialSerif.className} mt-2 text-3xl leading-tight text-zinc-900`}>
+            <h2 className={`${displaySans.className} mt-2 text-3xl leading-tight text-zinc-900`}>
               {t('media.title')}
             </h2>
             <p className="mt-3 text-zinc-600">{t('media.description')}</p>

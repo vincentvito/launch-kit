@@ -1,5 +1,5 @@
 {
-  "name": "clickstudio-starter",
+  "name": "shipdaddy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,6 @@
     "lint": "eslint",
     "test": "vitest run",
     "preflight:production": "tsx scripts/production-preflight.ts",
-    "sample:assets": "tsx scripts/generate-shipdaddy-sample-assets.ts",
     "postinstall": "prisma generate",
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio"

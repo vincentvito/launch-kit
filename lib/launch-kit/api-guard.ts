@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { getAllowedOrigins, isProductionRuntime, isPublicFreeGenerationEnabled } from '@/lib/env'
-import { getLaunchEntitlement, type LaunchEntitlement } from '@/lib/launch-kit/entitlements'
-import { consumeRateLimit, getRateLimitPolicy, type RateLimitResult } from '@/lib/launch-kit/rate-limit'
+import { isPostgresDatabaseUrl } from '@/lib/database-provider'
+import type { LaunchEntitlement } from '@/lib/launch-kit/entitlements'
+import type { RateLimitResult } from '@/lib/launch-kit/rate-limit'
 import { getSubjectKey } from '@/lib/launch-kit/security'
-import { recordUsageEvent } from '@/lib/launch-kit/usage'
 import { logServerError } from '@/lib/observability'
 
-type SessionLike = Awaited<ReturnType<typeof auth.api.getSession>>
+type SessionLike = {
+  user: {
+    id: string
+    email?: string | null
+  }
+} | null
 
 export type LaunchApiAccess = {
   session: NonNullable<SessionLike> | null
   entitlement: LaunchEntitlement
   subjectKey: string
   rateLimit: RateLimitResult
+  persistence: 'database' | 'stateless'
 }
 
 export type LaunchApiAccessOptions = {
@@ -112,9 +117,11 @@ function concatChunks(chunks: Uint8Array[], totalBytes: number): Uint8Array {
 }
 
 export async function getRequestSession(request: Request) {
+  const { auth } = await import('@/lib/auth')
+
   return auth.api.getSession({
     headers: request.headers,
-  })
+  }) as Promise<SessionLike>
 }
 
 export async function requireLaunchApiAccess(
@@ -123,15 +130,22 @@ export async function requireLaunchApiAccess(
 ): Promise<LaunchApiAccess> {
   assertTrustedRequestOrigin(request)
 
-  const session = await getRequestSession(request)
-  const user = session?.user
-  const entitlement = await getLaunchEntitlement(user)
-  const subjectKey = getSubjectKey(request, user?.id)
-  const isPremium = options.feature === 'premium'
   const allowAnonymousFree =
     options.feature === 'free' &&
     options.allowAnonymous === true &&
     isPublicFreeGenerationEnabled()
+
+  if (shouldUseStatelessFreeAccess(allowAnonymousFree)) {
+    return createStatelessFreeAccess(request)
+  }
+
+  const session = await getRequestSession(request)
+  const user = session?.user
+  const entitlement = user
+    ? await getPersistedLaunchEntitlement(user)
+    : getAnonymousLaunchEntitlement()
+  const subjectKey = getSubjectKey(request, user?.id)
+  const isPremium = options.feature === 'premium'
 
   if (!session && !allowAnonymousFree) {
     throw new LaunchApiError(401, 'unauthorized', 'Sign in to continue.')
@@ -146,11 +160,11 @@ export async function requireLaunchApiAccess(
   }
 
   const rateLimitAction = options.rateLimitAction || (isPremium ? 'premium_action' : options.action)
-  const policy = getRateLimitPolicy(rateLimitAction, entitlement.hasPremium)
+  const { consumeRateLimit, getRateLimitPolicy } = await import('@/lib/launch-kit/rate-limit')
   const rateLimit = await consumeRateLimit({
     subjectKey,
     action: rateLimitAction,
-    policy,
+    policy: getRateLimitPolicy(rateLimitAction, entitlement.hasPremium),
   })
 
   if (!rateLimit.ok) {
@@ -166,6 +180,47 @@ export async function requireLaunchApiAccess(
     entitlement,
     subjectKey,
     rateLimit,
+    persistence: 'database',
+  }
+}
+
+function hasRuntimePostgresDatabase(): boolean {
+  return [process.env.DATABASE_URL, process.env.DIRECT_URL].some((value) =>
+    value ? isPostgresDatabaseUrl(value) : false,
+  )
+}
+
+function shouldUseStatelessFreeAccess(allowAnonymousFree: boolean): boolean {
+  return allowAnonymousFree && !isProductionRuntime() && !hasRuntimePostgresDatabase()
+}
+
+function getAnonymousLaunchEntitlement(): LaunchEntitlement {
+  return {
+    plan: 'free',
+    status: 'anonymous',
+    hasPremium: false,
+  }
+}
+
+async function getPersistedLaunchEntitlement(user: NonNullable<SessionLike>['user']) {
+  const { getLaunchEntitlement } = await import('@/lib/launch-kit/entitlements')
+  return getLaunchEntitlement(user)
+}
+
+function createStatelessFreeAccess(request: Request): LaunchApiAccess {
+  const entitlement = getAnonymousLaunchEntitlement()
+
+  return {
+    session: null,
+    entitlement,
+    subjectKey: getSubjectKey(request),
+    rateLimit: {
+      ok: true,
+      limit: Number.POSITIVE_INFINITY,
+      remaining: Number.POSITIVE_INFINITY,
+      resetAt: new Date(Date.now() + 60 * 60 * 1000),
+    },
+    persistence: 'stateless',
   }
 }
 
@@ -188,6 +243,14 @@ export function assertTrustedRequestOrigin(request: Request): void {
     throw new LaunchApiError(403, 'untrusted_origin', 'Request origin is not allowed.')
   }
 
+  const requestOrigin = new URL(request.url).origin
+  if (
+    !isProductionRuntime() &&
+    (normalizedOrigin === requestOrigin || (isLoopbackOrigin(normalizedOrigin) && isLoopbackOrigin(requestOrigin)))
+  ) {
+    return
+  }
+
   const allowedOrigins = getAllowedOrigins()
     .map((value) => normalizeOrigin(value))
     .filter((value): value is string => Boolean(value))
@@ -206,11 +269,25 @@ function normalizeOrigin(value: string): string | null {
   }
 }
 
+function isLoopbackOrigin(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin)
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]'
+  } catch {
+    return false
+  }
+}
+
 export async function recordLaunchApiUsage(
   access: LaunchApiAccess,
   action: string,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
+  if (access.persistence === 'stateless') {
+    return
+  }
+
+  const { recordUsageEvent } = await import('@/lib/launch-kit/usage')
   await recordUsageEvent({
     userId: access.session?.user.id,
     subjectKey: access.subjectKey,

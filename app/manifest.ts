@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Launch Kit',
-    short_name: 'Launch Kit',
+    name: 'shipdaddy',
+    short_name: 'shipdaddy',
     description: 'Turn one product URL into launch copy, exports, and premium growth assets.',
     start_url: '/',
     display: 'standalone',
@@ -11,9 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#6d28d9',
     icons: [
       {
-        src: '/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
+        src: '/icon.png',
+        sizes: '1024x1024',
+        type: 'image/png',
       },
     ],
   }

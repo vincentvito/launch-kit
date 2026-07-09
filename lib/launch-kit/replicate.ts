@@ -28,7 +28,9 @@ type RunReplicateStructuredInput = {
   schemaName?: string
   modelVariant?: string
   maxOutputTokens?: number
+  waitSeconds?: number
   pollTimeoutMs?: number
+  requestTimeoutMs?: number
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high'
   verbosity?: 'low' | 'medium' | 'high'
 }
@@ -59,6 +61,8 @@ export async function runReplicateStructured<T>(
 
   const model = process.env.REPLICATE_MODEL || DEFAULT_MODEL
   const endpoint = `https://api.replicate.com/v1/models/${model}/predictions`
+  const waitSeconds = input.waitSeconds ?? 60
+  const requestTimeoutMs = input.requestTimeoutMs ?? 120000
   const structuredSchema = input.jsonSchema
     ? {
         format: {
@@ -69,27 +73,34 @@ export async function runReplicateStructured<T>(
       }
     : undefined
 
-  const createResponse = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${token}`,
-      'content-type': 'application/json',
-      // Ask Replicate to hold the request open while the prediction runs.
-      prefer: 'wait=60',
-    },
-    body: JSON.stringify({
-      input: {
-        instructions: input.instructions,
-        prompt: input.prompt,
-        model: input.modelVariant || process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
-        reasoning_effort: input.reasoningEffort || 'high',
-        verbosity: input.verbosity || 'high',
-        max_output_tokens: input.maxOutputTokens || 3200,
-        ...(structuredSchema ? { json_schema: structuredSchema } : {}),
+  let createResponse: Response
+  try {
+    createResponse = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${token}`,
+        'content-type': 'application/json',
+        prefer: `wait=${waitSeconds}`,
       },
-    }),
-    signal: AbortSignal.timeout(120000),
-  })
+      body: JSON.stringify({
+        input: {
+          instructions: input.instructions,
+          prompt: input.prompt,
+          model: input.modelVariant || process.env.REPLICATE_OPENAI_MODEL || 'gpt-5',
+          reasoning_effort: input.reasoningEffort || 'high',
+          verbosity: input.verbosity || 'high',
+          max_output_tokens: input.maxOutputTokens || 3200,
+          ...(structuredSchema ? { json_schema: structuredSchema } : {}),
+        },
+      }),
+      signal: AbortSignal.timeout(requestTimeoutMs),
+    })
+  } catch (error) {
+    if (DEBUG) {
+      console.warn('[replicate] create errored', error)
+    }
+    return null
+  }
 
   if (!createResponse.ok) {
     if (DEBUG) {
@@ -109,12 +120,20 @@ export async function runReplicateStructured<T>(
   const pollDeadline = Date.now() + (input.pollTimeoutMs || 360000)
   while (!TERMINAL_STATUSES.has(prediction.status) && Date.now() < pollDeadline) {
     const getUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
-    const statusResponse = await fetch(getUrl, {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-      signal: AbortSignal.timeout(60000),
-    })
+    let statusResponse: Response
+    try {
+      statusResponse = await fetch(getUrl, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+        signal: AbortSignal.timeout(Math.min(requestTimeoutMs, 60000)),
+      })
+    } catch (error) {
+      if (DEBUG) {
+        console.warn('[replicate] poll errored', error)
+      }
+      return null
+    }
 
     if (!statusResponse.ok) {
       if (DEBUG) {

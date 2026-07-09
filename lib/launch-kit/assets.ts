@@ -578,7 +578,7 @@ function buildTextAdInstructions(template: LaunchAssetTemplate): string {
   const spec = getTextAdSpec(template)
 
   return [
-    `You are Launch Kit, an expert ${spec.channel} paid-social copywriter.`,
+    `You are shipdaddy, an expert ${spec.channel} paid-social copywriter.`,
     `Write exactly one ${spec.channel} ${spec.formatName} grounded in the product brief and voice guide.`,
     'Make the copy sound human, specific, and native to the requested placement rather than AI-generated.',
     'Avoid hype, fake scarcity, unsupported claims, unnecessary hashtags, and generic AI wording.',

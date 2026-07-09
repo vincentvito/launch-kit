@@ -14,7 +14,6 @@ export type RateLimitPolicy = {
 }
 
 const DEFAULT_LIMITS: Record<string, RateLimitPolicy> = {
-  waitlist_signup: { limit: 5, windowSeconds: 60 * 60 },
   ingest: { limit: 20, windowSeconds: 60 * 60 },
   generate_free: { limit: 6, windowSeconds: 24 * 60 * 60 },
   generate_premium: { limit: 60, windowSeconds: 24 * 60 * 60 },
